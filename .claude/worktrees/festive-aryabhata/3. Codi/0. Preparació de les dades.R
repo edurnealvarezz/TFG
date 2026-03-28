@@ -1,13 +1,7 @@
-packages <- c("dplyr", "forcats")
-
-install_if_missing <- function(pkg) {
-  if (!require(pkg, character.only = TRUE)) {
-    install.packages(pkg)
-    library(pkg, character.only = TRUE)
-  }
-}
-
-lapply(packages, install_if_missing); rm(packages)
+library(dplyr)
+library(readxl)
+library(forcats)
+library(writexl)
 
 
 #### ============================================================ ####
@@ -162,7 +156,5 @@ dades %>% filter(EDAT > 30) %>% select(EDAT, GRAU, CURS)
 # hi ha algú de 82 anys que acaba de començar ade + dret? de totes formes
 # no és outlier 
 
-save(dades, file = "0. Dades definitives.RData")
-saveRDS(estrategies_vars, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/estrategies_vars.rds")
-saveRDS(ia_vars, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/ia_vars.rds")
-saveRDS(motius_vars, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/motius_vars.rds")
+
+write_xlsx(dades, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/0. Dades definitives.xlsx")

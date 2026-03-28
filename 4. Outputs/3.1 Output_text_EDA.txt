@@ -1,0 +1,361 @@
+
+> pdf("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/4. Outputs/3.2 Output_grafics_EDA.pdf",
++     width = 10, height = 8)
+
+> col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4a90b8")
+
+> #### ============================================================ ####
+> ####           1. CORRELACIONS VARIABLES NUMÈRIQUES               ####
+> ## .... [TRUNCATED] 
+
+> cor_pearson <- cor(vars_num, method = "pearson", use = "complete.obs")
+
+> ggcorrplot(cor_pearson,
++            type      = "lower",
++            lab       = TRUE,
++            lab_size  = 4,
++            colors    = c("#E0 ..." ... [TRUNCATED] 
+
+> # Spearman incloent Likert com a numèric
+> vars_spearman <- dades %>%
++   select(P_ASSIST, EDAT, DESPL, N_ASSIG,
++          all_of(motius_vars),
++   .... [TRUNCATED] 
+
+> cor_spearman <- cor(vars_spearman, method = "spearman", use = "complete.obs")
+
+> cor_df <- melt(cor_spearman)
+
+> cor_df <- cor_df[abs(cor_df$value) > 0.7 & cor_df$Var1 != cor_df$Var2, ] 
+
+> # només les que tenen més d'un 70%, eliminant les variables amb si mateixes
+> 
+> ggplot(cor_df, aes(Var1, Var2, fill = value)) +
++   geom_tile() +
++ .... [TRUNCATED] 
+
+> # Submatriu: només correlacions amb P_ASSIST
+> cor_passist <- sort(cor_spearman["P_ASSIST", -1], decreasing = TRUE)
+
+> cor_passist <- cor_passist[abs(cor_passist) > 0.2]
+
+> df_cor_passist <- data.frame(
++   variable    = names(cor_passist),
++   correlacio  = as.numeric(cor_passist),
++   bloc        = case_when(
++     na .... [TRUNCATED] 
+
+> ggplot(df_cor_passist,
++        aes(x = reorder(variable, correlacio),
++            y = correlacio,
++            fill = bloc)) +
++   geom_col(alpha  .... [TRUNCATED] 
+
+> # de totes formes es correlacio de 0.2 o -0.4 en el millor dels casos...
+> 
+> #### ============================================================ #### .... [TRUNCATED] 
+
+> cor_filtrat <- cor_spearman[vars_alta_cor, vars_alta_cor]
+
+> cat("\n ==== Variables amb correlació > 0.6 amb alguna altra:", 
++     nrow(cor_filtrat), "==== \n")
+
+ ==== Variables amb correlació > 0.6 amb alguna altra: 12 ==== 
+
+> print(rownames(cor_filtrat))
+ [1] "M_FAM"    "M_SALUT"  "M_PASSIU" "M_TEOR"   "E_EXPL"  
+ [6] "E_RITME"  "IA_HABIT" "IA_COMPR" "IA_SUBST" "IA_CONF" 
+[11] "IA_ATENC" "IA_REND" 
+
+> corrplot(cor_filtrat,
++          method  = "color",
++          type    = "lower",
++          tl.cex  = 0.8,
++          tl.col  = "black",
++          .... [TRUNCATED] 
+
+> #### ============================================================ ####
+> ####           3. TESTS ESTADÍSTICS                               ####
+> ## .... [TRUNCATED] 
+
+=== Mann-Whitney / Wilcoxon ===
+
+> vars_cat_bin <- c("GENERE", "T_AVAL")
+
+> for (v in vars_cat_bin) {
++   grups <- split(dades$P_ASSIST, dades[[v]])
++   if (length(grups) == 2) {
++     test <- wilcox.test(grups[[1]], grups[[ .... [TRUNCATED] 
+T_AVAL → W = 1117.5 | p-valor = 0 
+
+> # Kruskal-Wallis (anova)
+> cat("\n=== Kruskal-Wallis ===\n")
+
+=== Kruskal-Wallis ===
+
+> vars_cat_multi <- c("GRAU", "CURS", "NOTA", "DEDIC")
+
+> for (v in vars_cat_multi) {
++   test <- kruskal.test(P_ASSIST ~ dades[[v]], data = dades)
++   cat(v, "→ H =", round(test$statistic, 2),
++       "| d ..." ... [TRUNCATED] 
+GRAU → H = 16.62 | df = 9 | p-valor = 0.0549 
+CURS → H = 26.68 | df = 5 | p-valor = 1e-04 
+NOTA → H = 35.14 | df = 4 | p-valor = 0 
+DEDIC → H = 10.34 | df = 3 | p-valor = 0.0159 
+
+> # Chi-quadrat: associació
+> cat("\n=== Chi-quadrat (GRUP_ASSIST vs categòriques) ===\n")
+
+=== Chi-quadrat (GRUP_ASSIST vs categòriques) ===
+
+> vars_chi <- c("GRAU", "CURS", "NOTA", "T_AVAL", "GENERE", "DEDIC")
+
+> resultats_chi <- lapply(vars_chi, function(v) {
++   taula <- table(dades$GRUP_ASSIST, dades[[v]])
++   test  <- chisq.test(taula, simulate.p.value =  .... [TRUNCATED] 
+
+> df_chi <- do.call(rbind, resultats_chi)
+
+> print(df_chi)
+           variable   chi2 p_valor sig
+X-squared      GRAU 22.218  0.0095  **
+X-squared1     CURS 14.860  0.0090  **
+X-squared2     NOTA 18.197  0.0010 ***
+X-squared3   T_AVAL 19.658  0.0005 ***
+X-squared4   GENERE  1.537  0.7621  ns
+X-squared5    DEDIC  4.968  0.1759  ns
+
+> # Mann-Whitney mateixa població
+> cat("\n=== Mann-Whitney: cada Likert vs GRUP_ASSIST ===\n")
+
+=== Mann-Whitney: cada Likert vs GRUP_ASSIST ===
+
+> totes_likert <- c(motius_vars, estrategies_vars, ia_vars)
+
+> resultats_mw <- lapply(totes_likert, function(v) {
++   x <- as.numeric(dades[[v]])
++   g <- dades$GRUP_ASSIST
++   test <- wilcox.test(x ~ g)
++   r < .... [TRUNCATED] 
+
+> df_mw <- do.call(rbind, resultats_mw) %>%
++   arrange(p_valor)
+
+> print(df_mw)
+    variable        bloc       W p_valor effect_r sig
+W2   M_SALUT      Motius 10132.0  0.0000    0.231 ***
+W4   M_AUTON      Motius 18619.5  0.0000    0.318 ***
+W6    M_EXAM      Motius 17871.0  0.0000    0.270 ***
+W8   M_AVORR      Motius 17953.0  0.0000    0.275 ***
+W10   M_TEOR      Motius 17953.0  0.0000    0.276 ***
+W11   M_PROF      Motius 17735.5  0.0000    0.264 ***
+W12  M_REPET      Motius 17243.5  0.0000    0.235 ***
+W14  M_AMICS      Motius 17307.0  0.0000    0.243 ***
+W28 IA_HABIT          IA 17201.5  0.0000    0.233 ***
+W30 IA_SUBST          IA 19230.5  0.0000    0.357 ***
+W32 IA_ATENC          IA 17258.5  0.0000    0.234 ***
+W7    M_UTIL      Motius 17028.0  0.0001    0.219 ***
+W9  M_PASSIU      Motius 16961.0  0.0001    0.213 ***
+W35  IA_PDFS          IA 16345.5  0.0010    0.180 ***
+W1     M_FAM      Motius 10940.0  0.0014    0.175  **
+W5      M_CV      Motius 16289.0  0.0019    0.170  **
+W26   E_HORA Estratègies 16040.5  0.0022    0.167  **
+W29 IA_COMPR          IA 15946.0  0.0038    0.159  **
+W34  IA_REND          IA 15689.0  0.0174    0.130   *
+W17  E_DINAM Estratègies 11736.5  0.0234    0.124   *
+W24 E_ACT_AC Estratègies 12129.5  0.0624    0.102  ns
+W3    M_DIST      Motius 15212.5  0.0668    0.100  ns
+W31  IA_CONF          IA 15144.0  0.0768    0.097  ns
+W20   E_DESC Estratègies 12144.0  0.0770    0.097  ns
+W13   M_ACAD      Motius 14634.0  0.2173    0.068  ns
+W16   E_PART Estratègies 12639.0  0.2363    0.065  ns
+W27 E_PES_AS Estratègies 12696.0  0.2488    0.063  ns
+W33 IA_PREOC          IA 14440.0  0.3618    0.050  ns
+W15 E_PES_AC Estratègies 12972.0  0.3839    0.048  ns
+W18   E_REDU Estratègies 12988.0  0.4362    0.043  ns
+W23  E_RITME Estratègies 13170.5  0.4892    0.038  ns
+W21  E_CLIMA Estratègies 13334.0  0.6754    0.023  ns
+W22   E_EXPL Estratègies 13531.0  0.8383    0.011  ns
+W     M_TREB      Motius 13718.0  0.9427    0.004  ns
+W25   E_PROP Estratègies 13700.5  0.9574    0.003  ns
+W19   E_CURT Estratègies 13654.0  0.9981    0.000  ns
+
+> # Gràfic effect size Likert: mesura com de gran és l'efecte
+> ggplot(df_mw, aes(x = reorder(variable, effect_r),
++                   y = effect_r,
++ .... [TRUNCATED] 
+
+> #### ============================================================ ####
+> ####             4. MCA SOBRE VARIABLES LIKERT                    ####
+> ## .... [TRUNCATED] 
+
+> #### ============================================================ ####
+> ####     MCA PER CADA BLOC                                       ####
+> ### .... [TRUNCATED] 
+
+=========================================
+ MCA del bloc Motius de NO assistència 
+========================================= 
+
+ ==== Variància explicada (primeres 10 dimensions sense correcció)====
+       eigenvalue variance.percent cumulative.variance.percent
+Dim.1  0.31441343         7.860336                    7.860336
+Dim.2  0.26482832         6.620708                   14.481044
+Dim.3  0.16878255         4.219564                   18.700608
+Dim.4  0.14775355         3.693839                   22.394446
+Dim.5  0.11666917         2.916729                   25.311176
+Dim.6  0.11415795         2.853949                   28.165125
+Dim.7  0.10919709         2.729927                   30.895052
+Dim.8  0.10366304         2.591576                   33.486628
+Dim.9  0.10190972         2.547743                   36.034371
+Dim.10 0.09613163         2.403291                   38.437662
+
+ ===== Variància corregida (Benzécri) per les primeres 10 dim =====
+       Dimensio Var_Real Var_Acum
+dim 1         1  46.9321  46.9321
+dim 2         2  30.0257  76.9578
+dim 3         3   7.9733  84.9311
+dim 4         4   5.0275  89.9586
+dim 5         5   1.9118  91.8704
+dim 6         6   1.7246  93.5950
+dim 7         7   1.3831  94.9781
+dim 8         8   1.0466  96.0247
+dim 9         9   0.9497  96.9744
+dim 10       10   0.6638  97.6382
+function (x, ...) 
+UseMethod("biplot")
+<bytecode: 0x000002be8bd4c9c8>
+<environment: namespace:stats>
+
+> mca_estrat <- fer_mca_bloc(
++   vars      = estrategies_vars,
++   nom_bloc  = "Estratègies d'assistència",
++   nivells   = 6,
++   color_bar = "#4A90 ..." ... [TRUNCATED] 
+
+==========================================
+ MCA del bloc Estratègies d'assistència 
+========================================== 
+
+ ==== Variància explicada (primeres 10 dimensions sense correcció)====
+       eigenvalue variance.percent cumulative.variance.percent
+Dim.1   0.3977465         7.954930                     7.95493
+Dim.2   0.3541766         7.083531                    15.03846
+Dim.3   0.2271928         4.543856                    19.58232
+Dim.4   0.1755825         3.511650                    23.09397
+Dim.5   0.1472233         2.944465                    26.03843
+Dim.6   0.1430337         2.860674                    28.89911
+Dim.7   0.1405878         2.811756                    31.71086
+Dim.8   0.1272003         2.544006                    34.25487
+Dim.9   0.1255887         2.511775                    36.76664
+Dim.10  0.1245219         2.490438                    39.25708
+
+ ===== Variància corregida (Benzécri) per les primeres 10 dim =====
+       Dimensio Var_Real Var_Acum
+dim 1         1  43.0199  43.0199
+dim 2         2  32.1286  75.1485
+dim 3         3   9.4380  84.5865
+dim 4         4   4.0683  88.6548
+dim 5         5   2.0656  90.7204
+dim 6         6   1.8268  92.5472
+dim 7         7   1.6941  94.2413
+dim 8         8   1.0565  95.2978
+dim 9         9   0.9899  96.2877
+dim 10       10   0.9470  97.2347
+function (x, ...) 
+UseMethod("biplot")
+<bytecode: 0x000002be8bd4c9c8>
+<environment: namespace:stats>
+
+> mca_ia <- fer_mca_bloc(
++   vars      = ia_vars,
++   nom_bloc  = "Ús de la IA",
++   nivells   = 6,
++   color_bar = "#8E6BBF"
++ )
+
+============================
+ MCA del bloc Ús de la IA 
+============================ 
+
+ ==== Variància explicada (primeres 10 dimensions sense correcció)====
+       eigenvalue variance.percent cumulative.variance.percent
+Dim.1   0.4978674         9.957349                    9.957349
+Dim.2   0.3543865         7.087731                   17.045079
+Dim.3   0.2391032         4.782063                   21.827143
+Dim.4   0.1936721         3.873442                   25.700585
+Dim.5   0.1808596         3.617191                   29.317776
+Dim.6   0.1764195         3.528390                   32.846166
+Dim.7   0.1699114         3.398227                   36.244393
+Dim.8   0.1643335         3.286670                   39.531063
+Dim.9   0.1593922         3.187844                   42.718906
+Dim.10  0.1579954         3.159908                   45.878814
+
+ ===== Variància corregida (Benzécri) per les primeres 10 dim =====
+       Dimensio Var_Real Var_Acum
+dim 1         1  62.5652  62.5652
+dim 2         2  23.6788  86.2440
+dim 3         3   5.8589  92.1029
+dim 4         4   2.1222  94.2251
+dim 5         5   1.4042  95.6293
+dim 6         6   1.1898  96.8191
+dim 7         7   0.9077  97.7268
+dim 8         8   0.6962  98.4230
+dim 9         9   0.5323  98.9553
+dim 10       10   0.4899  99.4452
+function (x, ...) 
+UseMethod("biplot")
+<bytecode: 0x000002be8bd4c9c8>
+<environment: namespace:stats>
+
+> #### ============================================================ ####
+> ####     RESUM COMPARATIU DELS 3 MCA                             ####
+> ### .... [TRUNCATED] 
+
+> coord_estrat <- mca_estrat$quali.sup$coord["Regular (≥80%)", 1] -
++   mca_estrat$quali.sup$coord["Irregular (<80%)", 1]
+
+> coord_ia     <- mca_ia$quali.sup$coord["Regular (≥80%)", 1] -
++   mca_ia$quali.sup$coord["Irregular (<80%)", 1]
+
+> cat("\n============================================\n")
+
+============================================
+
+> cat("SEPARACIÓ GRUP_ASSIST EN DIM 1 (Regular - Irregular):\n")
+SEPARACIÓ GRUP_ASSIST EN DIM 1 (Regular - Irregular):
+
+> cat("============================================\n")
+============================================
+
+> cat("Motius:      ", round(coord_motius, 3), "\n")
+Motius:       -0.718 
+
+> cat("Estratègies: ", round(coord_estrat, 3), "\n")
+Estratègies:  -0.192 
+
+> cat("IA:          ", round(coord_ia,     3), "\n")
+IA:           0.505 
+
+> cat("\nEl bloc amb major separació discrimina millor entre grups.\n")
+
+El bloc amb major separació discrimina millor entre grups.
+
+> dades_motius <- dades %>%
++   select(all_of(motius_vars),
++          GRUP_ASSIST) %>%
++   mutate(
++     across(all_of(motius_vars), ~ factor(as.inte .... [TRUNCATED] 
+
+> idx_motius <- as.integer(rownames(dades_motius))
+
+> # GRUP_ASSIST com a variable suplementària (no entra al càlcul,
+> # però es projecta per veure on cauen els dos grups)
+> mca_motius <- MCA(dades_mot .... [TRUNCATED] 
+
+> # --- Variància explicada ---
+> cat("Variància explicada MCA Likert (primeres 8 dimensions):\n")
+Variància explicada MCA Likert (primeres 8 dimensions):
+
+> print(round(dades_motius$eig[1:8, ], 2))
