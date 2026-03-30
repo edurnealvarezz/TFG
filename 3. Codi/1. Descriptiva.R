@@ -1,23 +1,53 @@
-library(ggplot2)
-library(dplyr)
-library(tidyr)
-library(scales)
-library(ggridges)
-library(patchwork)
-library(readxl)
-select <- dplyr::select
+packages <- c("dplyr", "ggplot2","tidyr","scales","ggridges","patchwork")
+
+install_if_missing <- function(pkg) {
+  if (!require(pkg, character.only = TRUE)) {
+    install.packages(pkg)
+    library(pkg, character.only = TRUE)
+  }
+}
+
+lapply(packages, install_if_missing)
+rm(packages)
+
+#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
+setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
+load("2. Dades/0. Dades definitives.RData")
+
+motius_vars <- readRDS("2. Dades/motius_vars.rds")
+estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
+ia_vars <- readRDS("2. Dades/ia_vars.rds")
+
+sink("4. Outputs/2.1 Output_text_descriptiva.txt")
+pdf("4. Outputs/2.2 Output_grafics_descriptiva.pdf",
+    width = 10, height = 8)
+
 
 #### ============================================================ ####
-####          DESCRIPTIVA GENERAL                                 ####
+####     1. CREACIÓ DE LA VARIABLE GRUP_ASSIST (tall al 80%)      ####
 #### ============================================================ ####
 
-setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
-dades <- read_excel("1. Preprocessing.xlsx")
+dades <- dades %>%
+  mutate(GRUP_ASSIST = factor(
+    ifelse(P_ASSIST >= 80, "Regular (≥80%)", "Irregular (<80%)"),
+    levels = c("Irregular (<80%)", "Regular (≥80%)")
+  ))
 
-dades %>%
-  select(EDAT, DESPL, N_ASSIG, P_ASSIST) %>%
-  summary()
+cat("\n === Distribució GRUP_ASSIST: ===\n")
+print(table(dades$GRUP_ASSIST))
+print(round(prop.table(table(dades$GRUP_ASSIST)) * 100, 1))
 
+col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4a90b8")
+
+
+
+#### ============================================================ ####
+####                2. DESCRIPTIVA GENERAL                        ####
+#### ============================================================ ####
+
+##### --------- 2.1. ESTADÍSTIQUES NUMÈRIQUES ------------ #####
+
+cat("\n === Estadíastiques bàsiques numèriques: ===\n")
 dades %>%
   select(EDAT, DESPL, N_ASSIG, P_ASSIST) %>%
   summarise(across(everything(), list(
@@ -31,121 +61,83 @@ dades %>%
                names_sep = "_(?=[^_]+$)") %>%
   pivot_wider(names_from = Estadistic, values_from = value)
 
-# --- 3. LIKERT: mitjanes per bloc ---
-# Motius de no assistència
-motius_vars <- c("M_TREB","M_FAM","M_SALUT","M_DIST","M_AUTON","M_CV",
-                 "M_EXAM","M_UTIL","M_AVORR","M_PASSIU","M_TEOR","M_PROF",
-                 "M_REPET","M_ACAD","M_AMICS")
+##### --------- 2.2. ESTADÍSTIQUES LIKERT ------------ #####
 
-dades %>%
-  select(all_of(motius_vars)) %>%
-  summarise(across(everything(), ~mean(as.numeric(.x), na.rm = TRUE))) %>%
-  pivot_longer(everything(), names_to = "Motiu", values_to = "Mitjana") %>%
-  arrange(desc(Mitjana))
+# Motius de no assistència
+df_motius <- dades %>%
+  select(GRUP_ASSIST, all_of(motius_vars)) %>%
+  mutate(across(all_of(motius_vars), as.numeric)) %>%
+  group_by(GRUP_ASSIST) %>%
+  summarise(across(all_of(motius_vars), ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(-GRUP_ASSIST, names_to = "Motiu", values_to = "Mitjana") %>%
+  pivot_wider(names_from = GRUP_ASSIST, values_from = Mitjana)
+
+cat("\n === Mitjana motius no assistència per grup ===\n")
+print(df_motius)
 
 # Estratègies
-estrategies_vars <- c("E_PES_AC","E_PART","E_DINAM","E_REDU","E_CURT","E_DESC",
-                      "E_CLIMA","E_EXPL","E_RITME","E_ACT_AC","E_PROP","E_HORA","E_PES_AS")
+df_estrat <- dades %>%
+  select(GRUP_ASSIST, all_of(estrategies_vars)) %>%
+  mutate(across(all_of(estrategies_vars), as.numeric)) %>%
+  group_by(GRUP_ASSIST) %>%
+  summarise(across(all_of(estrategies_vars), ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(-GRUP_ASSIST, names_to = "Estratègia", values_to = "Mitjana") %>%
+  pivot_wider(names_from = GRUP_ASSIST, values_from = Mitjana)
+cat("\n === Mitjana estratègies assistència per grup ===\n")
+print(df_estrat)
 
-dades %>%
-  select(all_of(estrategies_vars)) %>%
-  summarise(across(everything(), ~mean(as.numeric(.x), na.rm = TRUE))) %>%
-  pivot_longer(everything(), names_to = "Estratègia", values_to = "Mitjana") %>%
-  arrange(desc(Mitjana))
 
 # IA
-ia_vars <- c("IA_HABIT", "IA_COMPR", "IA_SUBST", "IA_CONF",
-             "IA_ATENC", "IA_PREOC", "IA_REND", "IA_PDFS")
-dades %>%
-  select(all_of(ia_vars)) %>%
-  summarise(across(everything(), ~mean(as.numeric(.x), na.rm = TRUE))) %>%
-  pivot_longer(everything(), names_to = "Ús", values_to = "Mitjana") %>%
-  arrange(desc(Mitjana))
-
-
-#### ============================================================ ####
-####     CREACIÓ DE LA VARIABLE GRUP_ASSIST (tall al 80%)        ####
-#### ============================================================ ####
-
-dades <- dades %>%
-  mutate(GRUP_ASSIST = factor(
-    ifelse(P_ASSIST >= 80, "Regular (≥80%)", "Irregular (<80%)"),
-    levels = c("Irregular (<80%)", "Regular (≥80%)")
-  ))
-
-cat("Distribució GRUP_ASSIST:\n")
-print(table(dades$GRUP_ASSIST))
-print(round(prop.table(table(dades$GRUP_ASSIST)) * 100, 1))
-
-col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4a90b8")
-
+df_ia <- dades %>%
+  select(GRUP_ASSIST, all_of(ia_vars)) %>%
+  mutate(across(all_of(ia_vars), as.numeric)) %>%
+  group_by(GRUP_ASSIST) %>%
+  summarise(across(all_of(ia_vars), ~mean(.x, na.rm = TRUE))) %>%
+  pivot_longer(-GRUP_ASSIST, names_to = "Us_IA", values_to = "Mitjana") %>%
+  pivot_wider(names_from = GRUP_ASSIST, values_from = Mitjana)
+cat("\n === Mitjana ús IA per grup ===\n")
+print(df_ia)
 
 #### ============================================================ ####
-####     GRÀFICS LIKERT PER GRUP                                 ####
+####            3. GRÀFICS AMB P_ASSIST I GRUP_ASSIST             ####
 #### ============================================================ ####
 
+##### ------- 3.1. VARIABLES NUMÈRIQUES PER GRUP_ASSIST -------- ####
 
-
-
-##### ------- 3.1. P_ASSIST VS VARIABLES NUMÈRIQUES -------- ####
-
-# Funció auxiliar: etiqueta Spearman (ρ i p-valor)
-lbl_spearman <- function(xvar, yvar) {
-  d  <- dades[, c(xvar, yvar)]
-  d  <- d[complete.cases(d), ]
-  ct <- cor.test(as.numeric(d[[1]]), as.numeric(d[[2]]),
-                 method = "spearman", exact = FALSE)
-  sprintf("\u03c1 = %.2f\np = %.3f", ct$estimate, ct$p.value)
-}
-
-# P_ASSIST vs EDAT
-p_edat <- ggplot(dades, aes(x = EDAT, y = P_ASSIST)) +
-  geom_jitter(aes(color = GRUP_ASSIST), alpha = 0.5, size = 2, width = 0.2) +
-  geom_smooth(method = "lm", color = "black", linewidth = 0.8, se = TRUE) +
-  geom_hline(yintercept = 80, linetype = "dotted", color = "gray40") +
-  annotate("label", x = Inf, y = Inf,
-           label = lbl_spearman("EDAT", "P_ASSIST"),
-           hjust = 1.05, vjust = 1.2, size = 3.2, color = "gray30",
-           fill = "white", label.size = 0.2) +
-  scale_color_manual(values = col_grups) +
-  labs(title = "vs Edat", x = "Edat (anys)", y = "% Assistència", color = "") +
-  theme_minimal(base_size = 12) +
+# Edat per grup d'assistència
+ggplot(dades %>% filter(EDAT <= 30), aes(x = GRUP_ASSIST, y = EDAT, fill = GRUP_ASSIST)) +
+  geom_boxplot(alpha = 0.8, outlier.shape = 21) +
+  scale_fill_manual(values = col_grups) +
+  labs(title = "Edat per grup d'assistència",
+       x = "", y = "Edat (anys)") +
+  theme_minimal(base_size = 13) +
   theme(legend.position = "none")
 
-# P_ASSIST vs DESPL
-p_despl <- ggplot(dades, aes(x = DESPL, y = P_ASSIST)) +
-  geom_point(aes(color = GRUP_ASSIST), alpha = 0.5, size = 2) +
-  geom_smooth(method = "lm", color = "black", linewidth = 0.8, se = TRUE) +
-  geom_hline(yintercept = 80, linetype = "dotted", color = "gray40") +
-  annotate("label", x = Inf, y = Inf,
-           label = lbl_spearman("DESPL", "P_ASSIST"),
-           hjust = 1.05, vjust = 1.2, size = 3.2, color = "gray30",
-           fill = "white", label.size = 0.2) +
-  scale_color_manual(values = col_grups) +
-  labs(title = "vs Desplaçament", x = "Minuts", y = "% Assistència", color = "") +
-  theme_minimal(base_size = 12) +
+# res rellevant
+
+# Temps de desplaçament per grup d'assistència
+ggplot(dades, aes(x = GRUP_ASSIST, y = DESPL, fill = GRUP_ASSIST)) +
+  geom_boxplot(alpha = 0.8, outlier.shape = 21) +
+  scale_fill_manual(values = col_grups) +
+  labs(title = "Temps de desplaçament per grup d'assistència",
+       x = "", y = "Minuts de desplaçament") +
+  theme_minimal(base_size = 13) +
   theme(legend.position = "none")
 
-# P_ASSIST vs N_ASSIG (variable discreta → violin + jitter)
-p_nassig <- ggplot(dades, aes(x = factor(N_ASSIG), y = P_ASSIST)) +
-  geom_violin(fill = "gray85", alpha = 0.5, trim = FALSE) +
-  geom_jitter(aes(color = GRUP_ASSIST), alpha = 0.5, size = 1.8, width = 0.12) +
-  geom_hline(yintercept = 80, linetype = "dotted", color = "gray40") +
-  annotate("label", x = Inf, y = Inf,
-           label = lbl_spearman("N_ASSIG", "P_ASSIST"),
-           hjust = 1.05, vjust = 1.2, size = 3.2, color = "gray30",
-           fill = "white", label.size = 0.2) +
-  scale_color_manual(values = col_grups) +
-  labs(title = "vs Nre. Assignatures",
-       x = "Nombre d'assignatures", y = "% Assistència", color = "") +
-  theme_minimal(base_size = 12) +
-  theme(legend.position = "bottom")
+# res rellevant
 
-(p_edat | p_despl | p_nassig) +
-  plot_layout(guides = "collect") &
-  theme(legend.position = "bottom")
+# Nombre d'assignatures per grup d'assistència
+ggplot(dades, aes(x = GRUP_ASSIST, y = N_ASSIG, fill = GRUP_ASSIST)) +
+  geom_boxplot(alpha = 0.8, outlier.shape = 21) +
+  scale_fill_manual(values = col_grups) +
+  labs(title = "Nombre d'assignatures per grup d'assistència",
+       x = "", y = "Nombre d'assignatures") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "none")
 
-##### --------- 2. GRUP_ASSIST VS VARIABLES ACADÈMIQUES ------ #####
+# res rellevant
+
+##### --------- 3.2. GRUP_ASSIST VS VARIABLES ACADÈMIQUES ------ #####
 
 # GRUP_ASSIST per CURS
 df_curs <- dades %>%
@@ -248,12 +240,12 @@ ggplot(df_taval, aes(x = T_AVAL, y = prop, fill = GRUP_ASSIST)) +
   theme_minimal(base_size = 13)
 
 
-##### ---- 3. GRUP_ASSIST VS VARIABLES PERSONALS ----- #####
+##### ---- 3.3. GRUP_ASSIST VS VARIABLES PERSONALS ----- #####
 
 # DEDIC per GRUP_ASSIST amb P_ASSIST boxplot ---
 ggplot(dades, aes(x = DEDIC, y = P_ASSIST, fill = DEDIC)) +
   geom_boxplot(alpha = 0.8, outlier.shape = 21) +
-  geom_hline(yintercept = 70, linetype = "dashed", color = "gray40") +
+  geom_hline(yintercept = 80, linetype = "dashed", color = "gray40") +
   scale_fill_brewer(palette = "Oranges") +
   labs(title = "% Assistència per dedicació laboral",
        x = "", y = "% Assistència") +
@@ -296,7 +288,7 @@ dades %>%
   geom_text(aes(label = paste0(round(assist_mitj), "%\nn=", n)),
             size = 3, color = "white", fontface = "bold") +
   scale_fill_gradient2(low = "#E07B54", mid = "#f5f0eb",
-                       high = "#4A90B8", midpoint = 70,
+                       high = "#4A90B8", midpoint = 80,
                        name = "% Assist.") +
   labs(title = "% Assistència mitjana per curs i dedicació laboral",
        x = "Curs", y = "") +
@@ -313,7 +305,7 @@ dades %>%
   geom_text(aes(label = paste0(round(pct_regular), "%")),
             size = 3, color = "white", fontface = "bold") +
   scale_fill_gradient2(low = "#E07B54", mid = "#f5f0eb",
-                       high = "#4A90B8", midpoint = 60,
+                       high = "#4A90B8", midpoint = 50,
                        name = "% Regular") +
   labs(title = "% Assistència regular per grau i curs",
        subtitle = "Només cel·les amb n ≥ 3",
@@ -321,7 +313,9 @@ dades %>%
   theme_minimal(base_size = 13)
 
 
-##### ---- 4. ESCALA DE LIKERT ----- #####
+#### ============================================================ ####
+####            4. GRÀFICS LIKERT PER GRUP                        ####
+#### ============================================================ ####
 
 # Mitjanes motius de NO assistència per grup
 dades %>%
@@ -374,29 +368,23 @@ dades %>%
 
 # Diferència de mitjanes (Regular - Irregular) per motius no assist
 df_motius %>%
-  select(-se) %>%
-  pivot_wider(names_from = GRUP_ASSIST, values_from = mitjana) %>%
   mutate(diferencia = `Regular (≥80%)` - `Irregular (<80%)`) %>%
-  ggplot(aes(x = reorder(variable, diferencia),
+  ggplot(aes(x = reorder(Motiu, diferencia),
              y = diferencia,
              fill = diferencia > 0)) +
   geom_col(alpha = 0.85) +
   geom_hline(yintercept = 0, color = "gray30") +
-  scale_fill_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "#E07B54"),
+  scale_fill_manual(values = c("FALSE" = "#E07B54","TRUE" = "#4A90B8"),
                     labels = c("Més alt en Irregulars", "Més alt en Regulars")) +
   coord_flip() +
   labs(title = "Diferència en motius de NO assistència (Regular − Irregular)",
-       subtitle = "Blau = motiu més valorat pels regulars | Taronja = pels irregulars",
        x = "", y = "Diferència de mitjanes", fill = "") +
   theme_minimal(base_size = 12)
 
 # Diferència de mitjanes (Regular - Irregular) per estratègies
-
 df_estrat %>%
-  dplyr::select(-se) %>%
-  pivot_wider(names_from = GRUP_ASSIST, values_from = mitjana) %>%
-  mutate(diferencia = `Regular (≥70%)` - `Irregular (<70%)`) %>%
-  ggplot(aes(x = reorder(variable, diferencia),
+  mutate(diferencia = `Regular (≥80%)` - `Irregular (<80%)`) %>%
+  ggplot(aes(x = reorder(Estratègia, diferencia),
              y = diferencia,
              fill = diferencia > 0)) +
   geom_col(alpha = 0.85) +
@@ -405,17 +393,15 @@ df_estrat %>%
                     labels = c("Més alt en Irregulars", "Més alt en Regulars")) +
   coord_flip() +
   labs(title = "Diferència en estratègies d'assistència (Regular − Irregular)",
-       subtitle = "Blau = estratègia més valorada pels regulars | Taronja = pels irregulars",
        x = "", y = "Diferència de mitjanes", fill = "") +
   theme_minimal(base_size = 12)
+  
+
 
 # Diferència de mitjanes (Regular - Irregular) per IA
-
 df_ia %>%
-  dplyr::select(-se) %>%
-  pivot_wider(names_from = GRUP_ASSIST, values_from = mitjana) %>%
-  mutate(diferencia = `Regular (≥70%)` - `Irregular (<70%)`) %>%
-  ggplot(aes(x = reorder(variable, diferencia),
+  mutate(diferencia = `Regular (≥80%)` - `Irregular (<80%)`) %>%
+  ggplot(aes(x = reorder(Us_IA, diferencia),
              y = diferencia,
              fill = diferencia > 0)) +
   geom_col(alpha = 0.85) +
@@ -423,8 +409,11 @@ df_ia %>%
   scale_fill_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "#E07B54"),
                     labels = c("Més alt en Irregulars", "Més alt en Regulars")) +
   coord_flip() +
-  labs(title = "Diferència en ús de la IA (Regular − Irregular)",
-       subtitle = "Blau = més valorat pels regulars | Taronja = pels irregulars",
+  labs(title = "Diferència en l'ús de la IA (Regular − Irregular)",
        x = "", y = "Diferència de mitjanes", fill = "") +
   theme_minimal(base_size = 12)
+  
 
+sink()
+dev.off()
+save(dades, file = "2.Dades/1. Dades amb binaria.RData")

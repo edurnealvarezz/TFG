@@ -1,4 +1,4 @@
-packages <- c("dplyr", "ggplot2","tidyr","cluster","dbscan","FactoMineR","factoextra")
+packages <- c("dplyr", "ggplot2","tidyr","cluster","dbscan","FactoMineR","factoextra","mice")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -10,22 +10,28 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
-load("0. Dades definitives.RData")
+#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
+setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
+load("2.Dades/1. Dades amb binaria.RData")
 
-motius_vars <- readRDS("motius_vars.rds")
-estrategies_vars <- readRDS("estrategies_vars.rds")
-ia_vars <- readRDS("ia_vars.rds")
 
-sink("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/4. Outputs/1.1 Output_text_preprocessing.txt")
-pdf("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/4. Outputs/1.2 Output_grafics_preprocessing.pdf",
+motius_vars <- readRDS("2. Dades/motius_vars.rds")
+estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
+ia_vars <- readRDS("2. Dades/ia_vars.rds")
+
+# Valor impossible: 605 minuts de desplaçament → NA
+dades$DESPL[dades$DESPL == 605] <- NA
+cat("Observació amb DESPL=605 convertida a NA\n")
+
+sink("4. Outputs/1.1 Output_text_preprocessing.txt")
+pdf("4. Outputs/1.2 Output_grafics_preprocessing.pdf",
     width = 10, height = 8)
 
 #### ============================================================ ####
-####                           MISSINGS                           ####
+####                        1. MISSINGS                           ####
 #### ============================================================ ####
+##### --------- 1.1. Exploració NA------------ #####
 
-# NA per variable
 na_resum <- data.frame(
   variable = names(dades),
   n_na     = sapply(dades, function(x) sum(is.na(x))),
@@ -43,7 +49,25 @@ ggplot(na_resum, aes(x = reorder(variable, pct_na), y = pct_na)) +
        x = "", y = "% NA") +
   theme_minimal(base_size = 13)
 
-# Només hi ha NA a les variables de resposta oberta. Era d'esperar.
+# DESPL té 1 NA (valor 605 eliminat). La resta de NAs són respostes obertes.
+
+##### --------- 1.2. Exploració NA------------ #####
+
+dades_mice <- dades %>%
+  select(DESPL, EDAT, N_ASSIG, P_ASSIST, DEDIC)
+
+imp <- mice(dades_mice, m = 5, method = "pmm", seed = 123, printFlag = FALSE)
+
+cat("\n === Imputació MICE - valor imputat per DESPL === \n")
+valors_imputats <- imp$imp$DESPL
+print(valors_imputats)
+
+# Agafem la mitjana de les 5 imputacions com a valor final
+valor_final <- round(rowMeans(valors_imputats))
+cat("Valor imputat final (mitjana 5 imputacions):", valor_final, "minuts\n")
+
+# Substituïm el NA a dades originals
+dades$DESPL[is.na(dades$DESPL)] <- valor_final
 
 #### ============================================================ ####
 ####                      PREPARACIÓ OUTLIERS                     ####
@@ -135,4 +159,4 @@ ggplot(df_lof_plot, aes(x = index, y = score, color = outlier)) +
 
 sink()
 dev.off()
-save(dades, file = "1. Preprocessing.RData")
+save(dades, file = "2.Dades/2. Dades.RData")

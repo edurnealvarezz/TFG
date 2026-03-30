@@ -1,0 +1,29 @@
+
+ === NA per variable === 
+         variable n_na pct_na
+PROP_MOT PROP_MOT  223  66.77
+EXP_NEG   EXP_NEG  206  61.68
+EXP_POS   EXP_POS  203  60.78
+DESPL       DESPL    1   0.30
+
+ === Imputació MICE - valor imputat per DESPL === 
+     1  2  3  4  5
+303 60 50 45 60 40
+Valor imputat final (mitjana 5 imputacions): 51 minuts
+
+ === Num outliers amb score > 2 per cada k === 
+ k=5 k=10 k=15 k=18 k=20 
+   0    0    0    1    1 
+
+ === Index outliers per cada k === 
+k = 5 → 0 outliers | Índexs:  
+k = 10 → 0 outliers | Índexs:  
+k = 15 → 0 outliers | Índexs:  
+k = 18 → 1 outliers | Índexs: 153 
+k = 20 → 1 outliers | Índexs: 153 
+
+ === Mirem outlier === 
+# A tibble: 1 × 9
+   EDAT DESPL N_ASSIG P_ASSIST GRAU    CURS  NOTA  DEDIC     GENERE
+  <int> <dbl>   <int>    <dbl> <fct>   <ord> <ord> <ord>     <fct> 
+1    20    30      10       95 Emp.Int 3r    ≥9    E.Complet Dona  
