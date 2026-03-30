@@ -11,37 +11,37 @@ DEDIC             0.122 0.198 0.163 0.126  0.093  0.110 1.000
 
  === p-valors (chi-quadrat simulat, B=2000) === 
             GRUP_ASSIST   GRAU   CURS   NOTA T_AVAL GENERE  DEDIC
-GRUP_ASSIST      0.0000 0.0055 0.0105 0.0015 0.0005 0.7701 0.1709
-GRAU             0.0055 0.0000 0.0240 0.0085 0.0210 0.0035 0.0595
-CURS             0.0105 0.0240 0.0000 0.0750 0.0145 0.0095 0.0350
-NOTA             0.0015 0.0085 0.0750 0.0000 0.0415 0.2529 0.1739
-T_AVAL           0.0005 0.0210 0.0145 0.0415 0.0000 0.7876 0.3983
-GENERE           0.7701 0.0035 0.0095 0.2529 0.7876 0.0000 0.2129
-DEDIC            0.1709 0.0595 0.0350 0.1739 0.3983 0.2129 0.0000
+GRUP_ASSIST      0.0000 0.0075 0.0120 0.0015 0.0005 0.7581 0.1819
+GRAU             0.0075 0.0000 0.0290 0.0120 0.0345 0.0050 0.0655
+CURS             0.0120 0.0290 0.0000 0.0680 0.0125 0.0040 0.0380
+NOTA             0.0015 0.0120 0.0680 0.0000 0.0380 0.2714 0.1894
+T_AVAL           0.0005 0.0345 0.0125 0.0380 0.0000 0.7781 0.4178
+GENERE           0.7581 0.0050 0.0040 0.2714 0.7781 0.0000 0.2024
+DEDIC            0.1819 0.0655 0.0380 0.1894 0.4178 0.2024 0.0000
 
  === Parelles categòriques significatives (ordenades per V) === 
           var1   var2     V p_valor sig
 1  GRUP_ASSIST T_AVAL 0.243  0.0005 ***
-2  GRUP_ASSIST   GRAU 0.258  0.0055  **
+2  GRUP_ASSIST   GRAU 0.258  0.0075  **
 3  GRUP_ASSIST   NOTA 0.233  0.0015  **
-4         GRAU   NOTA 0.214  0.0085  **
-5         GRAU GENERE 0.273  0.0035  **
-6         CURS GENERE 0.206  0.0095  **
-7  GRUP_ASSIST   CURS 0.211  0.0105   *
-8         GRAU   CURS 0.202  0.0240   *
-9         GRAU T_AVAL 0.245  0.0210   *
-10        CURS T_AVAL 0.218  0.0145   *
-11        CURS  DEDIC 0.163  0.0350   *
-12        NOTA T_AVAL 0.178  0.0415   *
+4         GRAU GENERE 0.273  0.0050  **
+5         CURS GENERE 0.206  0.0040  **
+6  GRUP_ASSIST   CURS 0.211  0.0120   *
+7         GRAU   CURS 0.202  0.0290   *
+8         GRAU   NOTA 0.214  0.0120   *
+9         GRAU T_AVAL 0.245  0.0345   *
+10        CURS T_AVAL 0.218  0.0125   *
+11        CURS  DEDIC 0.163  0.0380   *
+12        NOTA T_AVAL 0.178  0.0380   *
 
  === Cramér's V de les categòriques amb GRUP_ASSIST === 
        variable     V p_valor sig
-GRAU       GRAU 0.258  0.0055  **
+GRAU       GRAU 0.258  0.0075  **
 T_AVAL   T_AVAL 0.243  0.0005 ***
 NOTA       NOTA 0.233  0.0015  **
-CURS       CURS 0.211  0.0105   *
-DEDIC     DEDIC 0.122  0.1709  ns
-GENERE   GENERE 0.068  0.7701  ns
+CURS       CURS 0.211  0.0120   *
+DEDIC     DEDIC 0.122  0.1819  ns
+GENERE   GENERE 0.068  0.7581  ns
 
  === Parelles Likert amb |tau| > 0.5 === 
       var1     var2   tau p_valor sig
@@ -641,3 +641,8 @@ IA_SUBST=IA_SUBST_1 -0.1413731 2.134287e-02 0.1413731
 IA_HABIT=IA_HABIT_6 -0.1334208 3.122807e-03 0.1334208
 IA_ATENC=IA_ATENC_1 -0.1215989 3.634359e-03 0.1215989
 IA_ATENC=IA_ATENC_3  0.1176551 2.755356e-02 0.1176551
+
+ === Dimensions MCA afegides a dades === 
+Files amb coordenades motius:      334 
+Files amb coordenades estratègies: 334 
+Files amb coordenades IA:          334 

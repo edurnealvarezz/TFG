@@ -14,7 +14,7 @@ rm(packages)
 
 #setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
 setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
-load("2.Dades/2. Dades tractades.RData")
+load("2. Dades/2. Dades tractades.RData")
 
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
@@ -313,6 +313,11 @@ fer_mca_bloc <- function(vars, nom_bloc, nivells, color_bar) {
     print(p_cor)
 
     # 2. Qualitat de representació (cos2), top 20 variables
+    # Coordenades suplementàries de GRUP_ASSIST per a aquestes dimensions
+    sup_coords <- as.data.frame(mca$quali.sup$coord[, dims])
+    colnames(sup_coords) <- c("x", "y")
+    sup_coords$label <- rownames(mca$quali.sup$coord)
+
     p_cos2 <- fviz_mca_var(mca,
                            col.var = "cos2",
                            axes = dims,
@@ -320,8 +325,12 @@ fer_mca_bloc <- function(vars, nom_bloc, nivells, color_bar) {
                            repel = TRUE,
                            ggtheme = theme_minimal(),
                            select.var = list(contrib = 20)) +
+      geom_point(data = sup_coords, aes(x = x, y = y),
+                 color = "#E07B54", shape = 17, size = 3.5) +
+      geom_text(data = sup_coords, aes(x = x, y = y, label = label),
+                color = "#E07B54", vjust = -0.7, size = 3.2) +
       labs(title    = paste("Variables (cos2) –", etq, "–", nom_bloc),
-           subtitle = "Top 20 per contribució | color = cos2",
+           subtitle = "Top 20 per contribució | color = cos2 | triangle = GRUP_ASSIST",
            x = eix_x, y = eix_y)
     print(p_cos2)
 
@@ -335,8 +344,12 @@ fer_mca_bloc <- function(vars, nom_bloc, nivells, color_bar) {
                                 select.ind = list(contrib = 50),
                                 select.var = list(contrib = 15),
                                 labelsize = 3) +
+      geom_point(data = sup_coords, aes(x = x, y = y),
+                 color = "#E07B54", shape = 17, size = 3.5) +
+      geom_text(data = sup_coords, aes(x = x, y = y, label = label),
+                color = "#E07B54", vjust = -0.7, size = 3.2) +
       labs(title    = paste("Biplot –", etq, "–", nom_bloc),
-           subtitle = "Top 50 individus | color = GRUP_ASSIST",
+           subtitle = "Top 50 individus | color = GRUP_ASSIST | triangle = GRUP_ASSIST sup.",
            x = eix_x, y = eix_y)
     print(p_biplot)
   }
