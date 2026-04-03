@@ -10,9 +10,8 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
-setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
-load("2.Dades/1. Dades amb binaria.RData")
+setwd("C:/Users/edurn/Downloads/TFG")
+load("2. Dades/1. Dades amb binaria.RData")
 
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
@@ -20,8 +19,8 @@ estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
 ia_vars <- readRDS("2. Dades/ia_vars.rds")
 
 # Valor impossible: 605 minuts de desplaçament → NA
-dades$DESPL[dades$DESPL == 605] <- NA
-cat("Observació amb DESPL=605 convertida a NA\n")
+dades$DESPL[dades$DESPL == 605] <- 65
+cat("Observació amb DESPL=605 convertida a 65, es considera error tipogràfic \n")
 
 sink("4. Outputs/1.1 Output_text_preprocessing.txt")
 pdf("4. Outputs/1.2 Output_grafics_preprocessing.pdf",

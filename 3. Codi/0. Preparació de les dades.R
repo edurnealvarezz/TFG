@@ -15,7 +15,7 @@ lapply(packages, install_if_missing); rm(packages)
 #### ============================================================ ####
 
 #setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github")
-setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
+setwd("C:/Users/edurn/Downloads/TFG")
 
 dades <- read_excel("2. Dades/ Anàlisi de l'assistència a les aules.xlsx")
 dades <- dades %>%

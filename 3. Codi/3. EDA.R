@@ -1,5 +1,4 @@
-packages <- c("dplyr","ggplot2","tidyr","corrplot","ggcorrplot","FactoMineR",
-              "factoextra","psych","reshape2","colorspace","tibble","Hmisc")
+packages <- c("dplyr", "ggplot2", "tidyr", "corrplot", "reshape2")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -8,147 +7,139 @@ install_if_missing <- function(pkg) {
   }
 }
 
-
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
-setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
+setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/2. Dades tractades.RData")
-
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
 ia_vars <- readRDS("2. Dades/ia_vars.rds")
 
 #### ============================================================ ####
-####            0. CREACIO DE VARIABLES BINÀRIES                   ####
+####            0. CREACIÓ DE VARIABLES BINÀRIES                  ####
 #### ============================================================ ####
 
 dades <- dades %>%
   mutate(
     TREB_INTENS = as.integer(DEDIC %in% c("T.Parcial", "T.Complet")),
-    AVAL_CONT = as.integer(T_AVAL == "Continuada"),
     NOTA_ALTA = as.integer(NOTA %in% c("[8-8.9]", "≥9")),
-    CURS_1R = as.integer(CURS%in% c("1r")),
-    SOBRECARREGAT  = as.integer(N_ASSIG >= 12),
+    CURS_1R = as.integer(CURS == "1r"),
+    SOBRECARREGAT = as.integer(N_ASSIG >= 12),
     DOBLE_GRAU_EST = as.integer(GRAU %in% c("Estadística", "Doble Eco+Est",
                                              "Doble ADE+Soc", "Doble ADE+Mat",
-                                             "Doble ADE+Dret","Doble ADE+Qui"))
+                                             "Doble ADE+Dret", "Doble ADE+Qui"))
   )
+
+
+#### ============================================================ ####
+####                    FUNCIONS AUXILIARS                       ####
+#### ============================================================ ####
+
+# Proporció d' empatats per una var (per saber si hem de fer kendall)
+prop_ties <- function(x) {
+  x <- as.numeric(x[!is.na(x)])
+  n <- length(x)
+  if (n < 2) return(0)
+  freqs <- table(x)
+  sum(choose(freqs, 2)) / choose(n, 2)
+}
+
+# Chi-quadrat + V de Cramer (avisa si hi ha cel·les amb esperada < 5)
+cramer_test <- function(x, y) {
+  taula <- table(x, y)
+  test <- suppressWarnings(chisq.test(taula, correct = FALSE))
+  n <- sum(taula)
+  k <- min(nrow(taula), ncol(taula))
+  v <- sqrt(as.numeric(test$statistic) / (n * (k - 1)))
+  n_petita <- sum(test$expected < 5)
+  avis <- if (n_petita > 0)
+                paste0("AVÍS: ", n_petita, " cel·les amb esperada < 5")
+              else ""
+  list(chi2 = as.numeric(test$statistic),
+       p = test$p.value,
+       V = v,
+       avis = avis)
+}
+
+# Rank-biserial (Kerby 2014): positiu = g[2] > g[1]
+# g[1] = "Irregular (<80%)", g[2] = "Regular (≥80%)"
+rank_biserial <- function(x, grup) {
+  g <- levels(factor(grup))
+  stopifnot(length(g) == 2)
+  x1 <- as.numeric(x[as.character(grup) == g[1]])
+  x2 <- as.numeric(x[as.character(grup) == g[2]])
+  x1 <- x1[!is.na(x1)]
+  x2 <- x2[!is.na(x2)]
+  n1 <- length(x1); n2 <- length(x2)
+  U <- wilcox.test(x1, x2, exact = FALSE)$statistic
+  1 - (2 * U) / (n1 * n2)
+}
+
+# Llindar d'empats per decidir si fem kendall
+LLINDAR_EMPATS <- 0.10
+
+sig_label <- function(p) {
+  case_when(p < 0.001 ~ "***", p < 0.01 ~ "**", p < 0.05 ~ "*", TRUE ~ "ns")
+}
+
+col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4A90B8")
 
 
 sink("4. Outputs/3.1 Output_text_EDA.txt")
-pdf("4. Outputs/3.2 Output_grafics_EDA.pdf",
-    width = 10, height = 8)
+pdf("4. Outputs/3.2 Output_grafics_EDA.pdf", width = 10, height = 8)
 
 
 #### ============================================================ ####
-####     0.1. ASSOCIACIO VARIABLES BINARIES VS GRUP_ASSIST        ####
+####         1. ASSOCIACIÓ ENTRE VARIABLES CATEGÒRIQUES           ####
 #### ============================================================ ####
 
-# Test: chi-quadrat (o Fisher's exact si algun esperat < 5)
-# Efecte: Cramer's V = sqrt(chi2 / (n * (min(r,c) - 1)))
-# V de Cramer funciona per a qualsevol mida de taula (no nomes 2x2)
-
-vars_bin <- c("TREB_INTENS", "AVAL_CONT", "NOTA_ALTA",
-              "CURS_AVANCAT", "SOBRECARREGAT", "DOBLE_GRAU_EST")
-
-resultats_bin <- lapply(vars_bin, function(v) {
-  taula <- table(dades[[v]], dades$GRUP_ASSIST)
-  n <- sum(taula)
-  k <- min(nrow(taula), ncol(taula))
-  esperats <- chisq.test(taula)$expected
-  if (any(esperats < 5)) {
-    test <- fisher.test(taula)
-    est <- round(test$estimate, 3)
-    nom_est <- "OR (Fisher)"
-    p <- round(test$p.value, 4)
-  } else {
-    test <- chisq.test(taula, correct = FALSE)
-    est <- round(sqrt(as.numeric(test$statistic) / (n * (k - 1))), 3)
-    nom_est <- "V Cramer"
-    p <- round(test$p.value, 4)
-  }
-  data.frame(
-    variable = v,
-    estimador = nom_est,
-    valor = est,
-    p_valor = p,
-    sig = ifelse(p < 0.001, "***",
-                       ifelse(p < 0.01,  "**",
-                              ifelse(p < 0.05,  "*", "ns")))
-  )
-})
-
-df_bin <- do.call(rbind, resultats_bin) %>% arrange(p_valor)
-cat("\n === Associacio variables binaries vs GRUP_ASSIST (Cramer's V) === \n")
-print(df_bin)
-
-# Grafic: % Regular/Irregular per cada variable binaria (faceted)
-df_bin_plot <- lapply(vars_bin, function(v) {
-  dades %>%
-    group_by(val = factor(.data[[v]], labels = c("No", "Si")),
-             GRUP_ASSIST) %>%
-    summarise(n = n(), .groups = "drop") %>%
-    group_by(val) %>%
-    mutate(prop = n / sum(n), total = sum(n)) %>%
-    ungroup() %>%
-    mutate(variable = v)
-}) %>% bind_rows()
-
-ggplot(df_bin_plot, aes(x = val, y = prop, fill = GRUP_ASSIST)) +
-  geom_col(alpha = 0.9) +
-  geom_text(aes(label = paste0(round(prop * 100), "%")),
-            position = position_stack(vjust = 0.5),
-            color = "white", size = 3, fontface = "bold") +
-  geom_text(data = df_bin_plot %>% distinct(variable, val, total),
-            aes(label = paste0("n=", total), x = val, y = 1.06),
-            inherit.aes = FALSE, color = "gray30", size = 2.8) +
-  scale_fill_manual(values = c("Regular (>=80%)"  = "#4A90B8",
-                               "Irregular (<80%)" = "#E07B54")) +
-  scale_y_continuous(labels = scales::percent, limits = c(0, 1.12)) +
-  facet_wrap(~ variable, nrow = 2) +
-  labs(title = "% Assistencia regular per cada variable binaria derivada",
-       x = "", y = "Proporcio", fill = "") +
-  theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(size = 9))
-
-#### ============================================================ ####
-####     1. ASSOCIACIONS ENTRE VARIABLES CATEGÒRIQUES             ####
-#### ============================================================ ####
-
-# mesurem associació amb V de Cramer
-vars_cat <- c("GRUP_ASSIST", "GRAU", "CURS", "NOTA", "T_AVAL", "GENERE", "DEDIC")
+vars_cat <- c("GRAU", "CURS", "NOTA", "T_AVAL", "GENERE", "DEDIC","TREB_INTENS",
+            "NOTA_ALTA", "CURS_1R", "SOBRECARREGAT", "DOBLE_GRAU_EST")
 n_cat <- length(vars_cat)
 
-mat_v <- matrix(1, n_cat, n_cat, dimnames = list(vars_cat, vars_cat))
-mat_p_v <- matrix(0, n_cat, n_cat, dimnames = list(vars_cat, vars_cat))
+cat("==============================================\n")
+cat("  1. ASSOCIACIÓ ENTRE VARIABLES CATEGÒRIQUES  \n")
+cat("==============================================\n\n")
+
+mat_v_cat <- matrix(1, n_cat, n_cat, dimnames = list(vars_cat, vars_cat))
+df_cat <- data.frame()
 
 for (i in 1:(n_cat - 1)) {
   for (j in (i + 1):n_cat) {
-    taula <- table(dades[[vars_cat[i]]], dades[[vars_cat[j]]])
-    test <- chisq.test(taula, simulate.p.value = TRUE, B = 2000)
-    n <- sum(taula)
-    k <- min(nrow(taula), ncol(taula))
-    v <- round(sqrt(as.numeric(test$statistic) / (n * (k - 1))), 3)
-    mat_v[i, j] <- v
-    mat_v[j, i] <- v
-    mat_p_v[i, j] <- round(test$p.value, 4)
-    mat_p_v[j, i] <- round(test$p.value, 4)
+    res <- cramer_test(dades[[vars_cat[i]]], dades[[vars_cat[j]]])
+    mat_v_cat[i, j] <- mat_v_cat[j, i] <- round(res$V, 3)
+    df_cat <- rbind(df_cat, data.frame(
+      var1 = vars_cat[i],
+      var2 = vars_cat[j],
+      chi2 = round(res$chi2, 2),
+      p_valor = round(res$p, 4),
+      V = round(res$V, 3),
+      sig = sig_label(res$p),
+      avis = res$avis,
+      stringsAsFactors = FALSE
+    ))
   }
 }
 
-cat("\n === Matriu Cramér's V (categòriques) === \n")
-print(mat_v)
-cat("\n === p-valors (chi-quadrat simulat, B=2000) === \n")
-print(mat_p_v)
+df_cat <- df_cat %>% arrange(desc(V))
+
+cat("Totes les parelles ordenades per V de Cramér:\n")
+print(df_cat %>% select(-avis))
+
+avis_cat <- df_cat %>% filter(avis != "")
+if (nrow(avis_cat) > 0) {
+  cat("\n⚠ Parelles amb cel·les de freqüència esperada < 5:\n")
+  print(avis_cat %>% select(var1, var2, avis))
+}
 
 # Heatmap Cramér's V
-df_v_long <- melt(mat_v)
+df_v_long <- reshape2::melt(mat_v_cat)
+
 ggplot(df_v_long, aes(Var1, Var2, fill = value)) +
   geom_tile(color = "white") +
-  geom_text(aes(label = sprintf("%.2f", value)), size = 3) +
+  geom_text(aes(label = sprintf("%.2f", value)), size = 3.2) +
   scale_fill_gradient(low = "#f5f0eb", high = "#4A90B8",
                       limits = c(0, 1), name = "V") +
   labs(title = "Cramér's V entre variables categòriques",
@@ -156,408 +147,339 @@ ggplot(df_v_long, aes(Var1, Var2, fill = value)) +
   theme_minimal(base_size = 12) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 
-# Taula resum de totes les parelles ordenada per V
-df_parelles_v <- data.frame()
-for (i in 1:(n_cat - 1)) {
-  for (j in (i + 1):n_cat) {
-    df_parelles_v <- rbind(df_parelles_v, data.frame(
-      var1 = vars_cat[i],
-      var2 = vars_cat[j],
-      V = mat_v[i, j],
-      p_valor = mat_p_v[i, j]
-    ))
-  }
-}
-df_parelles_v <- df_parelles_v %>%
-  mutate(sig = ifelse(p_valor < 0.001, "***",
-                      ifelse(p_valor < 0.01,  "**",
-                             ifelse(p_valor < 0.05,  "*", "ns")))) %>%
-  filter(sig != "ns") %>%
-  arrange(desc(sig))
 
-cat("\n === Parelles categòriques significatives (ordenades per V) === \n")
-print(df_parelles_v)
+#### ============================================================ ####
+####          2. VARIABLES CATEGÒRIQUES vs GRUP_ASSIST            ####
+#### ============================================================ ####
 
-# Associació de cada categòrica amb GRUP_ASSIST
-df_grup_cat <- data.frame(
-  variable = vars_cat[vars_cat != "GRUP_ASSIST"],
-  V        = round(mat_v["GRUP_ASSIST", vars_cat != "GRUP_ASSIST"], 3),
-  p_valor  = round(mat_p_v["GRUP_ASSIST", vars_cat != "GRUP_ASSIST"], 4)
-) %>%
-  mutate(sig = ifelse(p_valor < 0.001, "***",
-                      ifelse(p_v alor < 0.01,  "**",
-                             ifelse(p_valor < 0.05,  "*", "ns")))) %>%
+cat("\n=================================================================\n")
+cat("             2. VARIABLES CATEGÒRIQUES vs GRUP_ASSIST             \n")
+cat("=================================================================\n\n")
+
+df_vs_grup <- lapply(vars_cat, function(v) {
+  res <- cramer_test(dades[[v]], dades$GRUP_ASSIST)
+  data.frame(
+    variable = v,
+    chi2 = round(res$chi2, 2),
+    p_valor = round(res$p, 4),
+    V = round(res$V, 3),
+    sig = sig_label(res$p),
+    avis = res$avis,
+    stringsAsFactors = FALSE
+  )
+}) %>%
+  bind_rows() %>%
   arrange(desc(V))
 
-cat("\n === Cramér's V de les categòriques amb GRUP_ASSIST === \n")
-print(df_grup_cat)
+cat("Resultat de cada variable vs GRUP_ASSIST:\n")
+print(df_vs_grup %>% select(-avis))
 
+avis_grup <- df_vs_grup %>% filter(avis != "")
+if (nrow(avis_grup) > 0) {
+  cat("\n⚠ Variables amb cel·les de freqüència esperada < 5:\n")
+  print(avis_grup %>% select(variable, avis))
+}
+
+# Lollipop
+ggplot(df_vs_grup, aes(x = reorder(variable, V), y = V,
+                       color = sig != "ns")) +
+  geom_segment(aes(xend = variable, yend = 0), linewidth = 0.8) +
+  geom_point(size = 4) +
+  geom_text(aes(label = sprintf("%.3f%s", V,
+                                ifelse(sig != "ns", paste0(" ", sig), ""))),
+            hjust = -0.2, size = 3.2) +
+  scale_color_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "gray60"),
+                     guide = "none") +
+  coord_flip() +
+  expand_limits(y = max(df_vs_grup$V) + 0.1) +
+  labs(title    = "Cramér's V vs GRUP_ASSIST per a cada variable",
+       subtitle = "Opac = significatiu (p < 0.05)",
+       x = "", y = "V de Cramér") +
+  theme_minimal(base_size = 12)
 
 
 #### ============================================================ ####
-####     2. ASSOCIACIONS ENTRE VARIABLES LIKERT                   ####
+####        3. CORRELACIÓ SPEARMAN ENTRE VARIABLES LIKERT         ####
 #### ============================================================ ####
 
-totes_likert  <- c(motius_vars, estrategies_vars, ia_vars)
+# Kendall com a robustesa si empats > 10%
+
+totes_likert <- c(motius_vars, estrategies_vars, ia_vars)
+n_lk <- length(totes_likert)
 df_likert_num <- dades %>%
   select(all_of(totes_likert)) %>%
   mutate(across(everything(), as.numeric))
-n_lk <- length(totes_likert)
 
-##### ------ 2.1. Kendall tau entre parelles Likert ------ #####
+cat("\n=================================================================\n")
+cat(" 3. CORRELACIÓ SPEARMAN ENTRE VARIABLES LIKERT\n")
+cat("=================================================================\n\n")
 
-mat_tau   <- matrix(1, n_lk, n_lk, dimnames = list(totes_likert, totes_likert))
-mat_tau_p <- matrix(0, n_lk, n_lk, dimnames = list(totes_likert, totes_likert))
+mat_spear <- matrix(1, n_lk, n_lk, dimnames = list(totes_likert, totes_likert))
+mat_spear_p <- matrix(NA, n_lk, n_lk, dimnames = list(totes_likert, totes_likert))
+df_likert_corr <- data.frame()
 
 for (i in 1:(n_lk - 1)) {
   for (j in (i + 1):n_lk) {
-    test <- cor.test(df_likert_num[[totes_likert[i]]],
-                     df_likert_num[[totes_likert[j]]],
-                     method = "kendall")
-    mat_tau[i, j] <- round(test$estimate, 3)
-    mat_tau[j, i] <- round(test$estimate, 3)
-    mat_tau_p[i, j] <- round(test$p.value, 4)
-    mat_tau_p[j, i] <- round(test$p.value, 4)
+    xi <- df_likert_num[[totes_likert[i]]]
+    xj <- df_likert_num[[totes_likert[j]]]
+
+    sp <- cor.test(xi, xj, method = "spearman", exact = FALSE)
+    mat_spear[i, j] <- mat_spear[j, i] <- round(sp$estimate, 3)
+    mat_spear_p[i, j] <- mat_spear_p[j, i] <- round(sp$p.value, 4)
+
+    molts_empats <- prop_ties(xi) > LLINDAR_EMPATS | prop_ties(xj) > LLINDAR_EMPATS
+    rho_k <- NA_real_; p_k <- NA_real_
+    if (molts_empats) {
+      kd <- cor.test(xi, xj, method = "kendall", exact = FALSE)
+      rho_k <- round(kd$estimate, 3)
+      p_k   <- round(kd$p.value, 4)
+    }
+
+    if (abs(sp$estimate) > 0.3 && sp$p.value < 0.05) {
+      df_likert_corr <- rbind(df_likert_corr, data.frame(
+        var1         = totes_likert[i],
+        var2         = totes_likert[j],
+        rho_spearman = round(sp$estimate, 3),
+        p_spearman   = round(sp$p.value, 4),
+        rho_kendall  = rho_k,
+        p_kendall    = p_k,
+        empats_elev  = molts_empats,
+        stringsAsFactors = FALSE
+      ))
+    }
   }
 }
 
-# Corrplot (només mostrem |tau| > 0.2 per llegibilitat)
-mat_tau_plot <- mat_tau
-mat_tau_plot[abs(mat_tau_plot) < 0.2 & mat_tau_plot != 1] <- 0
+df_likert_corr <- df_likert_corr %>%
+  mutate(sig = sig_label(p_spearman)) %>%
+  arrange(desc(abs(rho_spearman)))
 
-corrplot(mat_tau_plot,
-         method = "color",
-         type = "lower",
-         tl.cex = 0.65,
-         tl.col = "black",
-         col = colorRampPalette(c("#E07B54", "white", "#4A90B8"))(200),
+cat("Parelles Likert significatives amb |rho| > 0.3 (ordenades per |rho|):\n")
+cat("  rho_kendall s'informa quan la proporció d'empats > 10% en alguna variable\n\n")
+print(df_likert_corr)
+
+# Corrplot Spearman (|rho| > 0.2 visible)
+mat_plot <- mat_spear
+mat_plot[abs(mat_plot) < 0.3 & mat_plot != 1] <- 0
+
+corrplot(mat_plot,
+         method      = "color",
+         type        = "lower",
+         tl.cex      = 0.55,
+         tl.col      = "black",
+         col         = colorRampPalette(c("#E07B54", "white", "#4A90B8"))(200),
          addCoef.col = "black",
-         number.cex  = 0.45,
-         title = "Kendall tau entre variables Likert (|tau| > 0.2 visible)",
-         mar = c(0, 0, 2, 0))
+         number.cex  = 0.35,
+         title       = "Spearman entre variables Likert (|rho| > 0.3 visible)",
+         mar         = c(0, 0, 2, 0))
 
-# Parelles fortes (|tau| > 0.3)
-df_parelles_tau <- data.frame()
-for (i in 1:(n_lk - 1)) {
-  for (j in (i + 1):n_lk) {
-    df_parelles_tau <- rbind(df_parelles_tau, data.frame(
-      var1 = totes_likert[i],
-      var2 = totes_likert[j],
-      tau = mat_tau[i, j],
-      p_valor = mat_tau_p[i, j]
-    ))
-  }
-}
-df_parelles_tau <- df_parelles_tau %>%
-  mutate(sig = ifelse(p_valor < 0.001, "***",
-                      ifelse(p_valor < 0.01,  "**",
-                             ifelse(p_valor < 0.05,  "*", "ns")))) %>%
-  filter(abs(tau) > 0.5) %>%
-  arrange(desc(abs(tau)))
 
-cat("\n === Parelles Likert amb |tau| > 0.5 === \n")
-print(df_parelles_tau)
+#### ============================================================ ####
+####              4. VARIABLES LIKERT vs GRUP_ASSIST              ####
+#### ============================================================ ####
 
-##### ------ 2.2. Effect size r (Mann-Whitney) per Likert vs GRUP_ASSIST ------ #####
+cat("\n=================================================================\n")
+cat(" 4. VARIABLES LIKERT vs GRUP_ASSIST\n")
+cat("=================================================================\n\n")
 
-# r = |Z| / sqrt(n): mesura la magnitud de la diferència entre grups
-# Rang [0,1]: ~0.1 petit, ~0.3 mitjà, ~0.5 gran
-# Test: Mann-Whitney (Wilcoxon) per significació estadística
+# GRUP_ASSIST com a 0/1 per Spearman de direcció
+grup_num <- as.integer(dades$GRUP_ASSIST == "Regular (≥80%)")
 
-resultats_mw <- lapply(totes_likert, function(v) {
+df_likert_vs_grup <- lapply(totes_likert, function(v) {
   x <- as.numeric(dades[[v]])
-  test <- wilcox.test(x ~ dades$GRUP_ASSIST)
-  r <- round(abs(qnorm(test$p.value / 2)) / sqrt(nrow(dades)), 3)
+
+  mw <- wilcox.test(x ~ dades$GRUP_ASSIST, exact = FALSE)
+  rb <- rank_biserial(x, dades$GRUP_ASSIST)
+  sp <- cor.test(x, grup_num, method = "spearman", exact = FALSE)
+
+  molts_empats <- prop_ties(x) > LLINDAR_EMPATS
+  rho_k <- NA_real_
+  if (molts_empats) {
+    kd <- cor.test(x, grup_num, method = "kendall", exact = FALSE)
+    rho_k <- round(kd$estimate, 3)
+  }
+
   data.frame(
-    variable = v,
-    bloc     = case_when(
-      v %in% motius_vars ~ "Motius",
+    variable     = v,
+    bloc         = case_when(
+      v %in% motius_vars      ~ "Motius",
       v %in% estrategies_vars ~ "Estratègies",
-      v %in% ia_vars ~ "IA"
+      v %in% ia_vars          ~ "IA"
     ),
-    W = round(test$statistic, 1),
-    r = r,
-    p_valor = round(test$p.value, 4),
-    sig = ifelse(test$p.value < 0.001, "***",
-                     ifelse(test$p.value < 0.01,  "**",
-                            ifelse(test$p.value < 0.05,  "*", "ns")))
+    W            = round(mw$statistic, 1),
+    p_mw         = round(mw$p.value, 4),
+    sig_mw       = sig_label(mw$p.value),
+    rho_spearman = round(sp$estimate, 3),
+    p_spearman   = round(sp$p.value, 4),
+    r_biserial   = round(rb, 3),
+    rho_kendall  = rho_k,
+    empats_elev  = molts_empats,
+    stringsAsFactors = FALSE
   )
-})
+}) %>%
+  bind_rows() %>%
+  arrange(desc(abs(r_biserial)))
 
-df_mw <- do.call(rbind, resultats_mw) %>% arrange(desc(r))
+cat("Mann-Whitney + Spearman + Rank-biserial per a cada variable Likert:\n")
+cat("  r_biserial > 0 → Regular > Irregular | rho_spearman > 0 → correlació creixent\n")
+cat("  rho_kendall s'informa quan empats > 10%\n\n")
+print(df_likert_vs_grup)
 
-cat("\n === Effect size r (Mann-Whitney) per Likert vs GRUP_ASSIST === \n")
-print(df_mw)
-
-#cap major que 0.5
-
-# Gràfic effect size r
-ggplot(df_mw, aes(x = reorder(variable, r),
-                  y = r,
-                  fill  = bloc,
-                  alpha = sig != "ns")) +
+# Gràfic 1: rank-biserial per variable Likert
+ggplot(df_likert_vs_grup,
+       aes(x = reorder(variable, r_biserial),
+           y = r_biserial,
+           fill = bloc,
+           alpha = sig_mw != "ns")) +
   geom_col() +
-  geom_hline(yintercept = c(0.1, 0.3, 0.5),
-             linetype = "dashed", color = "gray50") +
-  annotate("text", x = 1.5, y = 0.11, label = "petit",  size = 3, color = "gray50") +
-  annotate("text", x = 1.5, y = 0.31, label = "mitjà",  size = 3, color = "gray50") +
-  annotate("text", x = 1.5, y = 0.51, label = "gran",   size = 3, color = "gray50") +
+  geom_hline(yintercept = 0, linewidth = 0.5, color = "gray30") +
   scale_fill_manual(values = c("Motius"      = "#E07B54",
                                "Estratègies" = "#4A90B8",
                                "IA"          = "#8E6BBF")) +
-  scale_alpha_manual(values = c("TRUE" = 0.9, "FALSE" = 0.35), guide = "none") +
+  scale_alpha_manual(values = c("TRUE" = 0.9, "FALSE" = 0.3), guide = "none") +
   coord_flip() +
-  labs(title = "Effect size r (Mann-Whitney) per Likert vs GRUP_ASSIST",
-       subtitle = "Opac = significatiu (p<0.05)",
-       x = "", y = "Effect size r", fill = "Bloc") +
+  labs(title    = "Rank-biserial per variable Likert vs GRUP_ASSIST",
+       subtitle = "Positiu = Regular > Irregular | Opac = significatiu (p < 0.05, MW)",
+       x = "", y = "Rank-biserial r", fill = "Bloc") +
   theme_minimal(base_size = 12)
 
+# Gràfic 2: Spearman rho (direcció) per variable Likert
+ggplot(df_likert_vs_grup,
+       aes(x = reorder(variable, rho_spearman),
+           y = rho_spearman,
+           fill = bloc,
+           alpha = sig_mw != "ns")) +
+  geom_col() +
+  geom_hline(yintercept = 0, linewidth = 0.5, color = "gray30") +
+  scale_fill_manual(values = c("Motius"      = "#E07B54",
+                               "Estratègies" = "#4A90B8",
+                               "IA"          = "#8E6BBF")) +
+  scale_alpha_manual(values = c("TRUE" = 0.9, "FALSE" = 0.3), guide = "none") +
+  coord_flip() +
+  labs(title    = "Spearman ρ per variable Likert vs GRUP_ASSIST",
+       subtitle = "Positiu = correlació creixent amb assistència regular",
+       x = "", y = "Spearman ρ", fill = "Bloc") +
+  theme_minimal(base_size = 12)
+
+
 #### ============================================================ ####
-####             3. MCA SOBRE VARIABLES LIKERT                    ####
+####  5. CORRELACIÓ SPEARMAN ENTRE VARIABLES NUMÈRIQUES          ####
 #### ============================================================ ####
 
-##### ------ 3.1. Funció MCA ------ #####
+vars_num <- c("EDAT", "DESPL", "N_ASSIG", "P_ASSIST")
+n_num <- length(vars_num)
 
-fer_mca_bloc <- function(vars, nom_bloc, nivells, color_bar) {
-  titol <- paste("\n MCA del bloc", nom_bloc, "\n")
-  cat("\n")
-  cat(strrep("=", nchar(titol)))
-  cat(titol)
-  cat(strrep("=", nchar(titol)), "\n")
+cat("\n=================================================================\n")
+cat(" 5. CORRELACIÓ SPEARMAN ENTRE VARIABLES NUMÈRIQUES\n")
+cat("=================================================================\n\n")
 
-  dades_bloc <- dades %>%
-    select(all_of(vars), GRUP_ASSIST) %>%
-    mutate(across(all_of(vars),
-                  ~ factor(as.integer(.x), levels = 1:nivells))) %>%
-    na.omit()
+mat_num_sp <- matrix(1, n_num, n_num, dimnames = list(vars_num, vars_num))
+df_num_corr <- data.frame()
 
-  idx <- as.integer(rownames(dades_bloc))
-  grup <- dades$GRUP_ASSIST[idx]
+for (i in 1:(n_num - 1)) {
+  for (j in (i + 1):n_num) {
+    xi <- dades[[vars_num[i]]]
+    xj <- dades[[vars_num[j]]]
 
-  mca <- MCA(dades_bloc,
-             method = "Indicator",
-             quali.sup = which(names(dades_bloc) == "GRUP_ASSIST"),
-             ncp = 10,
-             graph = FALSE)
+    sp <- cor.test(xi, xj, method = "spearman", use = "complete.obs", exact = FALSE)
+    mat_num_sp[i, j] <- mat_num_sp[j, i] <- round(sp$estimate, 3)
 
-  cat("\n ==== Variància explicada (primeres 10 dimensions sense correcció) ====\n")
-  eig.val <- get_eigenvalue(mca)
-  print(eig.val[1:10, ])
+    molts_empats <- prop_ties(xi) > LLINDAR_EMPATS | prop_ties(xj) > LLINDAR_EMPATS
+    rho_k <- NA_real_; p_k <- NA_real_
+    if (molts_empats) {
+      kd <- cor.test(xi, xj, method = "kendall", use = "complete.obs", exact = FALSE)
+      rho_k <- round(kd$estimate, 3)
+      p_k   <- round(kd$p.value, 4)
+    }
 
-  act.vars <- length(vars)
-  threshold <- 1 / act.vars
-
-  # CORRECCIÓ BENZECRI
-  calcular_benzecri <- function(mca_objecte, Q) {
-    evals <- mca_objecte$eig[, 1]
-    thr <- 1 / Q
-    ejes_validos <- evals[evals > thr]
-    corregits <- (Q / (Q - 1))^2 * (ejes_validos - thr)^2
-    percentatges <- round((corregits / sum(corregits)) * 100, 4)
-    acumulada <- cumsum(percentatges)
-    data.frame(
-      Dimensio = 1:length(percentatges),
-      Var_Real = round(percentatges, 4),
-      Var_Acum = round(acumulada, 4)
-    )
-  }
-
-  cat("\n ===== Variància corregida (Benzécri) per les primeres 10 dim =====\n")
-  benz <- calcular_benzecri(mca, act.vars)
-  print(benz[1:min(10, nrow(benz)), ])
-
-  # Screeplot amb variància corregida Benzécri (gràfic manual)
-  p_scree <- ggplot(benz[1:min(10, nrow(benz)), ],
-                    aes(x = Dimensio, y = Var_Real)) +
-    geom_col(fill = color_bar, color = "white", alpha = 0.85) +
-    geom_line(aes(y = Var_Acum), color = "gray40", linewidth = 0.7) +
-    geom_point(aes(y = Var_Acum), color = "gray40", size = 2) +
-    geom_text(aes(label = paste0(Var_Real, "%")),
-              vjust = -0.4, size = 3.2) +
-    scale_x_continuous(breaks = benz$Dimensio[1:min(10, nrow(benz))]) +
-    labs(title    = paste("Scree Plot (Benzécri) –", nom_bloc),
-         subtitle = "Barres = % variància corregida | Línia = % acumulat",
-         x = "Dimensió", y = "% Variància (Benzécri)") +
-    theme_minimal(base_size = 13)
-  print(p_scree)
-
-  # Gràfics per a cada parella de dimensions: (1,2), (1,3), (2,3)
-  for (dims in list(c(1, 2), c(1, 3), c(2, 3))) {
-    d1 <- dims[1]
-    d2 <- dims[2]
-    etq <- paste0("Dim ", d1, "-", d2)
-
-    # Etiquetes dels eixos amb variància corregida (Benzécri)
-    eix_x <- paste0("Dim ", d1, " (", benz$Var_Real[d1], "% Benzécri)")
-    eix_y <- paste0("Dim ", d2, " (", benz$Var_Real[d2], "% Benzécri)")
-
-    # 1. Pseudo-correlació variables-dimensions
-    p_cor <- fviz_mca_var(mca,
-                          choice = "mca.cor",
-                          axes = dims,
-                          repel = TRUE,
-                          ggtheme = theme_minimal()) +
-      labs(title = paste("Pseudo-correlació –", etq, "–", nom_bloc),
-           x = eix_x, y = eix_y)
-    print(p_cor)
-
-    # 2. Qualitat de representació (cos2), top 20 variables
-    # Coordenades suplementàries de GRUP_ASSIST per a aquestes dimensions
-    sup_coords <- as.data.frame(mca$quali.sup$coord[, dims])
-    colnames(sup_coords) <- c("x", "y")
-    sup_coords$label <- rownames(mca$quali.sup$coord)
-
-    p_cos2 <- fviz_mca_var(mca,
-                           col.var = "cos2",
-                           axes = dims,
-                           gradient.cols = c("#00AFBB", "#E7B800", "#FC4E07"),
-                           repel = TRUE,
-                           ggtheme = theme_minimal(),
-                           select.var = list(contrib = 20)) +
-      geom_point(data = sup_coords, aes(x = x, y = y),
-                 color = "#E07B54", shape = 17, size = 3.5) +
-      geom_text(data = sup_coords, aes(x = x, y = y, label = label),
-                color = "#E07B54", vjust = -0.7, size = 3.2) +
-      labs(title    = paste("Variables (cos2) –", etq, "–", nom_bloc),
-           subtitle = "Top 20 per contribució | color = cos2 | triangle = GRUP_ASSIST",
-           x = eix_x, y = eix_y)
-    print(p_cos2)
-
-    # 3. Biplot individus + variables colorejats per GRUP_ASSIST
-    p_biplot <- fviz_mca_biplot(mca,
-                                axes = dims,
-                                repel = TRUE,
-                                ggtheme = theme_minimal(),
-                                col.var = "black",
-                                habillage = grup,
-                                select.ind = list(contrib = 50),
-                                select.var = list(contrib = 15),
-                                labelsize = 3) +
-      geom_point(data = sup_coords, aes(x = x, y = y),
-                 color = "#E07B54", shape = 17, size = 3.5) +
-      geom_text(data = sup_coords, aes(x = x, y = y, label = label),
-                color = "#E07B54", vjust = -0.7, size = 3.2) +
-      labs(title    = paste("Biplot –", etq, "–", nom_bloc),
-           subtitle = "Top 50 individus | color = GRUP_ASSIST | triangle = GRUP_ASSIST sup.",
-           x = eix_x, y = eix_y)
-    print(p_biplot)
-  }
-
-  invisible(mca)
-}
-
-##### ------ 3.2. Aplicar MCA per cada bloc ------ #####
-
-mca_motius <- fer_mca_bloc(
-  vars = motius_vars,
-  nom_bloc = "Motius de NO assistència",
-  nivells = 5,
-  color_bar = "#E07B54"
-)
-
-mca_estrat <- fer_mca_bloc(
-  vars = estrategies_vars,
-  nom_bloc = "Estratègies d'assistència",
-  nivells = 6,
-  color_bar = "#4A90B8"
-)
-
-mca_ia <- fer_mca_bloc(
-  vars = ia_vars,
-  nom_bloc = "Ús de la IA",
-  nivells = 6,
-  color_bar = "#8E6BBF"
-)
-
-##### ------ 3.3. Resultats MCA ------ #####
-
-# Coordenades de GRUP_ASSIST en Dim1 per cada bloc
-coord_motius <- mca_motius$quali.sup$coord["Regular (≥80%)", 1] -
-  mca_motius$quali.sup$coord["Irregular (<80%)", 1]
-
-coord_estrat <- mca_estrat$quali.sup$coord["Regular (≥80%)", 1] -
-  mca_estrat$quali.sup$coord["Irregular (<80%)", 1]
-
-coord_ia     <- mca_ia$quali.sup$coord["Regular (≥80%)", 1] -
-  mca_ia$quali.sup$coord["Irregular (<80%)", 1]
-
-cat("\n============================================\n")
-cat("\n ==== SEPARACIÓ GRUP_ASSIST EN DIM 1 (Regular - Irregular)==== \n")
-cat("============================================\n")
-cat("Motius:      ", round(coord_motius, 3), "\n")
-cat("Estratègies: ", round(coord_estrat, 3), "\n")
-cat("IA:          ", round(coord_ia,     3), "\n")
-
-#motius i ia separen molt bé, estratègies no
-
-# Variables correlacionades amb cada dimensió
-
-ordenar_dimdesc <- function(desc, dim_num) {
-  bloc <- desc[[dim_num]]$category
-  if (!is.null(bloc)) {
-    df_ord <- as.data.frame(bloc)
-    df_ord$abs_corr <- abs(df_ord$Estimate)
-    df_ord <- df_ord[order(-df_ord$abs_corr), ]
-    return(df_ord)
+    df_num_corr <- rbind(df_num_corr, data.frame(
+      var1         = vars_num[i],
+      var2         = vars_num[j],
+      rho_spearman = round(sp$estimate, 3),
+      p_spearman   = round(sp$p.value, 4),
+      sig          = sig_label(sp$p.value),
+      rho_kendall  = rho_k,
+      p_kendall    = p_k,
+      empats_elev  = molts_empats,
+      stringsAsFactors = FALSE
+    ))
   }
 }
 
-desc_result_motius <- dimdesc(mca_motius, axes = c(1, 2, 3))
-cat("=== DIMENSIÓ 1 MOTIUS===\n")
-print(ordenar_dimdesc(desc_result_motius, 1))
+df_num_corr <- df_num_corr %>% arrange(desc(abs(rho_spearman)))
 
-cat("\n=== DIMENSIÓ 2 MOTIUS===\n")
-print(ordenar_dimdesc(desc_result_motius, 2))
+cat("Correlació Spearman entre variables numèriques:\n")
+cat("  rho_kendall s'informa quan la proporció d'empats > 10% en alguna variable\n\n")
+print(df_num_corr)
 
-cat("\n=== DIMENSIÓ 3 MOTIUS===\n")
-print(ordenar_dimdesc(desc_result_motius, 3))
-
-
-desc_result_estrat <- dimdesc(mca_estrat, axes = c(1, 2, 3))
-cat("=== DIMENSIÓ 1 ESTRATÈGIES===\n")
-print(ordenar_dimdesc(desc_result_estrat, 1))
-
-cat("\n=== DIMENSIÓ 2 ESTRATÈGIES===\n")
-print(ordenar_dimdesc(desc_result_estrat, 2))
-
-cat("\n=== DIMENSIÓ 3 ESTRATÈGIES===\n")
-print(ordenar_dimdesc(desc_result_estrat, 3))
+# Corrplot numèriques
+corrplot(mat_num_sp,
+         method      = "color",
+         type        = "lower",
+         tl.cex      = 0.9,
+         tl.col      = "black",
+         col         = colorRampPalette(c("#E07B54", "white", "#4A90B8"))(200),
+         addCoef.col = "black",
+         number.cex  = 0.8,
+         title       = "Spearman entre variables numèriques",
+         mar         = c(0, 0, 2, 0))
 
 
-desc_result_ia <- dimdesc(mca_ia, axes = c(1, 2, 3))
-cat("=== DIMENSIÓ 1 IA===\n")
-print(ordenar_dimdesc(desc_result_ia, 1))
+#### ============================================================ ####
+####  6. VARIABLES NUMÈRIQUES vs GRUP_ASSIST                     ####
+####     Mann-Whitney U + Rank-biserial                          ####
+####     (P_ASSIST exclosa: és la font de GRUP_ASSIST)           ####
+#### ============================================================ ####
 
-cat("\n=== DIMENSIÓ 2 IA===\n")
-print(ordenar_dimdesc(desc_result_ia, 2))
+vars_num_vs_grup <- c("EDAT", "DESPL", "N_ASSIG")
 
-cat("\n=== DIMENSIÓ 3 IA===\n")
-print(ordenar_dimdesc(desc_result_ia, 3))
+cat("\n=================================================================\n")
+cat(" 6. VARIABLES NUMÈRIQUES vs GRUP_ASSIST\n")
+cat("=================================================================\n\n")
+cat("  (P_ASSIST s'exclou perquè GRUP_ASSIST deriva directament d'ella)\n\n")
 
+df_num_vs_grup <- lapply(vars_num_vs_grup, function(v) {
+  x  <- dades[[v]]
+  mw <- wilcox.test(x ~ dades$GRUP_ASSIST, exact = FALSE)
+  rb <- rank_biserial(x, dades$GRUP_ASSIST)
+  data.frame(
+    variable   = v,
+    W          = round(mw$statistic, 1),
+    p_valor    = round(mw$p.value, 4),
+    sig        = sig_label(mw$p.value),
+    r_biserial = round(rb, 3),
+    stringsAsFactors = FALSE
+  )
+}) %>%
+  bind_rows() %>%
+  arrange(desc(abs(r_biserial)))
 
-# Guardem les primeres 3 dimensions de cada bloc
-# Les files que no estaven al MCA (tenien NA en algun Likert) queden com NA
+cat("Mann-Whitney + Rank-biserial per a cada variable numèrica:\n")
+cat("  r_biserial > 0 → Regular > Irregular\n\n")
+print(df_num_vs_grup)
 
-# Bloc motius
-dades[, c("MCA_MOT_D1", "MCA_MOT_D2", "MCA_MOT_D3")] <- NA_real_
-idx_m <- as.integer(rownames(mca_motius$ind$coord))
-dades[idx_m, c("MCA_MOT_D1", "MCA_MOT_D2", "MCA_MOT_D3")] <- mca_motius$ind$coord[, 1:3]
-
-# Bloc estratègies
-dades[, c("MCA_EST_D1", "MCA_EST_D2", "MCA_EST_D3")] <- NA_real_
-idx_e <- as.integer(rownames(mca_estrat$ind$coord))
-dades[idx_e, c("MCA_EST_D1", "MCA_EST_D2", "MCA_EST_D3")] <- mca_estrat$ind$coord[, 1:3]
-
-# Bloc IA
-dades[, c("MCA_IA_D1", "MCA_IA_D2", "MCA_IA_D3")] <- NA_real_
-idx_i <- as.integer(rownames(mca_ia$ind$coord))
-dades[idx_i, c("MCA_IA_D1", "MCA_IA_D2", "MCA_IA_D3")] <- mca_ia$ind$coord[, 1:3]
-
-cat("\n === Dimensions MCA afegides a dades === \n")
-cat("Files amb coordenades motius:     ", sum(!is.na(dades$MCA_MOT_D1)), "\n")
-cat("Files amb coordenades estratègies:", sum(!is.na(dades$MCA_EST_D1)), "\n")
-cat("Files amb coordenades IA:         ", sum(!is.na(dades$MCA_IA_D1)),  "\n")
+# Lollipop rank-biserial numèriques
+ggplot(df_num_vs_grup,
+       aes(x = reorder(variable, r_biserial),
+           y = r_biserial,
+           color = sig != "ns")) +
+  geom_segment(aes(xend = variable, yend = 0), linewidth = 1.2) +
+  geom_point(size = 5) +
+  geom_hline(yintercept = 0, color = "gray30") +
+  geom_text(aes(label = sprintf("r = %.3f\np = %.4f", r_biserial, p_valor)),
+            hjust = -0.15, size = 3.2) +
+  scale_color_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "gray60"),
+                     labels = c("ns", "p < 0.05"), name = "") +
+  coord_flip() +
+  expand_limits(y = c(min(df_num_vs_grup$r_biserial) - 0.15,
+                      max(df_num_vs_grup$r_biserial) + 0.15)) +
+  labs(title    = "Rank-biserial per variable numèrica vs GRUP_ASSIST",
+       subtitle = "Positiu = Regular > Irregular",
+       x = "", y = "Rank-biserial r") +
+  theme_minimal(base_size = 13)
 
 
 sink()
 dev.off()
+
+save(dades, file = "2. Dades/3. Dades EDA.RData")

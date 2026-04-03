@@ -4,12 +4,11 @@
 PROP_MOT PROP_MOT  223  66.77
 EXP_NEG   EXP_NEG  206  61.68
 EXP_POS   EXP_POS  203  60.78
-DESPL       DESPL    1   0.30
 
  === Imputació MICE - valor imputat per DESPL === 
-     1  2  3  4  5
-303 60 50 45 60 40
-Valor imputat final (mitjana 5 imputacions): 51 minuts
+[1] 1 2 3 4 5
+<0 rows> (or 0-length row.names)
+Valor imputat final (mitjana 5 imputacions):  minuts
 
  === Num outliers amb score > 2 per cada k === 
  k=5 k=10 k=15 k=18 k=20 

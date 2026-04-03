@@ -1,0 +1,377 @@
+================================================================
+                            EFA INICIAL                         
+================================================================
+============================================================
+ BLOC: Motius NO assistència [v1] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 15 
+
+KMO global: 0.825 (bo) 
+Bartlett: chi2 = 2259.24 | gl = 105 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  4  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 4 
+
+Variança explicada per factor:
+                        PA1   PA2   PA4   PA3
+SS loadings           2.607 2.229 1.774 1.503
+Proportion Var        0.174 0.149 0.118 0.100
+Cumulative Var        0.174 0.322 0.441 0.541
+Proportion Explained  0.321 0.275 0.219 0.185
+Cumulative Proportion 0.321 0.596 0.815 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3     F4    h2    u2
+M_TEOR    0.843 -0.031  0.034 -0.022 0.738 0.262
+M_PASSIU  0.772  0.077  0.054 -0.002 0.650 0.350
+M_AMICS   0.510 -0.094 -0.001  0.157 0.341 0.659
+M_AVORR   0.464 -0.135  0.440 -0.019 0.678 0.322
+M_EXAM    0.365 -0.004 -0.012  0.363 0.334 0.666
+M_ACAD    0.253  0.172  0.191 -0.053 0.164 0.836
+M_DIST    0.166  0.327  0.050  0.229 0.230 0.770
+M_TREB    0.022  0.657  0.065  0.049 0.435 0.565
+M_SALUT  -0.015  0.851 -0.075 -0.025 0.748 0.252
+M_FAM    -0.002  0.948  0.038 -0.010 0.891 0.109
+M_PROF    0.261  0.005  0.672 -0.085 0.675 0.325
+M_UTIL   -0.031 -0.003  0.711  0.275 0.729 0.271
+M_REPET   0.405  0.059 -0.155  0.416 0.331 0.669
+M_AUTON   0.043  0.006  0.370  0.544 0.651 0.349
+M_CV     -0.024 -0.024  0.061  0.699 0.521 0.479
+
+⚠ Variables amb comunalitat < 0.30 (considerar eliminar):
+          h2    u2
+M_DIST 0.230 0.770
+M_ACAD 0.164 0.836
+
+============================================================
+ BLOC: Estratègies assistència [v1] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 13 
+
+KMO global: 0.828 (bo) 
+Bartlett: chi2 = 2281.24 | gl = 78 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  4  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 4 
+
+Variança explicada per factor:
+                        PA1   PA2   PA3   PA4
+SS loadings           2.937 2.075 1.575 1.162
+Proportion Var        0.226 0.160 0.121 0.089
+Cumulative Var        0.226 0.386 0.507 0.596
+Proportion Explained  0.379 0.268 0.203 0.150
+Cumulative Proportion 0.379 0.647 0.850 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3     F4    h2    u2
+E_EXPL    0.982 -0.006 -0.034 -0.068 0.889 0.111
+E_RITME   0.785  0.081 -0.004  0.094 0.744 0.256
+E_CLIMA   0.758 -0.070  0.159  0.120 0.745 0.255
+E_PROP    0.590  0.189  0.002  0.045 0.506 0.494
+E_PES_AC  0.046  0.666  0.097  0.032 0.549 0.451
+E_ACT_AC  0.039  0.924 -0.055  0.019 0.877 0.123
+E_PES_AS -0.035  0.557  0.096 -0.114 0.270 0.730
+E_DESC   -0.024 -0.011  0.679 -0.033 0.431 0.569
+E_CURT    0.024  0.004  0.865  0.018 0.780 0.220
+E_DINAM   0.293  0.093  0.005  0.621 0.708 0.292
+E_HORA    0.289  0.095  0.282 -0.291 0.216 0.784
+E_PART   -0.134  0.409  0.134  0.478 0.620 0.380
+E_REDU    0.115  0.030  0.259  0.421 0.415 0.585
+
+⚠ Variables amb comunalitat < 0.30 (considerar eliminar):
+            h2    u2
+E_HORA   0.216 0.784
+E_PES_AS 0.270 0.730
+
+============================================================
+ BLOC: Ús de la IA [v1] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 8 
+
+KMO global: 0.848 (bo) 
+Bartlett: chi2 = 1504.89 | gl = 28 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  3  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 3 
+
+Variança explicada per factor:
+                        PA1   PA2   PA3
+SS loadings           2.848 1.999 0.364
+Proportion Var        0.356 0.250 0.046
+Cumulative Var        0.356 0.606 0.651
+Proportion Explained  0.547 0.384 0.070
+Cumulative Proportion 0.547 0.930 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3    h2    u2
+IA_COMPR  0.905  0.011  0.107 0.820 0.180
+IA_HABIT  0.825  0.078 -0.062 0.783 0.217
+IA_PDFS   0.795 -0.040  0.115 0.586 0.414
+IA_REND   0.708  0.066 -0.366 0.760 0.240
+IA_SUBST  0.252  0.584  0.090 0.585 0.415
+IA_CONF  -0.050  0.738 -0.153 0.534 0.466
+IA_ATENC -0.007  0.964  0.057 0.920 0.080
+IA_PREOC  0.105  0.201  0.404 0.223 0.777
+
+⚠ Variables amb comunalitat < 0.30 (considerar eliminar):
+            h2    u2
+IA_PREOC 0.223 0.777
+
+================================================================
+                             EFA REFINADA                       
+================================================================
+Variables eliminades de dades: M_ACAD, E_PES_AS, IA_PREOC
+Variables mantingudes a dades però fora de l'EFA: M_DIST, E_HORA
+
+============================================================
+ BLOC: Motius NO assistència [refinat] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 13 
+
+KMO global: 0.818 (bo) 
+Bartlett: chi2 = 2087.49 | gl = 78 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  4  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 4 
+
+Variança explicada per factor:
+                        PA1   PA3   PA2   PA4
+SS loadings           2.874 2.202 2.101 0.534
+Proportion Var        0.221 0.169 0.162 0.041
+Cumulative Var        0.221 0.390 0.552 0.593
+Proportion Explained  0.373 0.286 0.272 0.069
+Cumulative Proportion 0.373 0.658 0.931 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3     F4    h2    u2
+M_TEOR    0.876 -0.040 -0.025 -0.053 0.712 0.288
+M_PASSIU  0.852 -0.045  0.091 -0.025 0.677 0.323
+M_AVORR   0.635  0.122 -0.130  0.249 0.702 0.298
+M_AMICS   0.511  0.146 -0.090 -0.110 0.346 0.654
+M_PROF    0.481  0.197 -0.007  0.355 0.630 0.370
+M_EXAM    0.303  0.390 -0.002 -0.164 0.336 0.664
+M_REPET   0.296  0.398  0.061 -0.296 0.353 0.647
+M_UTIL    0.125  0.607 -0.008  0.359 0.730 0.270
+M_CV     -0.117  0.767 -0.006 -0.129 0.482 0.518
+M_AUTON   0.042  0.776  0.011  0.058 0.665 0.335
+M_SALUT  -0.046 -0.036  0.827 -0.056 0.712 0.288
+M_TREB    0.039  0.081  0.658  0.030 0.435 0.565
+M_FAM     0.020  0.007  0.970  0.040 0.930 0.070
+
+============================================================
+ BLOC: Estratègies assistència [refinat] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 11 
+
+KMO global: 0.834 (bo) 
+Bartlett: chi2 = 2096.19 | gl = 55 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  5  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 5 
+
+Variança explicada per factor:
+                        PA1   PA2   PA3   PA4   PA5
+SS loadings           2.598 1.866 1.435 1.412 0.430
+Proportion Var        0.236 0.170 0.130 0.128 0.039
+Cumulative Var        0.236 0.406 0.536 0.665 0.704
+Proportion Explained  0.336 0.241 0.185 0.182 0.056
+Cumulative Proportion 0.336 0.577 0.762 0.944 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3     F4     F5    h2    u2
+E_EXPL    0.932 -0.028  0.007  0.030 -0.067 0.869 0.131
+E_RITME   0.752  0.126  0.048  0.150 -0.187 0.824 0.176
+E_CLIMA   0.739 -0.041  0.159  0.053  0.217 0.792 0.208
+E_PROP    0.604  0.202 -0.060 -0.038  0.357 0.642 0.358
+E_PART   -0.177  0.507  0.135  0.303  0.145 0.573 0.427
+E_ACT_AC  0.038  0.938 -0.026 -0.024 -0.031 0.859 0.141
+E_PES_AC  0.018  0.675  0.084  0.046  0.003 0.550 0.450
+E_CURT    0.047  0.025  0.833 -0.003  0.027 0.748 0.252
+E_DESC   -0.003 -0.008  0.728 -0.043 -0.094 0.482 0.518
+E_DINAM   0.097  0.044 -0.031  0.878 -0.052 0.881 0.119
+E_REDU   -0.017 -0.014  0.172  0.499  0.343 0.520 0.480
+
+============================================================
+ BLOC: Ús de la IA [refinat] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 7 
+
+KMO global: 0.854 (bo) 
+Bartlett: chi2 = 1457.16 | gl = 21 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  2  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 2 
+
+Variança explicada per factor:
+                        PA1   PA2
+SS loadings           2.869 1.884
+Proportion Var        0.410 0.269
+Cumulative Var        0.410 0.679
+Proportion Explained  0.604 0.396
+Cumulative Proportion 0.604 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2    h2    u2
+IA_COMPR  0.904 -0.015 0.801 0.199
+IA_HABIT  0.876  0.033 0.806 0.194
+IA_PDFS   0.781 -0.054 0.559 0.441
+IA_REND   0.730  0.058 0.591 0.409
+IA_SUBST  0.243  0.579 0.574 0.426
+IA_ATENC -0.033  0.990 0.940 0.060
+IA_CONF   0.003  0.693 0.483 0.517
+
+============================================================
+ 3. PUNTUACIONS FACTORIALS (EFA refinada)
+============================================================
+
+Columnes de puntuacions afegides:
+FA_MOT_F1, FA_MOT_F2, FA_MOT_F3, FA_MOT_F4, FA_EST_F1, FA_EST_F2, FA_EST_F3, FA_EST_F4, FA_EST_F5, FA_IA_F1, FA_IA_F2
+
+Files amb puntuació (sense NA):
+  Motius:       334 
+  Estratègies:  334 
+  IA:           334 
+
+Correlació Spearman de les puntuacions factorials amb GRUP_ASSIST:
+            factor rho_spearman p_value
+rho...1  FA_MOT_F2       -0.363  0.0000
+rho...2  FA_MOT_F1       -0.345  0.0000
+rho...3   FA_IA_F1       -0.268  0.0000
+rho...4   FA_IA_F2       -0.266  0.0000
+rho...5  FA_MOT_F4       -0.138  0.0114
+rho...6  FA_EST_F5       -0.044  0.4262
+rho...7  FA_EST_F1        0.016  0.7716
+rho...8  FA_EST_F3        0.050  0.3597
+rho...9  FA_EST_F2        0.103  0.0606
+rho...10 FA_EST_F4        0.108  0.0488
+rho...11 FA_MOT_F3        0.178  0.0011
+================================================================
+                                  EFA DEFINITIVA                
+================================================================
+
+Motius: nfactors = 3 | Estratègies: nfactors = 4 | IA: lliure
+
+============================================================
+ BLOC: Motius NO assistència [definitiu] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 13 
+
+KMO global: 0.818 (bo) 
+Bartlett: chi2 = 2087.49 | gl = 78 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  4  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 4 | Forçat a: 3 
+
+Variança explicada per factor:
+                        PA1   PA3   PA2
+SS loadings           2.947 2.195 2.104
+Proportion Var        0.227 0.169 0.162
+Cumulative Var        0.227 0.396 0.557
+Proportion Explained  0.407 0.303 0.290
+Cumulative Proportion 0.407 0.710 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3    h2    u2
+M_TEOR    0.860 -0.052 -0.005 0.694 0.306
+M_PASSIU  0.854 -0.060  0.107 0.676 0.324
+M_AVORR   0.697  0.154 -0.152 0.668 0.332
+M_PROF    0.562  0.246 -0.045 0.534 0.466
+M_AMICS   0.477  0.129 -0.064 0.321 0.679
+M_EXAM    0.255  0.363  0.031 0.296 0.704
+M_UTIL    0.242  0.612 -0.044 0.601 0.399
+M_REPET   0.217  0.337  0.108 0.244 0.756
+M_CV     -0.151  0.742  0.024 0.451 0.549
+M_AUTON   0.035  0.816  0.018 0.697 0.303
+M_SALUT  -0.062 -0.037  0.837 0.720 0.280
+M_TREB    0.049  0.086  0.657 0.434 0.566
+M_FAM     0.031  0.017  0.957 0.910 0.090
+
+⚠ Variables amb comunalitat < 0.30 (considerar eliminar):
+           h2    u2
+M_EXAM  0.296 0.704
+M_REPET 0.244 0.756
+
+============================================================
+ BLOC: Estratègies assistència [definitiu] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 11 
+
+KMO global: 0.834 (bo) 
+Bartlett: chi2 = 2096.19 | gl = 55 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  5  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 5 | Forçat a: 4 
+
+Variança explicada per factor:
+                        PA1   PA2   PA3   PA4
+SS loadings           2.865 2.174 1.253 1.185
+Proportion Var        0.260 0.198 0.114 0.108
+Cumulative Var        0.260 0.458 0.572 0.680
+Proportion Explained  0.383 0.291 0.168 0.158
+Cumulative Proportion 0.383 0.674 0.842 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2     F3     F4    h2    u2
+E_EXPL    0.996 -0.055 -0.022 -0.055 0.894 0.106
+E_RITME   0.789  0.171  0.027 -0.038 0.761 0.239
+E_CLIMA   0.772 -0.061  0.128  0.143 0.757 0.243
+E_PROP    0.581  0.137 -0.062  0.151 0.505 0.495
+E_DINAM   0.283  0.387 -0.004  0.293 0.578 0.422
+E_PART   -0.117  0.641  0.104  0.222 0.571 0.429
+E_ACT_AC  0.044  0.905 -0.039 -0.054 0.796 0.204
+E_PES_AC  0.031  0.725  0.067 -0.019 0.564 0.436
+E_CURT    0.098  0.025  0.652  0.154 0.608 0.392
+E_DESC   -0.018  0.004  0.838 -0.081 0.649 0.351
+E_REDU    0.020  0.010  0.014  0.873 0.794 0.206
+
+============================================================
+ BLOC: Ús de la IA [definitiu] 
+============================================================
+ 
+Observacions (sense NA): 334 | Variables: 7 
+
+KMO global: 0.854 (bo) 
+Bartlett: chi2 = 1457.16 | gl = 21 | p = <2e-16 
+
+Parallel analysis suggests that the number of factors =  2  and the number of components =  NA 
+Anàlisi paral·lela → factors recomanats: 2 
+
+Variança explicada per factor:
+                        PA1   PA2
+SS loadings           2.869 1.884
+Proportion Var        0.410 0.269
+Cumulative Var        0.410 0.679
+Proportion Explained  0.604 0.396
+Cumulative Proportion 0.604 1.000
+
+Càrregues factorials (|λ| ≥ 0.30 marquen la càrrega principal):
+             F1     F2    h2    u2
+IA_COMPR  0.904 -0.015 0.801 0.199
+IA_HABIT  0.876  0.033 0.806 0.194
+IA_PDFS   0.781 -0.054 0.559 0.441
+IA_REND   0.730  0.058 0.591 0.409
+IA_SUBST  0.243  0.579 0.574 0.426
+IA_ATENC -0.033  0.990 0.940 0.060
+IA_CONF   0.003  0.693 0.483 0.517
+
+
+
+Correlació Spearman puntuacions definitives amb GRUP_ASSIST:
+           factor rho_spearman p_value
+rho...1 FA_MOT_F2       -0.370  0.0000
+rho...2 FA_MOT_F1       -0.344  0.0000
+rho...3  FA_IA_F1       -0.268  0.0000
+rho...4  FA_IA_F2       -0.266  0.0000
+rho...5 FA_EST_F1        0.033  0.5492
+rho...6 FA_EST_F4        0.053  0.3351
+rho...7 FA_EST_F3        0.066  0.2275
+rho...8 FA_EST_F2        0.104  0.0572
+rho...9 FA_MOT_F3        0.180  0.0010

@@ -10,8 +10,7 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
-setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
+setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/0. Dades definitives.RData")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
@@ -124,7 +123,6 @@ ggplot(dades, aes(x = GRUP_ASSIST, y = DESPL, fill = GRUP_ASSIST)) +
   theme_minimal(base_size = 13) +
   theme(legend.position = "none")
 
-# res rellevant
 
 # Nombre d'assignatures per grup d'assistència
 ggplot(dades, aes(x = GRUP_ASSIST, y = N_ASSIG, fill = GRUP_ASSIST)) +
