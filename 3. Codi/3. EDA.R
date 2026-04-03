@@ -21,9 +21,98 @@ motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
 ia_vars <- readRDS("2. Dades/ia_vars.rds")
 
+#### ============================================================ ####
+####            0. CREACIO DE VARIABLES BINÀRIES                   ####
+#### ============================================================ ####
+
+dades <- dades %>%
+  mutate(
+    TREB_INTENS = as.integer(DEDIC %in% c("T.Parcial", "T.Complet")),
+    AVAL_CONT = as.integer(T_AVAL == "Continuada"),
+    NOTA_ALTA = as.integer(NOTA %in% c("[8-8.9]", "≥9")),
+    CURS_1R = as.integer(CURS%in% c("1r")),
+    SOBRECARREGAT  = as.integer(N_ASSIG >= 12),
+    DOBLE_GRAU_EST = as.integer(GRAU %in% c("Estadística", "Doble Eco+Est",
+                                             "Doble ADE+Soc", "Doble ADE+Mat",
+                                             "Doble ADE+Dret","Doble ADE+Qui"))
+  )
+
+
 sink("4. Outputs/3.1 Output_text_EDA.txt")
 pdf("4. Outputs/3.2 Output_grafics_EDA.pdf",
     width = 10, height = 8)
+
+
+#### ============================================================ ####
+####     0.1. ASSOCIACIO VARIABLES BINARIES VS GRUP_ASSIST        ####
+#### ============================================================ ####
+
+# Test: chi-quadrat (o Fisher's exact si algun esperat < 5)
+# Efecte: Cramer's V = sqrt(chi2 / (n * (min(r,c) - 1)))
+# V de Cramer funciona per a qualsevol mida de taula (no nomes 2x2)
+
+vars_bin <- c("TREB_INTENS", "AVAL_CONT", "NOTA_ALTA",
+              "CURS_AVANCAT", "SOBRECARREGAT", "DOBLE_GRAU_EST")
+
+resultats_bin <- lapply(vars_bin, function(v) {
+  taula <- table(dades[[v]], dades$GRUP_ASSIST)
+  n <- sum(taula)
+  k <- min(nrow(taula), ncol(taula))
+  esperats <- chisq.test(taula)$expected
+  if (any(esperats < 5)) {
+    test <- fisher.test(taula)
+    est <- round(test$estimate, 3)
+    nom_est <- "OR (Fisher)"
+    p <- round(test$p.value, 4)
+  } else {
+    test <- chisq.test(taula, correct = FALSE)
+    est <- round(sqrt(as.numeric(test$statistic) / (n * (k - 1))), 3)
+    nom_est <- "V Cramer"
+    p <- round(test$p.value, 4)
+  }
+  data.frame(
+    variable = v,
+    estimador = nom_est,
+    valor = est,
+    p_valor = p,
+    sig = ifelse(p < 0.001, "***",
+                       ifelse(p < 0.01,  "**",
+                              ifelse(p < 0.05,  "*", "ns")))
+  )
+})
+
+df_bin <- do.call(rbind, resultats_bin) %>% arrange(p_valor)
+cat("\n === Associacio variables binaries vs GRUP_ASSIST (Cramer's V) === \n")
+print(df_bin)
+
+# Grafic: % Regular/Irregular per cada variable binaria (faceted)
+df_bin_plot <- lapply(vars_bin, function(v) {
+  dades %>%
+    group_by(val = factor(.data[[v]], labels = c("No", "Si")),
+             GRUP_ASSIST) %>%
+    summarise(n = n(), .groups = "drop") %>%
+    group_by(val) %>%
+    mutate(prop = n / sum(n), total = sum(n)) %>%
+    ungroup() %>%
+    mutate(variable = v)
+}) %>% bind_rows()
+
+ggplot(df_bin_plot, aes(x = val, y = prop, fill = GRUP_ASSIST)) +
+  geom_col(alpha = 0.9) +
+  geom_text(aes(label = paste0(round(prop * 100), "%")),
+            position = position_stack(vjust = 0.5),
+            color = "white", size = 3, fontface = "bold") +
+  geom_text(data = df_bin_plot %>% distinct(variable, val, total),
+            aes(label = paste0("n=", total), x = val, y = 1.06),
+            inherit.aes = FALSE, color = "gray30", size = 2.8) +
+  scale_fill_manual(values = c("Regular (>=80%)"  = "#4A90B8",
+                               "Irregular (<80%)" = "#E07B54")) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1.12)) +
+  facet_wrap(~ variable, nrow = 2) +
+  labs(title = "% Assistencia regular per cada variable binaria derivada",
+       x = "", y = "Proporcio", fill = "") +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(size = 9))
 
 #### ============================================================ ####
 ####     1. ASSOCIACIONS ENTRE VARIABLES CATEGÒRIQUES             ####
@@ -39,12 +128,12 @@ mat_p_v <- matrix(0, n_cat, n_cat, dimnames = list(vars_cat, vars_cat))
 for (i in 1:(n_cat - 1)) {
   for (j in (i + 1):n_cat) {
     taula <- table(dades[[vars_cat[i]]], dades[[vars_cat[j]]])
-    test  <- chisq.test(taula, simulate.p.value = TRUE, B = 2000)
-    n     <- sum(taula)
-    k     <- min(nrow(taula), ncol(taula))
-    v     <- round(sqrt(as.numeric(test$statistic) / (n * (k - 1))), 3)
-    mat_v[i, j]   <- v
-    mat_v[j, i]   <- v
+    test <- chisq.test(taula, simulate.p.value = TRUE, B = 2000)
+    n <- sum(taula)
+    k <- min(nrow(taula), ncol(taula))
+    v <- round(sqrt(as.numeric(test$statistic) / (n * (k - 1))), 3)
+    mat_v[i, j] <- v
+    mat_v[j, i] <- v
     mat_p_v[i, j] <- round(test$p.value, 4)
     mat_p_v[j, i] <- round(test$p.value, 4)
   }
@@ -72,9 +161,9 @@ df_parelles_v <- data.frame()
 for (i in 1:(n_cat - 1)) {
   for (j in (i + 1):n_cat) {
     df_parelles_v <- rbind(df_parelles_v, data.frame(
-      var1    = vars_cat[i],
-      var2    = vars_cat[j],
-      V       = mat_v[i, j],
+      var1 = vars_cat[i],
+      var2 = vars_cat[j],
+      V = mat_v[i, j],
       p_valor = mat_p_v[i, j]
     ))
   }
@@ -96,7 +185,7 @@ df_grup_cat <- data.frame(
   p_valor  = round(mat_p_v["GRUP_ASSIST", vars_cat != "GRUP_ASSIST"], 4)
 ) %>%
   mutate(sig = ifelse(p_valor < 0.001, "***",
-                      ifelse(p_valor < 0.01,  "**",
+                      ifelse(p_v alor < 0.01,  "**",
                              ifelse(p_valor < 0.05,  "*", "ns")))) %>%
   arrange(desc(V))
 
@@ -125,8 +214,8 @@ for (i in 1:(n_lk - 1)) {
     test <- cor.test(df_likert_num[[totes_likert[i]]],
                      df_likert_num[[totes_likert[j]]],
                      method = "kendall")
-    mat_tau[i, j]   <- round(test$estimate, 3)
-    mat_tau[j, i]   <- round(test$estimate, 3)
+    mat_tau[i, j] <- round(test$estimate, 3)
+    mat_tau[j, i] <- round(test$estimate, 3)
     mat_tau_p[i, j] <- round(test$p.value, 4)
     mat_tau_p[j, i] <- round(test$p.value, 4)
   }
@@ -137,24 +226,24 @@ mat_tau_plot <- mat_tau
 mat_tau_plot[abs(mat_tau_plot) < 0.2 & mat_tau_plot != 1] <- 0
 
 corrplot(mat_tau_plot,
-         method      = "color",
-         type        = "lower",
-         tl.cex      = 0.65,
-         tl.col      = "black",
-         col         = colorRampPalette(c("#E07B54", "white", "#4A90B8"))(200),
+         method = "color",
+         type = "lower",
+         tl.cex = 0.65,
+         tl.col = "black",
+         col = colorRampPalette(c("#E07B54", "white", "#4A90B8"))(200),
          addCoef.col = "black",
          number.cex  = 0.45,
-         title       = "Kendall tau entre variables Likert (|tau| > 0.2 visible)",
-         mar         = c(0, 0, 2, 0))
+         title = "Kendall tau entre variables Likert (|tau| > 0.2 visible)",
+         mar = c(0, 0, 2, 0))
 
 # Parelles fortes (|tau| > 0.3)
 df_parelles_tau <- data.frame()
 for (i in 1:(n_lk - 1)) {
   for (j in (i + 1):n_lk) {
     df_parelles_tau <- rbind(df_parelles_tau, data.frame(
-      var1    = totes_likert[i],
-      var2    = totes_likert[j],
-      tau     = mat_tau[i, j],
+      var1 = totes_likert[i],
+      var2 = totes_likert[j],
+      tau = mat_tau[i, j],
       p_valor = mat_tau_p[i, j]
     ))
   }
@@ -176,20 +265,20 @@ print(df_parelles_tau)
 # Test: Mann-Whitney (Wilcoxon) per significació estadística
 
 resultats_mw <- lapply(totes_likert, function(v) {
-  x    <- as.numeric(dades[[v]])
+  x <- as.numeric(dades[[v]])
   test <- wilcox.test(x ~ dades$GRUP_ASSIST)
-  r    <- round(abs(qnorm(test$p.value / 2)) / sqrt(nrow(dades)), 3)
+  r <- round(abs(qnorm(test$p.value / 2)) / sqrt(nrow(dades)), 3)
   data.frame(
     variable = v,
     bloc     = case_when(
-      v %in% motius_vars      ~ "Motius",
+      v %in% motius_vars ~ "Motius",
       v %in% estrategies_vars ~ "Estratègies",
-      v %in% ia_vars          ~ "IA"
+      v %in% ia_vars ~ "IA"
     ),
-    W       = round(test$statistic, 1),
-    r       = r,
+    W = round(test$statistic, 1),
+    r = r,
     p_valor = round(test$p.value, 4),
-    sig     = ifelse(test$p.value < 0.001, "***",
+    sig = ifelse(test$p.value < 0.001, "***",
                      ifelse(test$p.value < 0.01,  "**",
                             ifelse(test$p.value < 0.05,  "*", "ns")))
   )
@@ -218,7 +307,7 @@ ggplot(df_mw, aes(x = reorder(variable, r),
                                "IA"          = "#8E6BBF")) +
   scale_alpha_manual(values = c("TRUE" = 0.9, "FALSE" = 0.35), guide = "none") +
   coord_flip() +
-  labs(title    = "Effect size r (Mann-Whitney) per Likert vs GRUP_ASSIST",
+  labs(title = "Effect size r (Mann-Whitney) per Likert vs GRUP_ASSIST",
        subtitle = "Opac = significatiu (p<0.05)",
        x = "", y = "Effect size r", fill = "Bloc") +
   theme_minimal(base_size = 12)

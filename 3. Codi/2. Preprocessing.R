@@ -159,4 +159,4 @@ ggplot(df_lof_plot, aes(x = index, y = score, color = outlier)) +
 
 sink()
 dev.off()
-save(dades, file = "2.Dades/2. Dades.RData")
+save(dades, file = "2. Dades/2. Dades tractades.RData")

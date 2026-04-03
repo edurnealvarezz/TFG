@@ -1,4 +1,4 @@
-packages <- c("dplyr", "forcats")
+packages <- c("dplyr", "forcats","readxl")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -13,9 +13,11 @@ lapply(packages, install_if_missing); rm(packages)
 #### ============================================================ ####
 ####              LECTURA DE DADES                                ####
 #### ============================================================ ####
-setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades")
 
-dades <- read_excel("Anàlisi de l'assistència a les aules.xlsx")
+#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github")
+setwd("C:/Users/Edurne/OneDrive/Escritorio/Universitat/TFG---Github")
+
+dades <- read_excel("2. Dades/ Anàlisi de l'assistència a les aules.xlsx")
 dades <- dades %>%
   select(-contains("Puntos"), -contains("Comentarios"))
 
@@ -162,7 +164,7 @@ dades %>% filter(EDAT > 30) %>% select(EDAT, GRAU, CURS)
 # hi ha algú de 82 anys que acaba de començar ade + dret? de totes formes
 # no és outlier 
 
-save(dades, file = "0. Dades definitives.RData")
-saveRDS(estrategies_vars, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/estrategies_vars.rds")
-saveRDS(ia_vars, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/ia_vars.rds")
-saveRDS(motius_vars, "C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github/2. Dades/motius_vars.rds")
+save(dades, file = "0. Dades inicials.RData")
+saveRDS(estrategies_vars, "2. Dades/estrategies_vars.rds")
+saveRDS(ia_vars, "2. Dades/ia_vars.rds")
+saveRDS(motius_vars, "2. Dades/motius_vars.rds")

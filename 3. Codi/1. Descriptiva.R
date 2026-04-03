@@ -416,4 +416,4 @@ df_ia %>%
 
 sink()
 dev.off()
-save(dades, file = "2.Dades/1. Dades amb binaria.RData")
+save(dades, file = "2. Dades/1. Dades amb binaria.RData")
