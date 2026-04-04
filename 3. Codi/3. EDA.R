@@ -81,7 +81,7 @@ rank_biserial <- function(x, grup) {
 LLINDAR_EMPATS <- 0.10
 
 sig_label <- function(p) {
-  case_when(p < 0.001 ~ "***", p < 0.01 ~ "**", p < 0.05 ~ "*", TRUE ~ "ns")
+  case_when(p < 0.001 ~ "***", p < 0.01 ~ "**", p < 0.05 ~ "*", TRUE ~ "ns") # nolint # nolint
 }
 
 col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4A90B8")

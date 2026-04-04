@@ -308,8 +308,9 @@ if (is.matrix(vif_res)) {
 }
 
 cat("\n⚠ Variables amb VIF > 5:")
-if (length(flag_vif) == 0) cat(" Cap\n")
-else cat("\n ", paste(flag_vif, collapse = ", "), "\n")
+if (length(flag_vif) == 0){ 
+  cat(" Cap\n")
+  } else cat("\n ", paste(flag_vif, collapse = ", "), "\n")
 
 df_vif <- tibble(variable = names(vif_equiv), VIF = as.numeric(vif_equiv))
 
