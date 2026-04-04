@@ -1,0 +1,360 @@
+==== 0. DISTRIBUCIÓ GRUP_ASSIST ======= 
+
+Irregular (<80%)   Regular (≥80%) 
+             143              191 
+
+Proporció Regular (≥80%): 57.2%
+
+============== 1. MODEL LOGÍSTIC COMPLET =============
+Predictors inclosos:
+ · Factors de motius:      MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR 
+ · Factors d'estratègies:  EST_QUALITAT_DOC, EST_AVALUACIO_AC, EST_TEMPS_CLASSE, EST_GRUPS_REDUÏTS 
+ · Factors de IA:          IA_EINA_ESTUDI, IA_SUBSTITUCIO 
+ · Variables categòriques: T_AVAL, CURS_1R 
+ · Variables numèriques:   EDAT, DESPL, NOTA_num 
+
+
+Call:
+glm(formula = formula_completa, family = binomial, data = dades_mod)
+
+Coefficients:
+                   Estimate Std. Error z value Pr(>|z|)   
+(Intercept)       -2.157665   0.896211  -2.408  0.01606 * 
+MOT_DESMOTIVACIO  -0.462624   0.190189  -2.432  0.01500 * 
+MOT_AUTOGESTIO    -0.449701   0.197681  -2.275  0.02291 * 
+MOT_FORCA_MAJOR    0.348457   0.139478   2.498  0.01248 * 
+EST_QUALITAT_DOC  -0.014951   0.165832  -0.090  0.92816   
+EST_AVALUACIO_AC   0.400945   0.193556   2.071  0.03832 * 
+EST_TEMPS_CLASSE   0.015537   0.188684   0.082  0.93437   
+EST_GRUPS_REDUÏTS  0.135487   0.200673   0.675  0.49957   
+IA_EINA_ESTUDI    -0.092459   0.212702  -0.435  0.66379   
+IA_SUBSTITUCIO    -0.270753   0.212792  -1.272  0.20324   
+T_AVALContinuada   2.152473   0.745052   2.889  0.00386 **
+CURS_1R            0.765507   0.349598   2.190  0.02855 * 
+EDAT              -0.048111   0.017188  -2.799  0.00513 **
+DESPL              0.001894   0.004672   0.405  0.68525   
+NOTA_num           0.524392   0.170827   3.070  0.00214 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 456.10  on 333  degrees of freedom
+Residual deviance: 346.43  on 319  degrees of freedom
+AIC: 376.43
+
+Number of Fisher Scoring iterations: 5
+
+
+Odds Ratios model complet (IC 95% Wald):
+                     OR 2.5 % 97.5 %
+(Intercept)       0.116 0.020  0.670
+MOT_DESMOTIVACIO  0.630 0.434  0.914
+MOT_AUTOGESTIO    0.638 0.433  0.940
+MOT_FORCA_MAJOR   1.417 1.078  1.862
+EST_QUALITAT_DOC  0.985 0.712  1.364
+EST_AVALUACIO_AC  1.493 1.022  2.182
+EST_TEMPS_CLASSE  1.016 0.702  1.470
+EST_GRUPS_REDUÏTS 1.145 0.773  1.697
+IA_EINA_ESTUDI    0.912 0.601  1.383
+IA_SUBSTITUCIO    0.763 0.503  1.158
+T_AVALContinuada  8.606 1.998 37.068
+CURS_1R           2.150 1.084  4.266
+EDAT              0.953 0.921  0.986
+DESPL             1.002 0.993  1.011
+NOTA_num          1.689 1.209  2.361
+
+========= 2. LINEALITAT EN LOG-ODDS ========
+
+--- 2.1 Test de Box-Tidwell (EDAT, DESPL, NOTA_num) ---
+
+  variable      coef_BT         p sig          conclusio
+1     EDAT -0.041862905 0.6685038  ns lineal en log-odds
+2    DESPL  0.001754538 0.9069430  ns lineal en log-odds
+3 NOTA_num -0.203093984 0.7618555  ns lineal en log-odds
+
+--- 2.2 Comparació AIC: DESPL original vs log(DESPL) ---
+
+AIC model amb DESPL:       376.43
+AIC model amb log(DESPL):  376.24
+ΔAIC (orig - log):         0.19
+
+→ DESPL no millora amb transformació logarítmica (ΔAIC ≤ 2).
+  DESPL no és rellevant independentment de la forma funcional → s'elimina als models refinats.
+
+--- 2.3 Gràfics de components parcials (crPlots) ---
+Es mostren els predictors continus del model complet.
+
+
+================== 3.1 MODEL 1.1: Likert numèrica (IA_SUBST + IA_ATENC) ================
+
+Call:
+glm(formula = formula_11, family = binomial, data = dades_mod)
+
+Coefficients:
+                  Estimate Std. Error z value Pr(>|z|)   
+(Intercept)      -1.258163   0.921842  -1.365  0.17230   
+MOT_DESMOTIVACIO -0.406264   0.189290  -2.146  0.03185 * 
+MOT_AUTOGESTIO   -0.343305   0.201168  -1.707  0.08790 . 
+MOT_FORCA_MAJOR   0.358975   0.137566   2.609  0.00907 **
+EST_AVALUACIO_AC  0.455702   0.153654   2.966  0.00302 **
+IA_SUBST_num     -0.327693   0.106306  -3.083  0.00205 **
+IA_ATENC_num      0.001815   0.107181   0.017  0.98649   
+T_AVALContinuada  2.241705   0.753104   2.977  0.00291 **
+CURS_1R           0.750068   0.343422   2.184  0.02896 * 
+EDAT             -0.047317   0.016705  -2.833  0.00462 **
+NOTA_num          0.535086   0.171103   3.127  0.00176 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 456.1  on 333  degrees of freedom
+Residual deviance: 339.0  on 323  degrees of freedom
+AIC: 361
+
+Number of Fisher Scoring iterations: 5
+
+
+================== 3.2 MODEL 1.2: Likert numèrica (IA_SUBST) ================
+
+Call:
+glm(formula = formula_12, family = binomial, data = dades_mod)
+
+Coefficients:
+                 Estimate Std. Error z value Pr(>|z|)    
+(Intercept)      -1.25608    0.91362  -1.375 0.169180    
+MOT_DESMOTIVACIO -0.40596    0.18842  -2.155 0.031198 *  
+MOT_AUTOGESTIO   -0.34323    0.20110  -1.707 0.087873 .  
+MOT_FORCA_MAJOR   0.35880    0.13718   2.616 0.008907 ** 
+EST_AVALUACIO_AC  0.45587    0.15331   2.973 0.002944 ** 
+IA_SUBST_num     -0.32676    0.09074  -3.601 0.000317 ***
+T_AVALContinuada  2.24207    0.75280   2.978 0.002898 ** 
+CURS_1R           0.75030    0.34315   2.186 0.028780 *  
+EDAT             -0.04733    0.01668  -2.838 0.004547 ** 
+NOTA_num          0.53497    0.17097   3.129 0.001753 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 456.1  on 333  degrees of freedom
+Residual deviance: 339.0  on 324  degrees of freedom
+AIC: 359
+
+Number of Fisher Scoring iterations: 5
+
+
+================== 3.3 MODEL 2.1: Dummies Likert (IA_SUBST + IA_ATENC) ================
+
+Call:
+glm(formula = formula_21, family = binomial, data = dades_mod)
+
+Coefficients:
+                 Estimate Std. Error z value Pr(>|z|)   
+(Intercept)      -1.65127    0.92895  -1.778  0.07547 . 
+MOT_DESMOTIVACIO -0.41556    0.19298  -2.153  0.03128 * 
+MOT_AUTOGESTIO   -0.32433    0.21049  -1.541  0.12336   
+MOT_FORCA_MAJOR   0.37417    0.14165   2.642  0.00825 **
+EST_AVALUACIO_AC  0.47141    0.15722   2.998  0.00271 **
+IA_SUBST_dum2    -0.41709    0.43118  -0.967  0.33339   
+IA_SUBST_dum3    -0.65502    0.49842  -1.314  0.18878   
+IA_SUBST_dum4    -0.73631    0.52068  -1.414  0.15733   
+IA_SUBST_dum5    -0.92210    0.62697  -1.471  0.14136   
+IA_SUBST_dum6    -2.03857    0.64180  -3.176  0.00149 **
+IA_ATENC_dum2     0.06433    0.41335   0.156  0.87632   
+IA_ATENC_dum3    -0.56623    0.45307  -1.250  0.21139   
+IA_ATENC_dum4     0.15507    0.52325   0.296  0.76696   
+IA_ATENC_dum5    -0.04191    0.58562  -0.072  0.94294   
+IA_ATENC_dum6     0.11547    0.68616   0.168  0.86636   
+T_AVALContinuada  2.29685    0.76423   3.005  0.00265 **
+CURS_1R           0.80886    0.35332   2.289  0.02206 * 
+EDAT             -0.04864    0.01745  -2.787  0.00533 **
+NOTA_num          0.56962    0.17534   3.249  0.00116 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 456.10  on 333  degrees of freedom
+Residual deviance: 334.36  on 315  degrees of freedom
+AIC: 372.36
+
+Number of Fisher Scoring iterations: 5
+
+
+================== 3.4 MODEL 2.2: Dummies Likert (IA_SUBST) ================
+
+Call:
+glm(formula = formula_22, family = binomial, data = dades_mod)
+
+Coefficients:
+                 Estimate Std. Error z value Pr(>|z|)    
+(Intercept)      -1.57615    0.91856  -1.716  0.08618 .  
+MOT_DESMOTIVACIO -0.40664    0.19042  -2.136  0.03272 *  
+MOT_AUTOGESTIO   -0.32845    0.20544  -1.599  0.10986    
+MOT_FORCA_MAJOR   0.35488    0.13895   2.554  0.01065 *  
+EST_AVALUACIO_AC  0.45357    0.15466   2.933  0.00336 ** 
+IA_SUBST_dum2    -0.39508    0.41082  -0.962  0.33621    
+IA_SUBST_dum3    -0.82202    0.46324  -1.775  0.07598 .  
+IA_SUBST_dum4    -0.74084    0.45743  -1.620  0.10533    
+IA_SUBST_dum5    -1.03080    0.56868  -1.813  0.06989 .  
+IA_SUBST_dum6    -1.99122    0.56244  -3.540  0.00040 ***
+T_AVALContinuada  2.25795    0.75454   2.992  0.00277 ** 
+CURS_1R           0.77455    0.35074   2.208  0.02722 *  
+EDAT             -0.04719    0.01714  -2.753  0.00591 ** 
+NOTA_num          0.52823    0.17133   3.083  0.00205 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 456.10  on 333  degrees of freedom
+Residual deviance: 337.06  on 320  degrees of freedom
+AIC: 365.06
+
+Number of Fisher Scoring iterations: 5
+
+
+===== 3.5 TAULA-RESUM COMPARATIVA DE MODELS =====
+
+                                model
+                          1.0 Complet
+ 1.1 Likert num (IA_SUBST + IA_ATENC)
+            1.2 Likert num (IA_SUBST)
+    2.1 Dummies (IA_SUBST + IA_ATENC)
+               2.2 Dummies (IA_SUBST)
+                                                                                                                                                                                          variables
+ MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR, EST_QUALITAT_DOC, EST_AVALUACIO_AC, EST_TEMPS_CLASSE, EST_GRUPS_REDUÏTS, IA_EINA_ESTUDI, IA_SUBSTITUCIO, T_AVAL, CURS_1R, EDAT, DESPL, NOTA_num
+                                                                   MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR, EST_AVALUACIO_AC, IA_SUBST_num, IA_ATENC_num, T_AVAL, CURS_1R, EDAT, NOTA_num
+                                                                                 MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR, EST_AVALUACIO_AC, IA_SUBST_num, T_AVAL, CURS_1R, EDAT, NOTA_num
+                                                                   MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR, EST_AVALUACIO_AC, IA_SUBST_dum, IA_ATENC_dum, T_AVAL, CURS_1R, EDAT, NOTA_num
+                                                                                 MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR, EST_AVALUACIO_AC, IA_SUBST_dum, T_AVAL, CURS_1R, EDAT, NOTA_num
+ n_param    AIC    BIC
+      15 376.43 433.59
+      11 361.00 402.92
+      10 359.00 397.11
+      19 372.36 444.78
+      14 365.06 418.42
+
+→ Model seleccionat: 1.2 (Likert numèrica, IA_SUBST)
+
+
+Odds Ratios model seleccionat (IC 95% Wald):
+                    OR 2.5 % 97.5 %
+(Intercept)      0.285 0.048  1.707
+MOT_DESMOTIVACIO 0.666 0.461  0.964
+MOT_AUTOGESTIO   0.709 0.478  1.052
+MOT_FORCA_MAJOR  1.432 1.094  1.873
+EST_AVALUACIO_AC 1.578 1.168  2.131
+IA_SUBST_num     0.721 0.604  0.862
+T_AVALContinuada 9.413 2.152 41.163
+CURS_1R          2.118 1.081  4.149
+EDAT             0.954 0.923  0.985
+NOTA_num         1.707 1.221  2.387
+
+=================== 4. FIV ===================
+
+MOT_DESMOTIVACIO   MOT_AUTOGESTIO  MOT_FORCA_MAJOR EST_AVALUACIO_AC 
+           1.684            1.788            1.036            1.254 
+    IA_SUBST_num           T_AVAL          CURS_1R             EDAT 
+           1.279            1.051            1.108            1.206 
+        NOTA_num 
+           1.129 
+
+⚠ Variables amb VIF > 5: Cap
+
+====== 5. OBSERVACIONS INFLUENTS ======
+
+n = 334 | k predictors = 9
+Llindar Cook's D:             4/n = 0.0120
+Llindar leverage:         2(k+1)/n = 0.0599
+Llindar |residu Pearson std|: 2.5
+
+Observacions amb Cook's D > 0.0120:       22
+Observacions amb leverage > 0.0599:       24
+Observacions amb |residu Pearson| > 2.5: 9
+
+Detall observacions amb |residu Pearson std| > 2.5:
+    index_orig res_pearson_std cook_D leverage Y_obs             GRUP
+4            4          -2.616 0.0270   0.0380     0 Irregular (<80%)
+28          28          -2.728 0.0108   0.0143     0 Irregular (<80%)
+149        149           3.444 0.0723   0.0575     1   Regular (≥80%)
+201        201           2.962 0.0585   0.0625     1   Regular (≥80%)
+247        247           2.652 0.0124   0.0174     1   Regular (≥80%)
+253        253          -2.662 0.0139   0.0193     0 Irregular (<80%)
+278        278          -4.038 0.0398   0.0238     0 Irregular (<80%)
+316        316          -5.449 0.0240   0.0080     0 Irregular (<80%)
+334        334           3.095 0.0306   0.0309     1   Regular (≥80%)
+
+Detall observacions amb Cook's D > 4/n:
+    index_orig cook_D leverage res_pearson_std Y_obs             GRUP
+4            4 0.0270   0.0380          -2.616     0 Irregular (<80%)
+9            9 0.0483   0.2551          -1.187     0 Irregular (<80%)
+44          44 0.0149   0.0518          -1.653     0 Irregular (<80%)
+101        101 0.0195   0.1313           1.136     1   Regular (≥80%)
+102        102 0.0283   0.0996          -1.600     0 Irregular (<80%)
+108        108 0.0131   0.0368           1.852     1   Regular (≥80%)
+149        149 0.0723   0.0575           3.444     1   Regular (≥80%)
+153        153 0.0254   0.1551           1.176     1   Regular (≥80%)
+166        166 0.0276   0.1508          -1.247     0 Irregular (<80%)
+196        196 0.0318   0.0961          -1.730     0 Irregular (<80%)
+201        201 0.0585   0.0625           2.962     1   Regular (≥80%)
+228        228 0.0405   0.1214           1.713     1   Regular (≥80%)
+247        247 0.0124   0.0174           2.652     1   Regular (≥80%)
+249        249 0.0127   0.0227          -2.335     0 Irregular (<80%)
+253        253 0.0139   0.0193          -2.662     0 Irregular (<80%)
+256        256 0.0365   0.1471          -1.454     0 Irregular (<80%)
+278        278 0.0398   0.0238          -4.038     0 Irregular (<80%)
+285        285 0.0134   0.0602           1.448     1   Regular (≥80%)
+297        297 0.0139   0.1338           0.948     1   Regular (≥80%)
+316        316 0.0240   0.0080          -5.449     0 Irregular (<80%)
+321        321 0.0296   0.0472          -2.446     0 Irregular (<80%)
+334        334 0.0306   0.0309           3.095     1   Regular (≥80%)
+
+Resum observacions marcades per ≥1 criteri:
+    index_orig cook_D leverage res_pearson flag_cook flag_res flag_lev
+4            4 0.0270   0.0380      -2.616      TRUE     TRUE    FALSE
+9            9 0.0483   0.2551      -1.187      TRUE    FALSE     TRUE
+28          28 0.0108   0.0143      -2.728     FALSE     TRUE    FALSE
+44          44 0.0149   0.0518      -1.653      TRUE    FALSE    FALSE
+101        101 0.0195   0.1313       1.136      TRUE    FALSE     TRUE
+102        102 0.0283   0.0996      -1.600      TRUE    FALSE     TRUE
+108        108 0.0131   0.0368       1.852      TRUE    FALSE    FALSE
+149        149 0.0723   0.0575       3.444      TRUE     TRUE    FALSE
+153        153 0.0254   0.1551       1.176      TRUE    FALSE     TRUE
+166        166 0.0276   0.1508      -1.247      TRUE    FALSE     TRUE
+196        196 0.0318   0.0961      -1.730      TRUE    FALSE     TRUE
+201        201 0.0585   0.0625       2.962      TRUE     TRUE     TRUE
+228        228 0.0405   0.1214       1.713      TRUE    FALSE     TRUE
+247        247 0.0124   0.0174       2.652      TRUE     TRUE    FALSE
+249        249 0.0127   0.0227      -2.335      TRUE    FALSE    FALSE
+253        253 0.0139   0.0193      -2.662      TRUE     TRUE    FALSE
+256        256 0.0365   0.1471      -1.454      TRUE    FALSE     TRUE
+278        278 0.0398   0.0238      -4.038      TRUE     TRUE    FALSE
+285        285 0.0134   0.0602       1.448      TRUE    FALSE     TRUE
+297        297 0.0139   0.1338       0.948      TRUE    FALSE     TRUE
+316        316 0.0240   0.0080      -5.449      TRUE     TRUE    FALSE
+321        321 0.0296   0.0472      -2.446      TRUE    FALSE    FALSE
+334        334 0.0306   0.0309       3.095      TRUE     TRUE    FALSE
+
+========== 6. AVALUACIÓ DEL MODEL FINAL ==========
+
+McFadden R²:   0.2567
+Nagelkerke R²: 0.3971
+
+AUC-ROC: 0.8252
+
+Llindar òptim (Youden): 0.599
+  Sensibilitat: 0.723 | Especificitat: 0.776
+
+Matriu de confusió (llindar òptim):
+               Predit
+Observat        Predit Irregular Predit Regular
+  Obs Irregular              111             32
+  Obs Regular                 53            138
+
+Exactitud: 0.746 | Sensibilitat: 0.723 | Especificitat: 0.776
+
+Test de Hosmer-Lemeshow (g = 10): chi² = 9.4746 | gl = 8 | p = 0.3039
+→ No es rebutja H0: el model s'ajusta bé (p > 0.05)
