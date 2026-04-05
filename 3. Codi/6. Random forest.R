@@ -1,6 +1,5 @@
 packages <- c("dplyr", "ggplot2", "tibble", "tidyr",
-              "ranger", "shapr", "SHAPforxgboost",
-              "fastshap", "caret", "pROC")
+              "ranger", "fastshap", "caret", "pROC")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -67,8 +66,110 @@ cat(sprintf("Predictors inclosos: %d\n", length(predictors)))
 cat(sprintf("Distribució Y — Irregular (0): %d | Regular (1): %d\n\n",
             sum(dades_rf_net$Y == 0), sum(dades_rf_net$Y == 1)))
 
-X_mat <- as.matrix(dades_rf_net[, predictors])
-Y_vec <- dades_rf_net$Y
+# --- Partició train (80%) / test (20%) estratificada per Y ---
+# Mateixa llavor i proporció que el logit per fer comparació justa
+set.seed(2024)
+idx_train <- createDataPartition(dades_rf_net$Y, p = 0.80, list = FALSE)
+dades_train_rf <- dades_rf_net[idx_train, ]
+dades_test_rf <- dades_rf_net[-idx_train, ]
+
+Y_train <- dades_train_rf$Y
+Y_test <- dades_test_rf$Y
+X_train <- as.matrix(dades_train_rf[, predictors])
+X_test <- as.matrix(dades_test_rf[, predictors])
+
+cat(sprintf("Partició: Train = %d obs | Test = %d obs\n", length(Y_train), length(Y_test)))
+cat(sprintf("  Train — Regular: %.1f%% | Irregular: %.1f%%\n",
+            mean(Y_train) * 100, (1 - mean(Y_train)) * 100))
+cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
+            mean(Y_test) * 100, (1 - mean(Y_test)) * 100))
+
+# ----------------------------------------------------------------
+# Funcions de mètriques de classificació (adaptades per a ranger)
+# Equivalent a calcular_metriques() del logit però pren prob directament
+# ----------------------------------------------------------------
+calcular_metriques_rf <- function(prob, Y_vec, nom_model, oob_error = NA) {
+  roc_obj <- roc(Y_vec, prob, quiet = TRUE)
+  auc_val <- as.numeric(auc(roc_obj))
+
+  coords_r <- coords(roc_obj, "best",
+                     ret = c("threshold", "sensitivity", "specificity"),
+                     best.method = "youden")
+  thresh <- coords_r$threshold[1]
+
+  pred <- as.integer(prob >= thresh)
+  TP <- sum(pred == 1 & Y_vec == 1)
+  TN <- sum(pred == 0 & Y_vec == 0)
+  FP <- sum(pred == 1 & Y_vec == 0)
+  FN <- sum(pred == 0 & Y_vec == 1)
+
+  accuracy <- (TP + TN) / (TP + TN + FP + FN)
+  precision <- ifelse(TP + FP > 0, TP / (TP + FP), NA)
+  recall <- ifelse(TP + FN > 0, TP / (TP + FN), NA)
+  specificity <- ifelse(TN + FP > 0, TN / (TN + FP), NA)
+  f1 <- ifelse(!is.na(precision) & !is.na(recall) & (precision + recall) > 0,
+               2 * precision * recall / (precision + recall), NA)
+  balanced_acc <- (recall + specificity) / 2
+
+  list(
+    model = nom_model,
+    n_test = length(Y_vec),
+    threshold = round(thresh, 3),
+    AUC = round(auc_val, 4),
+    AUC_cv_mean = NA,
+    AUC_cv_sd = NA,
+    OOB_error = round(oob_error, 4),
+    accuracy = round(accuracy, 4),
+    precision = round(precision, 4),
+    recall = round(recall, 4),
+    specificity = round(specificity, 4),
+    F1 = round(f1, 4),
+    balanced_accuracy = round(balanced_acc, 4),
+    TP = TP, TN = TN, FP = FP, FN = FN
+  )
+}
+
+mostrar_metriques_rf <- function(met, titol = NULL) {
+  if (is.null(titol)) titol <- met$model
+  cat(sprintf("\n--- Mètriques: %s ---\n", titol))
+  cat(sprintf("n test = %d | Llindar Youden = %.3f\n", met$n_test, met$threshold))
+  if (!is.na(met$OOB_error)) {
+    cat(sprintf("OOB error (RF train):           %.4f  [anàleg al CV error]\n", met$OOB_error))
+  }
+  cat(sprintf("AUC (test):             %.4f\n", met$AUC))
+  cat(sprintf("Accuracy:               %.4f\n", met$accuracy))
+  cat(sprintf("Precision (PPV):        %.4f\n", met$precision))
+  cat(sprintf("Recall (Sensibilitat):  %.4f\n", met$recall))
+  cat(sprintf("Especificitat:          %.4f\n", met$specificity))
+  cat(sprintf("F1:                     %.4f\n", met$F1))
+  cat(sprintf("Balanced Accuracy:      %.4f\n\n", met$balanced_accuracy))
+
+  cat("Matriu de confusió:\n")
+  cm <- matrix(c(met$TN, met$FN, met$FP, met$TP), nrow = 2,
+               dimnames = list(Observat = c("Irregular(0)", "Regular(1)"),
+                               Predit = c("Irregular(0)", "Regular(1)")))
+  print(cm)
+
+  df_cm <- data.frame(
+    Observat = factor(c("Irregular", "Irregular", "Regular", "Regular"),
+                      levels = c("Regular", "Irregular")),
+    Predit = factor(c("Irregular", "Regular", "Irregular", "Regular"),
+                    levels = c("Irregular", "Regular")),
+    n = c(met$TN, met$FP, met$FN, met$TP),
+    etiq = c("TN", "FP", "FN", "TP")
+  )
+
+  p_cm <- ggplot(df_cm, aes(x = Predit, y = Observat, fill = n)) +
+    geom_tile(color = "white", linewidth = 1) +
+    geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
+    scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
+    labs(title = sprintf("Matriu de confusió — %s", titol),
+         subtitle = sprintf("Llindar Youden = %.3f", met$threshold),
+         x = "Valor Predit", y = "Valor Observat") +
+    theme_minimal(base_size = 13) +
+    theme(panel.grid = element_blank())
+  print(p_cm)
+}
 
 #### ============================================================ ####
 ####               1. RANDOM FOREST (ranger)                      ####
@@ -79,15 +180,6 @@ cat("   1. RANDOM FOREST\n")
 cat("=================================================================\n\n")
 
 set.seed(2024)
-
-# Partició train/test (70/30) estratificada per Y
-idx_train <- createDataPartition(Y_vec, p = 0.70, list = FALSE)
-X_train <- X_mat[idx_train, ]
-Y_train <- Y_vec[idx_train]
-X_test <- X_mat[-idx_train, ]
-Y_test <- Y_vec[-idx_train]
-
-cat(sprintf("Train: %d obs | Test: %d obs\n\n", length(Y_train), length(Y_test)))
 
 # Tuning bàsic: num.trees = 500, mtry = sqrt(p), min.node.size = 10
 n_pred <- ncol(X_train)
@@ -102,25 +194,26 @@ rf_model <- ranger(
   seed = 2024
 )
 
+cat(sprintf("num.trees = 500 | mtry = %d | min.node.size = 10\n", floor(sqrt(n_pred))))
 cat(sprintf("OOB error (train): %.4f\n\n", rf_model$prediction.error))
 
 # Predicció sobre test
-prob_test <- predict(rf_model, data = X_test)$predictions[, 2]
-pred_test <- as.integer(prob_test >= 0.5)
+prob_test_rf <- predict(rf_model, data = X_test)$predictions[, 2]
+pred_test_rf <- as.integer(prob_test_rf >= 0.5)
 
-# Matriu de confusió
-cm_rf <- table(Observat = Y_test, Predit = pred_test)
+# Matriu de confusió (llindar 0.5)
+cm_rf <- table(Observat = Y_test, Predit = pred_test_rf)
 colnames(cm_rf) <- c("Predit Irregular", "Predit Regular")
 rownames(cm_rf) <- c("Obs Irregular", "Obs Regular")
 cat("Matriu de confusió (llindar 0.5):\n")
 print(cm_rf)
 
 acc_rf <- sum(diag(cm_rf)) / sum(cm_rf)
-cat(sprintf("\nExactitud (test): %.4f\n", acc_rf))
+cat(sprintf("\nExactitud (test, llindar 0.5): %.4f\n", acc_rf))
 
 # AUC-ROC
-roc_rf <- roc(Y_test, prob_test, quiet = TRUE)
-cat(sprintf("AUC-ROC (test):   %.4f\n\n", as.numeric(auc(roc_rf))))
+roc_rf <- roc(Y_test, prob_test_rf, quiet = TRUE)
+cat(sprintf("AUC-ROC (test):                %.4f\n\n", as.numeric(auc(roc_rf))))
 
 # Corba ROC
 roc_df <- data.frame(
@@ -180,7 +273,7 @@ pfun <- function(object, newdata) {
   predict(object, data = newdata)$predictions[, 2]
 }
 
-# SHAP sobre el conjunt de test (més ràpid que tot el dataset)
+# SHAP sobre el conjunt de test
 # nsim = 100: bon equilibri entre precisió i temps de còmput
 set.seed(2024)
 shap_vals <- explain(
@@ -233,8 +326,7 @@ shap_long <- shap_df %>%
       pivot_longer(-obs, names_to = "variable", values_to = "valor"),
     by = c("obs", "variable")
   ) %>%
-  mutate(variable = factor(variable,
-                           levels = rev(top15_vars)))
+  mutate(variable = factor(variable, levels = rev(top15_vars)))
 
 ggplot(shap_long, aes(x = shap, y = variable, color = valor)) +
   geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
@@ -276,8 +368,6 @@ cat("=================================================================\n")
 cat("   4. RESUM COMPARATIU RF vs LOGIT\n")
 cat("=================================================================\n\n")
 
-# Càrrega AUC del logit si existeix (del script anterior)
-# Si no, es reporta només el RF
 cat(sprintf("Random Forest — AUC (test): %.4f | OOB error: %.4f\n",
             as.numeric(auc(roc_rf)), rf_model$prediction.error))
 cat("Logit (model 1.2) — AUC: vegeu output 5.1\n\n")
@@ -293,6 +383,86 @@ df_comp <- shap_imp %>%
 
 cat("Top 10 variables: SHAP vs importància per permutació:\n")
 print(df_comp)
+
+#### ============================================================ ####
+####          5. MÈTRIQUES DE CLASSIFICACIÓ I COMPARACIÓ          ####
+#### ============================================================ ####
+
+cat("\n=================================================================\n")
+cat("   5. MÈTRIQUES DE CLASSIFICACIÓ (llindar Youden)\n")
+cat("=================================================================\n\n")
+
+metriques_rf <- calcular_metriques_rf(
+  prob = prob_test_rf,
+  Y_vec = Y_test,
+  nom_model = "Random Forest",
+  oob_error = rf_model$prediction.error
+)
+
+mostrar_metriques_rf(metriques_rf)
+
+# Mètriques sobre train usant prediccions OOB (out-of-bag)
+# Les prediccions OOB són les de cada arbre sobre les obs que NO ha vist →
+# estimació imparcial equivalent al CV; NO s'utilitzen prediccions in-bag
+# (que donarien AUC ≈ 1 per definició amb RF)
+cat("--- 5b Mètriques sobre train (prediccions OOB) ---\n")
+cat("    [OOB = estimació imparcial; comparable directament amb test]\n\n")
+
+prob_train_oob <- rf_model$predictions[, 2]
+
+metriques_rf_train <- calcular_metriques_rf(
+  prob = prob_train_oob,
+  Y_vec = Y_train,
+  nom_model = "Random Forest (OOB train)",
+  oob_error = rf_model$prediction.error
+)
+
+mostrar_metriques_rf(metriques_rf_train)
+
+# Taula comparativa train (OOB) vs test
+cat("\n--- Resum overfitting: OOB train vs test ---\n\n")
+df_ov_rf <- data.frame(
+  Conjunt = c("Train (OOB)", "Test"),
+  AUC = c(metriques_rf_train$AUC, metriques_rf$AUC),
+  Accuracy = c(metriques_rf_train$accuracy, metriques_rf$accuracy),
+  F1 = c(metriques_rf_train$F1, metriques_rf$F1),
+  Balanced_Acc = c(metriques_rf_train$balanced_accuracy, metriques_rf$balanced_accuracy)
+)
+print(df_ov_rf, row.names = FALSE)
+cat("\n")
+
+# Comparació amb logit si existeix el fitxer de mètriques
+if (file.exists("2. Dades/metriques_logit.rds")) {
+  cat("\n--- Comparació RF vs Logit ---\n\n")
+  metriques_logit <- readRDS("2. Dades/metriques_logit.rds")
+
+  df_comp_models <- data.frame(
+    Model = c(metriques_logit$model, metriques_rf$model),
+    AUC_test = c(metriques_logit$AUC, metriques_rf$AUC),
+    Accuracy = c(metriques_logit$accuracy, metriques_rf$accuracy),
+    Precision = c(metriques_logit$precision, metriques_rf$precision),
+    Recall = c(metriques_logit$recall, metriques_rf$recall),
+    F1 = c(metriques_logit$F1, metriques_rf$F1),
+    Balanced_Acc = c(metriques_logit$balanced_accuracy, metriques_rf$balanced_accuracy),
+    stringsAsFactors = FALSE
+  )
+  print(df_comp_models, row.names = FALSE)
+}
+
+#### ============================================================ ####
+####          6. GUARDAR MÈTRIQUES PER A COMPARACIÓ               ####
+#### ============================================================ ####
+
+# Format estàndard per comparar tots els models de classificació.
+# En altres scripts: metriques_rf <- readRDS("2. Dades/metriques_rf.rds")
+saveRDS(metriques_rf, "2. Dades/metriques_rf.rds")
+cat("\n→ Mètriques guardades a: 2. Dades/metriques_rf.rds\n\n")
+
+cat("Vista prèvia del format de mètriques:\n")
+print(as.data.frame(metriques_rf[c("model", "n_test", "threshold",
+                                    "OOB_error", "AUC", "accuracy",
+                                    "precision", "recall", "F1",
+                                    "balanced_accuracy")]))
 
 sink()
 dev.off()
