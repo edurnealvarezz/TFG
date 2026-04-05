@@ -14,10 +14,10 @@ lapply(packages, install_if_missing); rm(packages)
 ####              LECTURA DE DADES                                ####
 #### ============================================================ ####
 
-#setwd("C:/Users/edurn/OneDrive/Escritorio/Universitat/TFG---Github")
-setwd("C:/Users/edurn/Downloads/TFG")
+setwd("C:/Users/Edurne/Downloads/TFG")
+#setwd("C:/Users/edurn/Downloads/TFG")
 
-dades <- read_excel("2. Dades/ Anàlisi de l'assistència a les aules.xlsx")
+dades <- read_excel("2. Dades/Anàlisi de l'assistència a les aules.xlsx")
 dades <- dades %>%
   select(-contains("Puntos"), -contains("Comentarios"))
 
@@ -164,7 +164,11 @@ dades %>% filter(EDAT > 30) %>% select(EDAT, GRAU, CURS)
 # hi ha algú de 82 anys que acaba de començar ade + dret? de totes formes
 # no és outlier 
 
-save(dades, file = "0. Dades inicials.RData")
+dades %>% filter(DESPL > 120) %>% select(EDAT, DESPL, GRAU, CURS)
+# una persona que triga 605 mins a la uni??? impossible
+
+
+save(dades, file = "2. Dades/0. Dades inicials.RData")
 saveRDS(estrategies_vars, "2. Dades/estrategies_vars.rds")
 saveRDS(ia_vars, "2. Dades/ia_vars.rds")
 saveRDS(motius_vars, "2. Dades/motius_vars.rds")
