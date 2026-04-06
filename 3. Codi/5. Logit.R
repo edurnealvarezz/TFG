@@ -11,7 +11,9 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-setwd("C:/Users/edurn/Downloads/TFG")
+#setwd("C:/Users/edurn/Downloads/TFG")
+setwd("C:/Users/Edurne/Downloads/TFG")
+
 load("2. Dades/4. Dades EFA.RData")
 
 sink("4. Outputs/5.1 Output_text_logit.txt")
@@ -51,98 +53,11 @@ cat(sprintf("  Train — Regular: %.1f%% | Irregular: %.1f%%\n",
 cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
             mean(dades_test$Y) * 100, (1 - mean(dades_test$Y)) * 100))
 
-# ----------------------------------------------------------------
-# Funció reutilitzable de mètriques de classificació
-# Retorna una llista comparable entre models (logit, RF, etc.)
-# ----------------------------------------------------------------
-calcular_metriques <- function(model_glm, dades_test_df, nom_model,
-                               auc_cv_mean = NA, auc_cv_sd = NA) {
-  Y_test <- dades_test_df$Y
-  prob <- predict(model_glm, newdata = dades_test_df, type = "response")
 
-  roc_obj <- roc(Y_test, prob, quiet = TRUE)
-  auc_val <- as.numeric(auc(roc_obj))
+# a l'arxiu Funcions models hi ha funcions per a calcular mètriques, les carreguem:
 
-  coords_r <- coords(roc_obj, "best",
-                     ret = c("threshold", "sensitivity", "specificity"),
-                     best.method = "youden")
-  thresh <- coords_r$threshold[1]
+source("3. Codi/Funcions models.R")
 
-  pred <- as.integer(prob >= thresh)
-  TP <- sum(pred == 1 & Y_test == 1)
-  TN <- sum(pred == 0 & Y_test == 0)
-  FP <- sum(pred == 1 & Y_test == 0)
-  FN <- sum(pred == 0 & Y_test == 1)
-
-  accuracy <- (TP + TN) / (TP + TN + FP + FN)
-  precision <- ifelse(TP + FP > 0, TP / (TP + FP), NA)
-  recall <- ifelse(TP + FN > 0, TP / (TP + FN), NA)
-  specificity <- ifelse(TN + FP > 0, TN / (TN + FP), NA)
-  f1 <- ifelse(!is.na(precision) & !is.na(recall) & (precision + recall) > 0,
-               2 * precision * recall / (precision + recall), NA)
-  balanced_acc <- (recall + specificity) / 2
-
-  list(
-    model = nom_model,
-    n_test = length(Y_test),
-    threshold = round(thresh, 3),
-    AUC = round(auc_val, 4),
-    AUC_cv_mean = round(auc_cv_mean, 4),
-    AUC_cv_sd = round(auc_cv_sd, 4),
-    accuracy = round(accuracy, 4),
-    precision = round(precision, 4),
-    recall = round(recall, 4),
-    specificity = round(specificity, 4),
-    F1 = round(f1, 4),
-    balanced_accuracy = round(balanced_acc, 4),
-    TP = TP, TN = TN, FP = FP, FN = FN
-  )
-}
-
-# ----------------------------------------------------------------
-# Funció per imprimir mètriques i graficar matriu de confusió
-# ----------------------------------------------------------------
-mostrar_metriques <- function(met, titol = NULL) {
-  if (is.null(titol)) titol <- met$model
-  cat(sprintf("\n--- Mètriques: %s ---\n", titol))
-  cat(sprintf("n test = %d | Llindar Youden = %.3f\n", met$n_test, met$threshold))
-  if (!is.na(met$AUC_cv_mean)) {
-    cat(sprintf("AUC (10-fold CV train): %.4f ± %.4f\n", met$AUC_cv_mean, met$AUC_cv_sd))
-  }
-  cat(sprintf("AUC (test):             %.4f\n", met$AUC))
-  cat(sprintf("Accuracy:               %.4f\n", met$accuracy))
-  cat(sprintf("Precision (PPV):        %.4f\n", met$precision))
-  cat(sprintf("Recall (Sensibilitat):  %.4f\n", met$recall))
-  cat(sprintf("Especificitat:          %.4f\n", met$specificity))
-  cat(sprintf("F1:                     %.4f\n", met$F1))
-  cat(sprintf("Balanced Accuracy:      %.4f\n\n", met$balanced_accuracy))
-
-  cat("Matriu de confusió:\n")
-  cm <- matrix(c(met$TN, met$FN, met$FP, met$TP), nrow = 2,
-               dimnames = list(Observat = c("Irregular(0)", "Regular(1)"),
-                               Predit = c("Irregular(0)", "Regular(1)")))
-  print(cm)
-
-  df_cm <- data.frame(
-    Observat = factor(c("Irregular", "Irregular", "Regular", "Regular"),
-                      levels = c("Regular", "Irregular")),
-    Predit = factor(c("Irregular", "Regular", "Irregular", "Regular"),
-                    levels = c("Irregular", "Regular")),
-    n = c(met$TN, met$FP, met$FN, met$TP),
-    etiq = c("TN", "FP", "FN", "TP")
-  )
-
-  p_cm <- ggplot(df_cm, aes(x = Predit, y = Observat, fill = n)) +
-    geom_tile(color = "white", linewidth = 1) +
-    geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
-    scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
-    labs(title = sprintf("Matriu de confusió — %s", titol),
-         subtitle = sprintf("Llindar Youden = %.3f", met$threshold),
-         x = "Valor Predit", y = "Valor Observat") +
-    theme_minimal(base_size = 13) +
-    theme(panel.grid = element_blank())
-  print(p_cm)
-}
 
 #### ============================================================ ####
 ####               1. MODEL COMPLET                               ####
@@ -162,7 +77,7 @@ formula_completa <- as.formula(paste(
 model_complet <- glm(formula_completa, data = dades_train, family = binomial)
 
 cat("============== 1. MODEL LOGÍSTIC COMPLET =============\n")
-cat("Predictors inclosos:\n")
+cat("Variables incloses:\n")
 cat(" · Factors de motius:     ", paste(vars_fa_mot, collapse = ", "), "\n")
 cat(" · Factors d'estratègies: ", paste(vars_fa_est, collapse = ", "), "\n")
 cat(" · Factors de IA:         ", paste(vars_fa_ia, collapse = ", "), "\n")
@@ -181,6 +96,8 @@ print(round(exp(cbind(OR = coef(model_complet),
 cat("\n========= 2. LINEALITAT EN LOG-ODDS ========\n\n")
 
 ##### --- 2.1 Test de Box-Tidwell --- #####
+# per mirar q hi hagi linealitat entre predictores num i log odds
+# si és significatiu no és lineal
 
 cat("--- 2.1 Test de Box-Tidwell (EDAT, DESPL, NOTA_num) ---\n\n")
 
@@ -213,6 +130,8 @@ rownames(df_bt) <- NULL
 print(df_bt)
 
 ##### --- 2.2 Comparació DESPL vs log(DESPL) --- #####
+#normalment el temps de desplaçament és millor posar-lo en logaritme
+# comparem model normal i amb logaritme.
 
 cat("\n--- 2.2 Comparació AIC: DESPL original vs log(DESPL) ---\n\n")
 
@@ -225,9 +144,9 @@ model_logDESPL <- glm(formula_logDESPL, data = dades_log_train, family = binomia
 
 aic_orig <- AIC(model_complet)
 aic_log <- AIC(model_logDESPL)
-cat(sprintf("AIC model amb DESPL:       %.2f\n", aic_orig))
-cat(sprintf("AIC model amb log(DESPL):  %.2f\n", aic_log))
-cat(sprintf("ΔAIC (orig - log):         %.2f\n\n", aic_orig - aic_log))
+cat(sprintf("AIC model amb DESPL: %.2f\n", aic_orig))
+cat(sprintf("AIC model amb log(DESPL): %.2f\n", aic_log))
+cat(sprintf("ΔAIC (orig - log): %.2f\n\n", aic_orig - aic_log))
 
 if (aic_log < aic_orig - 2) {
   cat("→ log(DESPL) millora l'ajust (ΔAIC > 2).\n")
@@ -308,7 +227,7 @@ llista_models <- list(
   "1.2 Likert num (IA_SUBST)" = model_1.2,
   "2.1 Dummies (IA_SUBST + IA_ATENC)" = model_2.1,
   "2.2 Dummies (IA_SUBST)" = model_2.2,
-  "3.0 Sense MOT_AUTOGESTIO" = model_3
+  "3.0 Likert num sense MOT_AUTOGESTIO" = model_3
 )
 
 df_resum <- do.call(rbind, lapply(names(llista_models), function(nom) {
@@ -324,16 +243,16 @@ df_resum <- do.call(rbind, lapply(names(llista_models), function(nom) {
 print(df_resum, row.names = FALSE)
 cat("\n")
 
-model_seleccionat <- model_1.2
-formula_sel <- formula_12
-cat("→ Model seleccionat: 1.2 (Likert numèrica, IA_SUBST)\n\n")
+model_seleccionat <- model_3
+formula_sel <- formula_3
+cat("→ Model seleccionat: 3 (Likert numèrica, sense MOT_AUTOGESTIO)\n\n")
 
 cat("\nOdds Ratios model seleccionat (IC 95% Wald):\n")
 print(round(exp(cbind(OR = coef(model_seleccionat),
                       confint.default(model_seleccionat))), 3))
 
 #### ============================================================ ####
-####                       4. FIV / VIF                           ####
+####                          4. FIV                              ####
 #### ============================================================ ####
 
 cat("\n=================== 4. FIV ===================\n\n")
@@ -394,16 +313,16 @@ thresh_lev <- 2 * (k_pred + 1) / n_obs
 thresh_res <- 2.5
 
 cat(sprintf("n train = %d | k predictors = %d\n", n_obs, k_pred))
-cat(sprintf("Llindar Cook's D:             4/n = %.4f\n", thresh_cook))
-cat(sprintf("Llindar leverage:         2(k+1)/n = %.4f\n", thresh_lev))
+cat(sprintf("Llindar Cook's D: 4/n = %.4f\n", thresh_cook))
+cat(sprintf("Llindar leverage: 2(k+1)/n = %.4f\n", thresh_lev))
 cat(sprintf("Llindar |residu Pearson std|: %.1f\n\n", thresh_res))
 
 idx_cook <- which(cook_d > thresh_cook)
 idx_lev <- which(lev_vals > thresh_lev)
 idx_res <- which(abs(res_pears_std) > thresh_res)
 
-cat(sprintf("Observacions amb Cook's D > %.4f:       %d\n", thresh_cook, length(idx_cook)))
-cat(sprintf("Observacions amb leverage > %.4f:       %d\n", thresh_lev, length(idx_lev)))
+cat(sprintf("Observacions amb Cook's D > %.4f:¡ %d\n", thresh_cook, length(idx_cook)))
+cat(sprintf("Observacions amb leverage > %.4f:¡ %d\n", thresh_lev, length(idx_lev)))
 cat(sprintf("Observacions amb |residu Pearson| > %.1f: %d\n\n", thresh_res, length(idx_res)))
 
 if (length(idx_res) > 0) {
@@ -440,6 +359,8 @@ df_infl <- data.frame(
   flag_any = (cook_d > thresh_cook) | (abs(res_pears_std) > thresh_res)
 )
 
+
+# distancies de cook
 ggplot(df_infl, aes(x = index, y = cook_D, fill = flag_cook)) +
   geom_col(alpha = 0.8) +
   geom_hline(yintercept = thresh_cook, linetype = "dashed", color = "red", linewidth = 0.8) +
@@ -451,6 +372,7 @@ ggplot(df_infl, aes(x = index, y = cook_D, fill = flag_cook)) +
        x = "Índex observació", y = "Cook's D") +
   theme_minimal(base_size = 13)
 
+#leverage vs residus de pearson
 ggplot(df_infl, aes(x = leverage, y = res_pears, size = cook_D, color = flag_any)) +
   geom_point(alpha = 0.7) +
   geom_hline(yintercept = c(-thresh_res, thresh_res), linetype = "dashed", color = "red") +
@@ -498,7 +420,7 @@ r2_cs <- 1 - exp((ll_null - ll_model) * 2 / nrow(dades_train))
 r2_nagelkerke <- r2_cs / (1 - exp(ll_null * 2 / nrow(dades_train)))
 
 cat(sprintf("McFadden R²:   %.4f\n", r2_mcfadden))
-cat(sprintf("Nagelkerke R²: %.4f\n\n", r2_nagelkerke))
+cat(sprintf("Nagelkerke R² (especial per logit): %.4f\n\n", r2_nagelkerke))
 
 # --- 6.3 Mètriques sobre test i train (detecció overfitting) ---
 cat("--- 6.3 Mètriques sobre conjunt test ---\n")
@@ -506,7 +428,7 @@ cat("--- 6.3 Mètriques sobre conjunt test ---\n")
 metriques_logit <- calcular_metriques(
   model_glm = model_seleccionat,
   dades_test_df = dades_test,
-  nom_model = "Logit 1.2",
+  nom_model = "Logit 3",
   auc_cv_mean = mean(cv_auc),
   auc_cv_sd = sd(cv_auc)
 )
@@ -518,7 +440,7 @@ cat("--- 6.3b Mètriques sobre conjunt train ---\n")
 metriques_logit_train <- calcular_metriques(
   model_glm = model_seleccionat,
   dades_test_df = dades_train,
-  nom_model = "Logit 1.2 (train)"
+  nom_model = "Logit 3 (train)"
 )
 
 mostrar_metriques(metriques_logit_train)
@@ -529,6 +451,8 @@ df_ov_logit <- data.frame(
   Conjunt = c("Train", "Test"),
   AUC = c(metriques_logit_train$AUC, metriques_logit$AUC),
   Accuracy = c(metriques_logit_train$accuracy, metriques_logit$accuracy),
+  Precision = c(metriques_logit_train$precision, metriques_logit$precision),
+  Recall = c(metriques_logit_train$recall, metriques_logit$recall),
   F1 = c(metriques_logit_train$F1, metriques_logit$F1),
   Balanced_Acc = c(metriques_logit_train$balanced_accuracy, metriques_logit$balanced_accuracy)
 )
@@ -537,6 +461,7 @@ cat("\n")
 
 # --- 6.4 Hosmer-Lemeshow (sobre test) ---
 cat("\n--- 6.4 Test de Hosmer-Lemeshow (test) ---\n\n")
+# per evaluar la bondat d'ajust
 
 prob_test <- predict(model_seleccionat, newdata = dades_test, type = "response")
 hl <- hoslem.test(dades_test$Y, prob_test, g = 10)
@@ -588,13 +513,7 @@ ggplot(df_or, aes(x = reorder(variable, OR), y = OR)) +
 # Format estàndard per comparar tots els models de classificació.
 # En altres scripts: metriques_X <- readRDS("2. Dades/metriques_X.rds")
 saveRDS(metriques_logit, "2. Dades/metriques_logit.rds")
-cat("\n→ Mètriques guardades a: 2. Dades/metriques_logit.rds\n\n")
 
-cat("Vista prèvia del format de mètriques:\n")
-print(as.data.frame(metriques_logit[c("model", "n_test", "threshold",
-                                       "AUC_cv_mean", "AUC", "accuracy",
-                                       "precision", "recall", "F1",
-                                       "balanced_accuracy")]))
 
 sink()
 dev.off()
