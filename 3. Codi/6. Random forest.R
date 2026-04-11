@@ -1,5 +1,5 @@
 packages <- c("dplyr", "ggplot2", "tibble", "tidyr",
-              "ranger", "treeshap", "caret", "pROC")
+              "ranger", "caret", "pROC")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -10,6 +10,8 @@ install_if_missing <- function(pkg) {
 
 lapply(packages, install_if_missing)
 rm(packages)
+
+install_if_missing("fastshap")
 
 #setwd("C:/Users/edurn/Downloads/TFG")
 setwd("C:/Users/Edurne/Downloads/TFG")
@@ -75,7 +77,9 @@ dades_rfa <- prep_dades_rf(dades_rf, vars_rfa)
 dades_rfb <- prep_dades_rf(dades_rf, vars_rfb)
 
 
-cat(" =================== 0. PREPARACIÓ DE DADES ===================\n")
+#### ============================================================ ####
+####                   0. PREPARACIÓ DE DADES                     ####
+#### ============================================================ ####
 
 cat(sprintf("RF-A (factors EFA): %d obs | %d predictors\n",
             nrow(dades_rfa), ncol(dades_rfa) - 1))
@@ -87,7 +91,7 @@ cat(sprintf("Distribucio Y — Irregular (0): %d | Regular (1): %d\n",
 cat(sprintf("Rati de desbalanceig: %.2f\n\n",
             sum(dades_rfa$Y == 0) / sum(dades_rfa$Y == 1)))
 
-# --- Particio train/test estratificada (80/20) ---
+# --- Particio train/test (80/20) ---
 set.seed(1234)
 idx_train_a <- createDataPartition(factor(dades_rfa$Y), p = 0.80, list = FALSE)
 train_a <- dades_rfa[idx_train_a, ]
@@ -97,11 +101,8 @@ idx_train_b <- createDataPartition(factor(dades_rfb$Y), p = 0.80, list = FALSE)
 train_b <- dades_rfb[idx_train_b, ]
 test_b <- dades_rfb[-idx_train_b, ]
 
-cat(sprintf("RF-A: Train = %d | Test = %d\n", nrow(train_a), nrow(test_a)))
-cat(sprintf("RF-B: Train = %d | Test = %d\n\n", nrow(train_b), nrow(test_b)))
 
-# Case weights per observacio (invers proporcional a la frequencia de la classe)
-# Mes robust que class.weights amb ranger + probability=TRUE
+# assignem més pes a la classe menys freqüent
 n_irr <- sum(train_a$Y == 0)
 n_reg <- sum(train_a$Y == 1)
 w_irr <- (n_irr + n_reg) / (2 * n_irr)
@@ -110,37 +111,49 @@ case_weights_a <- ifelse(train_a$Y == 0, w_irr, w_reg)
 case_weights_b <- ifelse(train_b$Y == 0, w_irr, w_reg)
 cat(sprintf("Case weights: Irregular = %.3f | Regular = %.3f\n\n", w_irr, w_reg))
 
+# cada individu irregular pesa 1.155
 
 # a l'arxiu Funcions models hi ha funcions per a calcular mètriques, les carreguem:
 source("3. Codi/Funcions models.R")
 
 #### ============================================================ ####
-####        1. TUNING D'HIPERPARAMETRES (RF-A)                    ####
+####                     1. RANDOM FOREST A                       ####
 #### ============================================================ ####
 
-cat("\n=================================================================\n")
-cat("              1. TUNING HIPERPARAMETRES (RF-A)                   \n")
-cat("=================================================================\n\n")
+cat("\n==============================================\n")
+cat("              1. RANDOM FOREST A                \n")
+cat("================================================\n\n")
+
+# --------------- 1.1. Tunning d'hiperparametres ---------------
 
 p_a <- ncol(train_a) - 1 # num predictors
-mtry_vals <- unique(c(floor(sqrt(p_a)), floor(p_a / 3), floor(p_a / 2)))
-# per mtry provem sqrt(p), p/3 i p/2 on p=num de predictors
+
+# mtry cal provar amb sqrt(p), p/3, p/2 i p
+mtry_vals <- unique(c(floor(sqrt(p_a)), floor(p_a / 3), floor(p_a / 2), 10, p_a))
+# valors mtry= 3, 5, 7, 10 (manual) i 15
+# afegeixo el 10 perque sinó hi ha molta distància entre 7 i 15
+
 node_vals <- c(5, 10, 15) # mida minima dels nodes
 
-cat(sprintf("p = %d predictors | mtry testats: %s | min.node.size: %s\n\n",
-            p_a, paste(mtry_vals, collapse = ", "),
-            paste(node_vals, collapse = ", ")))
+num_trees <- c(10, 100, 250, 300, 500, 1000)
 
-grid_res <- expand.grid(mtry = mtry_vals, node = node_vals)
+cat(sprintf("p = %d predictors | mtry testats: %s | min.node.size: %s | num.trees: %s\n\n",
+            p_a, paste(mtry_vals, collapse = ", "),
+            paste(node_vals, collapse = ", "),
+            paste(num_trees, collapse = ", ")))
+
+grid_res <- expand.grid(mtry = mtry_vals, node = node_vals, trees = num_trees)
 grid_res$OOB <- NA_real_
 grid_res$AUC_oob <- NA_real_
+
+# --------------- 1.2. Exploració d'hiperparametres ---------------
 
 set.seed(1234)
 for (i in seq_len(nrow(grid_res))) {
   rf_tmp <- ranger(
     x = as.matrix(train_a[, -1]),
     y = factor(train_a$Y, levels = c(0, 1)),
-    num.trees = 500,
+    num.trees = grid_res$trees[i],
     mtry = grid_res$mtry[i],
     min.node.size = grid_res$node[i],
     case.weights = case_weights_a,
@@ -153,51 +166,38 @@ for (i in seq_len(nrow(grid_res))) {
   grid_res$AUC_oob[i] <- round(as.numeric(auc(roc(train_a$Y, prob_oob, quiet = TRUE))), 4)
 }
 
-grid_res <- grid_res %>% arrange(desc(AUC_oob))
+grid_res <- grid_res %>% arrange(desc(AUC_oob)) # ordenem per la comb que té millor auc
 cat("Grid search (ordenat per AUC OOB):\n")
 print(grid_res, row.names = FALSE)
 
 best <- grid_res[1, ]
-cat(sprintf("\nMillors hiperparametres: mtry = %d | min.node.size = %d | AUC OOB = %.4f\n\n",
-            best$mtry, best$node, best$AUC_oob))
+cat(sprintf("\nMillors hiperparametres: mtry = %d | min.node.size = %d | num.trees = %d | AUC OOB = %.4f\n\n",
+            best$mtry, best$node, best$trees, best$AUC_oob))
 
-ggplot(grid_res, aes(x = factor(mtry), y = AUC_oob,
-                     color = factor(node), group = factor(node))) +
-  geom_line(linewidth = 0.8) +
-  geom_point(size = 3) +
-  scale_color_manual(values = c("5" = "#E07B54", "10" = "#4A90B8", "15" = "#8E6BBF"),
-                     name = "min.node.size") +
-  labs(title = "Tuning RF-A: AUC OOB per mtry i min.node.size",
-       x = "mtry", y = "AUC (OOB)") +
-  theme_minimal(base_size = 13)
+# --------------- 1.3. Model final ---------------
 
-#### ============================================================ ####
-####        2. MODEL FINAL RF-A (factors EFA)                     ####
-#### ============================================================ ####
+cat(" ================== MODEL FINAL ============== \n")
 
-cat("\n=================================================================\n")
-cat("   2. MODEL FINAL RF-A (factors EFA)\n")
-cat("=================================================================\n\n")
-
-set.seed(2024)
+set.seed(1234)
 rf_a <- ranger(
   x = as.matrix(train_a[, -1]),
   y = factor(train_a$Y, levels = c(0, 1)),
-  num.trees = 1000,
+  num.trees = best$trees,
   mtry = best$mtry,
   min.node.size = best$node,
   case.weights = case_weights_a,
   importance = "permutation",
   probability = TRUE,
-  seed = 2024
+  seed = 1234
 )
 
-cat(sprintf("num.trees=1000 | mtry=%d | min.node.size=%d\n", best$mtry, best$node))
-cat(sprintf("OOB error: %.4f\n\n", rf_a$prediction.error))
-
+# prediccio sobre el test
 prob_test_a <- predict(rf_a, data = as.matrix(test_a[, -1]))$predictions[, 2]
+
+# prediccio sobre observacions q no s'han utilitzat per entrenar cada model
 prob_oob_a <- rf_a$predictions[, 2]
 
+# calculem mètriques per train i test
 met_rfa_test <- calcular_metriques_rf(prob_test_a, test_a$Y, "RF-A (test)", rf_a$prediction.error)
 met_rfa_train <- calcular_metriques_rf(prob_oob_a, train_a$Y, "RF-A (OOB train)")
 
@@ -213,10 +213,11 @@ df_ov_a <- data.frame(
   Balanced_Acc = c(met_rfa_train$balanced_accuracy, met_rfa_test$balanced_accuracy)
 )
 print(df_ov_a, row.names = FALSE)
+# no sembla q hi hagi overfitting
 
 print(grafic_cm(met_rfa_test, "RF-A"))
 
-# Corba ROC
+# corba ROC
 roc_a <- roc(test_a$Y, prob_test_a, quiet = TRUE)
 roc_df_a <- data.frame(spec_inv = 1 - roc_a$specificities, sens = roc_a$sensitivities)
 ggplot(roc_df_a, aes(x = spec_inv, y = sens)) +
@@ -229,26 +230,36 @@ ggplot(roc_df_a, aes(x = spec_inv, y = sens)) +
   theme_minimal(base_size = 13)
 
 #### ============================================================ ####
-####        3. MODEL FINAL RF-B (Likert originals)                ####
+####                   2. RANDOM FOREST B                         ####
 #### ============================================================ ####
 
-cat("\n=================================================================\n")
-cat("   3. MODEL FINAL RF-B (Likert originals)\n")
+cat("\n===============================================================\n")
+cat("                       2. RANDOM FOREST B                        \n")
 cat("=================================================================\n\n")
 
-p_b <- ncol(train_b) - 1
-mtry_vals_b <- unique(c(floor(sqrt(p_b)), floor(p_b / 3), floor(p_b / 2)))
+# --------------- 2.1. Tunning d'hiperparametres ---------------
 
-# Tuning rapid RF-B
-grid_b <- expand.grid(mtry = mtry_vals_b, node = node_vals)
+p_b <- ncol(train_b) - 1
+mtry_vals_b <- unique(c(floor(sqrt(p_b)), floor(p_b / 3), floor(p_b / 2), 20, p_b))
+
+cat(sprintf("p = %d predictors | mtry testats: %s | min.node.size: %s | num.trees: %s\n\n",
+            p_b, paste(mtry_vals_b, collapse = ", "),
+            paste(node_vals, collapse = ", "),
+            paste(num_trees, collapse = ", ")))
+
+grid_b <- expand.grid(mtry = mtry_vals_b, node = node_vals, trees = num_trees)
+grid_b$OOB <- NA_real_
 grid_b$AUC_oob <- NA_real_
+
+# --------------- 2.2. Exploració d'hiperparametres ---------------
+
 
 set.seed(1234)
 for (i in seq_len(nrow(grid_b))) {
   rf_tmp <- ranger(
     x = as.matrix(train_b[, -1]),
     y = factor(train_b$Y, levels = c(0, 1)),
-    num.trees = 500,
+    num.trees = grid_b$trees[i],
     mtry = grid_b$mtry[i],
     min.node.size = grid_b$node[i],
     case.weights = case_weights_b,
@@ -261,14 +272,16 @@ for (i in seq_len(nrow(grid_b))) {
 }
 
 best_b <- grid_b %>% arrange(desc(AUC_oob)) %>% slice(1)
-cat(sprintf("Millors hiperparametres RF-B: mtry=%d | min.node.size=%d | AUC OOB=%.4f\n\n",
-            best_b$mtry, best_b$node, best_b$AUC_oob))
+cat(sprintf("Millors hiperparametres RF-B: mtry=%d | min.node.size=%d | num.trees=%d | AUC OOB=%.4f\n\n",
+            best_b$mtry, best_b$node, best_b$trees, best_b$AUC_oob))
+
+# --------------- 2.3. Model final ---------------
 
 set.seed(1234)
 rf_b <- ranger(
   x = as.matrix(train_b[, -1]),
   y = factor(train_b$Y, levels = c(0, 1)),
-  num.trees = 1000,
+  num.trees = best_b$trees,
   mtry = best_b$mtry,
   min.node.size = best_b$node,
   case.weights = case_weights_b,
@@ -295,16 +308,21 @@ df_ov_b <- data.frame(
   Balanced_Acc = c(met_rfb_train$balanced_accuracy, met_rfb_test$balanced_accuracy)
 )
 print(df_ov_b, row.names = FALSE)
+# tampoc hi ha overfitting
 
 print(grafic_cm(met_rfb_test, "RF-B"))
 
 #### ============================================================ ####
-####        4. IMPORTANCIA DE VARIABLES (permutacio)              ####
+####               3. IMPORTÀNCIA DE VARIABLES                    ####
 #### ============================================================ ####
 
+# mirem importancia de les variables amb permutacions
+# mirem cuant cau l'accuracy al permutar una variable, si no cau gaire -> irrellevant
+# si cau -> rellevant
+
 cat("\n=================================================================\n")
-cat("   4. IMPORTANCIA DE VARIABLES (permutacio)\n")
-cat("=================================================================\n\n")
+cat("                      3. IMPORTANCIA DE VARIABLES                  \n")
+cat("===================================================================\n\n")
 
 imp_a <- tibble(variable = names(rf_a$variable.importance),
                 importancia = rf_a$variable.importance,
@@ -314,8 +332,9 @@ imp_b <- tibble(variable = names(rf_b$variable.importance),
                 importancia = rf_b$variable.importance,
                 model = "RF-B") %>% arrange(desc(importancia))
 
-cat("Top 15 RF-A:\n")
+cat("Top 15 RF-A:\n") # top 15 vas més importants
 print(imp_a %>% slice_head(n = 15))
+
 cat("\nTop 15 RF-B:\n")
 print(imp_b %>% slice_head(n = 15))
 
@@ -340,24 +359,36 @@ ggplot(imp_b %>% slice_head(n = 15),
   theme_minimal(base_size = 13)
 
 #### ============================================================ ####
-####        5. SHAP VALUES (treeshap)                             ####
+####                     4. SHAP VALUES                           ####
 #### ============================================================ ####
 
-cat("\n=================================================================\n")
-cat("   5. SHAP VALUES (treeshap)\n")
-cat("=================================================================\n\n")
+cat("\n======================================================\n")
+cat("                     4. SHAP VALUES                   \n")
+cat("======================================================\n\n")
 
-# treeshap requereix un model ranger amb type="ranger"
-# unified_model() converteix el ranger a format treeshap
-unified_a <- ranger.unify(rf_a, as.data.frame(train_a[, -1]))
-unified_b <- ranger.unify(rf_b, as.data.frame(train_b[, -1]))
+# Funció de predicció per fastshap: retorna P(Regular=1)
+pfun <- function(object, newdata) {
+  predict(object, data = as.matrix(newdata))$predictions[, 2]
+}
+
+# Calcul SHAP (nsim=100 iteracions de permutacio)
+set.seed(2024)
+shap_df_a <- as.data.frame(
+  fastshap::explain(rf_a,
+                    X = as.data.frame(train_a[, -1]),
+                    pred_wrapper = pfun,
+                    nsim = 100,
+                    newdata = as.data.frame(test_a[, -1]))
+)
 
 set.seed(2024)
-shap_a <- treeshap(unified_a, as.data.frame(test_a[, -1]), verbose = FALSE)
-shap_b <- treeshap(unified_b, as.data.frame(test_b[, -1]), verbose = FALSE)
-
-shap_df_a <- as.data.frame(shap_a$shaps)
-shap_df_b <- as.data.frame(shap_b$shaps)
+shap_df_b <- as.data.frame(
+  fastshap::explain(rf_b,
+                    X = as.data.frame(train_b[, -1]),
+                    pred_wrapper = pfun,
+                    nsim = 100,
+                    newdata = as.data.frame(test_b[, -1]))
+)
 
 # --- 5.1 Importancia SHAP global (mean |SHAP|) ---
 shap_imp_a <- tibble(
@@ -403,12 +434,12 @@ ggplot(shap_imp_b %>% slice_head(n = 15),
 top12_a <- shap_imp_a$variable[1:min(12, nrow(shap_imp_a))]
 
 shap_long_a <- shap_df_a %>%
-  select(all_of(top12_a)) %>%
+  dplyr::select(all_of(top12_a)) %>%
   mutate(obs = row_number()) %>%
   pivot_longer(-obs, names_to = "variable", values_to = "shap") %>%
   left_join(
     as.data.frame(test_a[, -1]) %>%
-      select(all_of(top12_a)) %>%
+      dplyr::select(all_of(top12_a)) %>%
       mutate(obs = row_number()) %>%
       pivot_longer(-obs, names_to = "variable", values_to = "valor"),
     by = c("obs", "variable")
@@ -429,12 +460,12 @@ ggplot(shap_long_a, aes(x = shap, y = variable, color = valor)) +
 top12_b <- shap_imp_b$variable[1:min(12, nrow(shap_imp_b))]
 
 shap_long_b <- shap_df_b %>%
-  select(all_of(top12_b)) %>%
+  dplyr::select(all_of(top12_b)) %>%
   mutate(obs = row_number()) %>%
   pivot_longer(-obs, names_to = "variable", values_to = "shap") %>%
   left_join(
     as.data.frame(test_b[, -1]) %>%
-      select(all_of(top12_b)) %>%
+      dplyr::select(all_of(top12_b)) %>%
       mutate(obs = row_number()) %>%
       pivot_longer(-obs, names_to = "variable", values_to = "valor"),
     by = c("obs", "variable")
@@ -467,65 +498,6 @@ for (v in top4_a) {
     labs(title = sprintf("SHAP Dependence Plot RF-A — %s", v),
          subtitle = "Linia taronja = tendencia LOESS | y > 0 augmenta P(Regular)",
          x = v, y = "Valor SHAP") +
-    theme_minimal(base_size = 13)
-  print(p)
-}
-
-# --- 5.4 SHAP Interaction values — parelles d'interes (RF-A) ---
-cat("\n--- 5.4 SHAP Interactions (treeshap) ---\n\n")
-
-# Calcul d'interactions (pot trigar uns minuts)
-set.seed(2024)
-shap_int_a <- treeshap(unified_a, as.data.frame(test_a[, -1]),
-                       interactions = TRUE, verbose = FALSE)
-
-# Matriu d'interaccions: mean(|SHAP_ij|) per parella
-int_mat <- apply(abs(shap_int_a$interactions), c(2, 3), mean)
-diag(int_mat) <- 0
-
-# Parelles mes fortes
-int_df <- as.data.frame(as.table(int_mat)) %>%
-  rename(var1 = Var1, var2 = Var2, int_mean = Freq) %>%
-  filter(var1 < var2) %>%
-  arrange(desc(int_mean)) %>%
-  slice_head(n = 15)
-
-cat("Top 15 interaccions SHAP (RF-A):\n")
-print(int_df, row.names = FALSE)
-
-# Heatmap interaccions (top variables)
-top_int_vars <- unique(c(as.character(int_df$var1[1:6]),
-                         as.character(int_df$var2[1:6])))
-int_sub <- int_mat[top_int_vars, top_int_vars]
-
-int_long <- as.data.frame(as.table(int_sub)) %>%
-  rename(var1 = Var1, var2 = Var2, valor = Freq)
-
-ggplot(int_long, aes(x = var1, y = var2, fill = valor)) +
-  geom_tile(color = "white") +
-  scale_fill_gradient(low = "white", high = "#1A5276", name = "mean|SHAP_ij|") +
-  labs(title = "Heatmap interaccions SHAP — RF-A",
-       subtitle = "Top variables per intensitat d'interaccio",
-       x = "", y = "") +
-  theme_minimal(base_size = 11) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-
-# Dependence plot per les 2 interaccions mes fortes
-for (i in 1:2) {
-  v1 <- as.character(int_df$var1[i])
-  v2 <- as.character(int_df$var2[i])
-  df_int <- data.frame(
-    x = as.data.frame(test_a[, -1])[[v1]],
-    color = as.data.frame(test_a[, -1])[[v2]],
-    shap = shap_df_a[[v1]]
-  )
-  p <- ggplot(df_int, aes(x = x, y = shap, color = color)) +
-    geom_point(alpha = 0.6, size = 1.8) +
-    geom_hline(yintercept = 0, linetype = "dashed", color = "grey50") +
-    scale_color_gradient(low = "#2471A3", high = "#E74C3C", name = v2) +
-    labs(title = sprintf("SHAP Interaction: %s (color = %s)", v1, v2),
-         subtitle = "Cada punt = una observacio del test",
-         x = v1, y = sprintf("SHAP(%s)", v1)) +
     theme_minimal(base_size = 13)
   print(p)
 }
