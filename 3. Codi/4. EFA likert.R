@@ -10,7 +10,7 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-setwd("C:/Users/edurn/Downloads/TFG")
+#setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/3. Dades EDA.RData")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
@@ -59,7 +59,7 @@ fer_efa_bloc <- function(vars, nom_bloc, color_bar, force_nfactors = NULL) {
   n <- nrow(data_num)
   p <- ncol(data_num)
 
-  cat("Observacions (sense NA):", n, "| Variables:", p, "\n\n")
+  cat("Variables:", p, "\n\n")
 
   # --- KMO i Bartlett ---
   poly <- polychoric(data_num, correct = 0)
@@ -169,7 +169,7 @@ fer_efa_bloc <- function(vars, nom_bloc, color_bar, force_nfactors = NULL) {
     select(h2, u2) %>%
     mutate(across(everything(), ~round(.x, 3)))
   if (nrow(baixa_h2) > 0) {
-    cat("⚠ Variables amb comunalitat < 0.30 (considerar eliminar):\n")
+    cat("⚠ Variables amb comunalitat < 0.30: \n")
     print(baixa_h2)
     cat("\n")
   }
@@ -196,9 +196,9 @@ fer_efa_bloc <- function(vars, nom_bloc, color_bar, force_nfactors = NULL) {
               size = 3.2, color = "gray10") +
     scale_fill_gradient2(low = "#E07B54", mid = "white", high = "#4A90B8",
                          midpoint = 0, limits = c(-1, 1),
-                         name = "λ") +
+                         name = "carrega") +
     labs(title = paste("Càrregues factorials –", nom_bloc),
-         subtitle = "S'indiquen les càrregues |λ| ≥ 0.30 | negreta = |λ| ≥ 0.50",
+         subtitle = "S'indiquen les carregues >= 0.30 | negreta = >= 0.50",
          x = "Factor", y = "") +
     theme_minimal(base_size = 12) +
     theme(axis.text.x = element_text(face = "bold"))
@@ -290,7 +290,7 @@ grafic_spearman_resum <- function(prefix, titol, df = dades) {
              alpha = sig != "ns")) +
     geom_col() +
     geom_hline(yintercept = 0, linewidth = 0.5, color = "gray30") +
-    geom_text(aes(label = sprintf("ρ=%.2f %s", rho_spearman, sig)),
+    geom_text(aes(label = sprintf("rho=%.2f %s", rho_spearman, sig)),
               hjust = ifelse(df_corr$rho_spearman >= 0, -0.1, 1.1), size = 3.2) +
     scale_fill_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "#E07B54"),
                       guide = "none") +
@@ -300,7 +300,7 @@ grafic_spearman_resum <- function(prefix, titol, df = dades) {
                         max(df_corr$rho_spearman) + 0.2)) +
     labs(title = titol,
          subtitle = "Positiu = Regular > Irregular | Opac = significatiu (p < 0.05, MW)",
-         x = "", y = "Spearman ρ") +
+         x = "", y = "Spearman rho") +
     theme_minimal(base_size = 12)
 }
 
@@ -328,7 +328,7 @@ res_ia_v1 <- fer_efa_bloc(ia_vars, "Ús de la IA [v1]", "#8E6BBF")
 #### ============================================================ ####
 
 cat("================================================================\n")
-cat("                             EFA REFINADA                       \n")
+cat("                             EFA MILLORADA                        \n")
 cat("================================================================\n")
 
 cat("Variables eliminades de dades: M_ACAD, E_PES_AS, IA_PREOC\n")
@@ -342,14 +342,14 @@ motius_vars_efa <- setdiff(motius_vars, c("M_DIST", "M_ACAD"))
 estrategies_vars_efa <- setdiff(estrategies_vars, c("E_HORA", "E_PES_AS"))
 ia_vars_efa <- setdiff(ia_vars, "IA_PREOC")
 
-res_motius <- fer_efa_bloc(motius_vars_efa, "Motius NO assistència [refinat]", "#E07B54")
-res_estrat <- fer_efa_bloc(estrategies_vars_efa, "Estratègies assistència [refinat]", "#4A90B8")
-res_ia <- fer_efa_bloc(ia_vars_efa, "Ús de la IA [refinat]", "#8E6BBF")
+res_motius <- fer_efa_bloc(motius_vars_efa, "Motius NO assistència [v2]", "#E07B54")
+res_estrat <- fer_efa_bloc(estrategies_vars_efa, "Estratègies assistència [v2]", "#4A90B8")
+res_ia <- fer_efa_bloc(ia_vars_efa, "Ús de la IA [v2]", "#8E6BBF")
 
 ##### ------------- 2.2.PUNTUACIONS FACTORIALS  ---------- #####
 
 cat(paste0(strrep("=", 60), "\n"))
-cat(" 3. PUNTUACIONS FACTORIALS (EFA refinada)\n")
+cat(" 3. PUNTUACIONS FACTORIALS (EFA millorada)\n")
 cat(paste0(strrep("=", 60), "\n\n"))
 
 dades_v2 <- afegir_scores(dades_v2, res_motius, "FA_MOT")
@@ -363,14 +363,14 @@ cat("  Motius:      ", sum(!is.na(dades_v2$FA_MOT_F1)), "\n")
 cat("  Estratègies: ", sum(!is.na(dades_v2$FA_EST_F1)), "\n")
 cat("  IA:          ", sum(!is.na(dades_v2$FA_IA_F1)), "\n\n")
 
-fer_grafic_scores(res_motius, "FA_MOT")
-fer_grafic_scores(res_estrat, "FA_EST")
-fer_grafic_scores(res_ia, "FA_IA")
+fer_grafic_scores(res_motius, "FA_MOT", df = dades_v2)
+fer_grafic_scores(res_estrat, "FA_EST", df = dades_v2)
+fer_grafic_scores(res_ia, "FA_IA", df = dades_v2)
 
 ##### ------------- 2.3. CORRELACIÓ SPEARMAN AMB GRUP_ASSIST ------ #####
-print(grafic_spearman_resum("FA_MOT", "Spearman ρ factors Motius vs GRUP_ASSIST"))
-print(grafic_spearman_resum("FA_EST", "Spearman ρ factors Estratègies vs GRUP_ASSIST"))
-print(grafic_spearman_resum("FA_IA", "Spearman ρ factors IA vs GRUP_ASSIST"))
+print(grafic_spearman_resum("FA_MOT", "Spearman rho factors Motius vs GRUP_ASSIST", df = dades_v2))
+print(grafic_spearman_resum("FA_EST", "Spearman rho factors Estratègies vs GRUP_ASSIST", df = dades_v2))
+print(grafic_spearman_resum("FA_IA", "Spearman rho factors IA vs GRUP_ASSIST", df = dades_v2))
 
 # taula resum
 all_fa_cols <- grep("^FA_", names(dades_v2), value = TRUE)
@@ -410,23 +410,29 @@ res_ia_def <- fer_efa_bloc(ia_vars_efa, "Ús de la IA [definitiu]", "#8E6BBF")
 
 ##### --------- 3.1. PUNTUACIONS FACTORIALS DEFINITIVES ------ #####
 
+# Substituir scores del EFA lliure (seccio 2) pels definitius (force_nfactors)
+dades_v2 <- dades_v2 %>% select(-starts_with("FA_"))
+dades_v2 <- afegir_scores(dades_v2, res_motius_def, "FA_MOT")
+dades_v2 <- afegir_scores(dades_v2, res_estrat_def, "FA_EST")
+dades_v2 <- afegir_scores(dades_v2, res_ia_def, "FA_IA")
+
 cat("\n\n")
 
-fer_grafic_scores(res_motius_def, "FA_MOT", df = dades_def)
-fer_grafic_scores(res_estrat_def, "FA_EST", df = dades_def)
-fer_grafic_scores(res_ia_def, "FA_IA", df = dades_def)
+fer_grafic_scores(res_motius_def, "FA_MOT", df = dades_v2)
+fer_grafic_scores(res_estrat_def, "FA_EST", df = dades_v2)
+fer_grafic_scores(res_ia_def, "FA_IA", df = dades_v2)
 
 ##### --------- 3.2. CORRELACIÓ SPEARMAN AMB GRUP_ASSIST ------ #####
 
-print(grafic_spearman_resum("FA_MOT", "Spearman ρ factors Motius [definitiu] vs GRUP_ASSIST", df = dades_def))
-print(grafic_spearman_resum("FA_EST", "Spearman ρ factors Estratègies [definitiu] vs GRUP_ASSIST", df = dades_def))
-print(grafic_spearman_resum("FA_IA", "Spearman ρ factors IA [definitiu] vs GRUP_ASSIST", df = dades_def))
+print(grafic_spearman_resum("FA_MOT", "Spearman rho factors Motius [definitiu] vs GRUP_ASSIST", df = dades_v2))
+print(grafic_spearman_resum("FA_EST", "Spearman rho factors Estratègies [definitiu] vs GRUP_ASSIST", df = dades_v2))
+print(grafic_spearman_resum("FA_IA", "Spearman rho factors IA [definitiu] vs GRUP_ASSIST", df = dades_v2))
 
-all_fa_def <- grep("^FA_", names(dades_def), value = TRUE)
-grup_num_def <- as.integer(dades_def$GRUP_ASSIST == "Regular (≥80%)")
+all_fa_def <- grep("^FA_", names(dades_v2), value = TRUE)
+grup_num_def <- as.integer(dades_v2$GRUP_ASSIST == "Regular (≥80%)")
 
 df_fa_def_corr <- lapply(all_fa_def, function(col) {
-  x <- dades_def[[col]]
+  x <- dades_v2[[col]]
   sp <- cor.test(x, grup_num_def, method = "spearman", exact = FALSE, use = "complete.obs")
   data.frame(factor = col,
              rho_spearman = round(sp$estimate, 3),
@@ -441,7 +447,7 @@ print(df_fa_def_corr)
 
 ##### --------- 3.3. GUARDAR NOMS VARIABLES ------ #####
 
-dades_def <- dades_def %>%
+dades_def <- dades_v2 %>%
   rename(
     MOT_DESMOTIVACIO  = FA_MOT_F1,
     MOT_AUTOGESTIO    = FA_MOT_F2,

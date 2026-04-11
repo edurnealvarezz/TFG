@@ -48,25 +48,7 @@ ggplot(na_resum, aes(x = reorder(variable, pct_na), y = pct_na)) +
        x = "", y = "% NA") +
   theme_minimal(base_size = 13)
 
-# DESPL té 1 NA (valor 605 eliminat). La resta de NAs són respostes obertes.
-
-##### --------- 1.2. Exploració NA------------ #####
-
-dades_mice <- dades %>%
-  select(DESPL, EDAT, N_ASSIG, P_ASSIST, DEDIC)
-
-imp <- mice(dades_mice, m = 5, method = "pmm", seed = 123, printFlag = FALSE)
-
-cat("\n === Imputació MICE - valor imputat per DESPL === \n")
-valors_imputats <- imp$imp$DESPL
-print(valors_imputats)
-
-# Agafem la mitjana de les 5 imputacions com a valor final
-valor_final <- round(rowMeans(valors_imputats))
-cat("Valor imputat final (mitjana 5 imputacions):", valor_final, "minuts\n")
-
-# Substituïm el NA a dades originals
-dades$DESPL[is.na(dades$DESPL)] <- valor_final
+# NAs de respostes obertes, no cal fer imputació
 
 #### ============================================================ ####
 ####                      PREPARACIÓ OUTLIERS                     ####

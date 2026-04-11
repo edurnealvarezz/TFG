@@ -4,61 +4,61 @@
 
 Totes les parelles ordenades per V de Cramér:
             var1           var2   chi2 p_valor     V sig
-1           GRAU DOBLE_GRAU_EST 334.00  0.0000 1.000 ***
-2           CURS        CURS_1R 334.00  0.0000 1.000 ***
-3           NOTA      NOTA_ALTA 334.00  0.0000 1.000 ***
-4          DEDIC    TREB_INTENS 334.00  0.0000 1.000 ***
-5           GRAU  SOBRECARREGAT 117.85  0.0000 0.594 ***
-6  SOBRECARREGAT DOBLE_GRAU_EST  42.57  0.0000 0.357 ***
-7           GRAU         GENERE  74.76  0.0000 0.273 ***
-8           GRAU         T_AVAL  20.12  0.0172 0.245   *
-9         GENERE  SOBRECARREGAT  17.56  0.0005 0.229 ***
-10          CURS    TREB_INTENS  17.34  0.0039 0.228  **
-11          CURS         T_AVAL  15.84  0.0073 0.218  **
-12          GRAU           NOTA  60.96  0.0058 0.214  **
-13          CURS         GENERE  42.49  0.0002 0.206 ***
-14          GRAU           CURS  67.99  0.0150 0.202   *
-15          GRAU    TREB_INTENS  13.28  0.1502 0.199  ns
-16          GRAU          DEDIC  39.35  0.0589 0.198  ns
-17         DEDIC        CURS_1R  12.46  0.0060 0.193  **
-18          GRAU        CURS_1R  12.12  0.2066 0.190  ns
-19          CURS  SOBRECARREGAT  11.13  0.0488 0.183   *
-20          NOTA         T_AVAL  10.57  0.0318 0.178   *
-21        GENERE DOBLE_GRAU_EST  10.34  0.0159 0.176   *
-22          NOTA DOBLE_GRAU_EST   9.28  0.0545 0.167  ns
-23          GRAU      NOTA_ALTA   9.22  0.4175 0.166  ns
-24          CURS          DEDIC  26.52  0.0329 0.163   *
-25          CURS DOBLE_GRAU_EST   8.91  0.1126 0.163  ns
-26        GENERE      NOTA_ALTA   8.66  0.0341 0.161   *
-27          CURS           NOTA  30.52  0.0618 0.151  ns
-28          NOTA        CURS_1R   7.21  0.1250 0.147  ns
-29   TREB_INTENS        CURS_1R   6.93  0.0085 0.144  **
-30          CURS      NOTA_ALTA   6.58  0.2541 0.140  ns
-31          NOTA  SOBRECARREGAT   6.56  0.1612 0.140  ns
-32         DEDIC  SOBRECARREGAT   5.35  0.1477 0.127  ns
-33          NOTA          DEDIC  15.87  0.1971 0.126  ns
-34          NOTA         GENERE  14.30  0.2822 0.119  ns
-35   TREB_INTENS  SOBRECARREGAT   4.55  0.0329 0.117   *
-36         DEDIC      NOTA_ALTA   4.39  0.2222 0.115  ns
-37          NOTA    TREB_INTENS   4.19  0.3812 0.112  ns
-38        GENERE          DEDIC  12.03  0.2117 0.110  ns
-39        GENERE        CURS_1R   3.56  0.3133 0.103  ns
-40         DEDIC DOBLE_GRAU_EST   3.37  0.3380 0.100  ns
-41        GENERE    TREB_INTENS   3.24  0.3554 0.099  ns
-42       CURS_1R  SOBRECARREGAT   3.00  0.0832 0.095  ns
-43        T_AVAL          DEDIC   2.91  0.4064 0.093  ns
-44   TREB_INTENS DOBLE_GRAU_EST   1.95  0.1624 0.076  ns
-45        T_AVAL  SOBRECARREGAT   1.66  0.1974 0.071  ns
-46     NOTA_ALTA        CURS_1R   1.54  0.2141 0.068  ns
-47        T_AVAL      NOTA_ALTA   1.44  0.2299 0.066  ns
-48       CURS_1R DOBLE_GRAU_EST   1.13  0.2872 0.058  ns
-49     NOTA_ALTA DOBLE_GRAU_EST   0.87  0.3515 0.051  ns
-50   TREB_INTENS      NOTA_ALTA   0.84  0.3602 0.050  ns
-51        T_AVAL         GENERE   0.76  0.8589 0.048  ns
-52     NOTA_ALTA  SOBRECARREGAT   0.73  0.3920 0.047  ns
-53        T_AVAL    TREB_INTENS   0.39  0.5342 0.034  ns
-54        T_AVAL        CURS_1R   0.07  0.7966 0.014  ns
-55        T_AVAL DOBLE_GRAU_EST   0.05  0.8156 0.013  ns
+1           GRAU DOBLE_GRAU_EST 342.00  0.0000 1.000 ***
+2           CURS        CURS_1R 342.00  0.0000 1.000 ***
+3           NOTA      NOTA_ALTA 342.00  0.0000 1.000 ***
+4          DEDIC    TREB_INTENS 342.00  0.0000 1.000 ***
+5           GRAU  SOBRECARREGAT 116.96  0.0000 0.585 ***
+6  SOBRECARREGAT DOBLE_GRAU_EST  44.64  0.0000 0.361 ***
+7           GRAU         GENERE  76.79  0.0000 0.274 ***
+8           GRAU         T_AVAL  20.24  0.0165 0.243   *
+9         GENERE  SOBRECARREGAT  18.72  0.0003 0.234 ***
+10          CURS    TREB_INTENS  17.46  0.0037 0.226  **
+11          CURS         T_AVAL  16.71  0.0051 0.221  **
+12          GRAU           NOTA  57.32  0.0134 0.205   *
+13          GRAU    TREB_INTENS  13.79  0.1299 0.201  ns
+14          CURS         GENERE  41.04  0.0003 0.200 ***
+15          GRAU          DEDIC  40.64  0.0446 0.199   *
+16          GRAU           CURS  67.37  0.0170 0.198   *
+17         DEDIC        CURS_1R  13.04  0.0046 0.195  **
+18          GRAU        CURS_1R  11.49  0.2438 0.183  ns
+19          NOTA         T_AVAL  11.15  0.0250 0.181   *
+20        GENERE DOBLE_GRAU_EST  10.19  0.0170 0.173   *
+21          CURS  SOBRECARREGAT  10.00  0.0752 0.171  ns
+22          NOTA DOBLE_GRAU_EST   9.06  0.0597 0.163  ns
+23        GENERE      NOTA_ALTA   8.92  0.0304 0.162   *
+24          CURS          DEDIC  25.47  0.0440 0.158   *
+25          GRAU      NOTA_ALTA   8.10  0.5245 0.154  ns
+26          CURS DOBLE_GRAU_EST   7.99  0.1569 0.153  ns
+27          CURS           NOTA  31.72  0.0464 0.152   *
+28   TREB_INTENS        CURS_1R   7.50  0.0062 0.148  **
+29          NOTA        CURS_1R   7.31  0.1205 0.146  ns
+30          CURS      NOTA_ALTA   7.16  0.2088 0.145  ns
+31          NOTA  SOBRECARREGAT   6.72  0.1517 0.140  ns
+32          NOTA          DEDIC  15.09  0.2366 0.121  ns
+33          NOTA         GENERE  14.42  0.2749 0.119  ns
+34         DEDIC  SOBRECARREGAT   4.58  0.2056 0.116  ns
+35         DEDIC      NOTA_ALTA   4.47  0.2152 0.114  ns
+36        GENERE          DEDIC  12.70  0.1768 0.111  ns
+37          NOTA    TREB_INTENS   4.08  0.3954 0.109  ns
+38   TREB_INTENS  SOBRECARREGAT   3.72  0.0537 0.104  ns
+39        GENERE        CURS_1R   3.58  0.3105 0.102  ns
+40        GENERE    TREB_INTENS   3.51  0.3201 0.101  ns
+41         DEDIC DOBLE_GRAU_EST   3.25  0.3542 0.098  ns
+42       CURS_1R  SOBRECARREGAT   2.94  0.0866 0.093  ns
+43        T_AVAL          DEDIC   2.55  0.4668 0.086  ns
+44   TREB_INTENS DOBLE_GRAU_EST   1.92  0.1657 0.075  ns
+45        T_AVAL      NOTA_ALTA   1.58  0.2091 0.068  ns
+46     NOTA_ALTA        CURS_1R   1.53  0.2165 0.067  ns
+47       CURS_1R DOBLE_GRAU_EST   1.36  0.2430 0.063  ns
+48        T_AVAL  SOBRECARREGAT   1.30  0.2544 0.062  ns
+49   TREB_INTENS      NOTA_ALTA   1.06  0.3030 0.056  ns
+50        T_AVAL         GENERE   1.05  0.7903 0.055  ns
+51     NOTA_ALTA  SOBRECARREGAT   0.88  0.3479 0.051  ns
+52     NOTA_ALTA DOBLE_GRAU_EST   0.77  0.3796 0.048  ns
+53        T_AVAL    TREB_INTENS   0.15  0.7021 0.021  ns
+54        T_AVAL DOBLE_GRAU_EST   0.11  0.7444 0.018  ns
+55        T_AVAL        CURS_1R   0.09  0.7588 0.017  ns
 
 ⚠ Parelles amb cel·les de freqüència esperada < 5:
      var1           var2                              avis
@@ -72,33 +72,34 @@ Totes les parelles ordenades per V de Cramér:
 8    CURS    TREB_INTENS  AVÍS: 2 cel·les amb esperada < 5
 9    CURS         T_AVAL  AVÍS: 3 cel·les amb esperada < 5
 10   GRAU           NOTA AVÍS: 32 cel·les amb esperada < 5
-11   CURS         GENERE AVÍS: 14 cel·les amb esperada < 5
-12   GRAU           CURS AVÍS: 43 cel·les amb esperada < 5
-13   GRAU    TREB_INTENS  AVÍS: 4 cel·les amb esperada < 5
-14   GRAU          DEDIC AVÍS: 23 cel·les amb esperada < 5
-15   GRAU        CURS_1R  AVÍS: 7 cel·les amb esperada < 5
-16   CURS  SOBRECARREGAT  AVÍS: 1 cel·les amb esperada < 5
+11   GRAU    TREB_INTENS  AVÍS: 4 cel·les amb esperada < 5
+12   CURS         GENERE AVÍS: 14 cel·les amb esperada < 5
+13   GRAU          DEDIC AVÍS: 22 cel·les amb esperada < 5
+14   GRAU           CURS AVÍS: 41 cel·les amb esperada < 5
+15  DEDIC        CURS_1R  AVÍS: 1 cel·les amb esperada < 5
+16   GRAU        CURS_1R  AVÍS: 7 cel·les amb esperada < 5
 17   NOTA         T_AVAL  AVÍS: 3 cel·les amb esperada < 5
 18 GENERE DOBLE_GRAU_EST  AVÍS: 4 cel·les amb esperada < 5
-19   NOTA DOBLE_GRAU_EST  AVÍS: 1 cel·les amb esperada < 5
-20   GRAU      NOTA_ALTA  AVÍS: 7 cel·les amb esperada < 5
-21   CURS          DEDIC  AVÍS: 7 cel·les amb esperada < 5
-22   CURS DOBLE_GRAU_EST  AVÍS: 2 cel·les amb esperada < 5
-23 GENERE      NOTA_ALTA  AVÍS: 4 cel·les amb esperada < 5
-24   CURS           NOTA AVÍS: 12 cel·les amb esperada < 5
-25   NOTA        CURS_1R  AVÍS: 1 cel·les amb esperada < 5
-26   CURS      NOTA_ALTA  AVÍS: 2 cel·les amb esperada < 5
-27   NOTA  SOBRECARREGAT  AVÍS: 1 cel·les amb esperada < 5
-28   NOTA          DEDIC  AVÍS: 6 cel·les amb esperada < 5
-29   NOTA         GENERE AVÍS: 12 cel·les amb esperada < 5
-30  DEDIC      NOTA_ALTA  AVÍS: 1 cel·les amb esperada < 5
-31   NOTA    TREB_INTENS  AVÍS: 1 cel·les amb esperada < 5
+19   CURS  SOBRECARREGAT  AVÍS: 1 cel·les amb esperada < 5
+20   NOTA DOBLE_GRAU_EST  AVÍS: 1 cel·les amb esperada < 5
+21 GENERE      NOTA_ALTA  AVÍS: 4 cel·les amb esperada < 5
+22   CURS          DEDIC  AVÍS: 8 cel·les amb esperada < 5
+23   GRAU      NOTA_ALTA  AVÍS: 7 cel·les amb esperada < 5
+24   CURS DOBLE_GRAU_EST  AVÍS: 2 cel·les amb esperada < 5
+25   CURS           NOTA AVÍS: 12 cel·les amb esperada < 5
+26   NOTA        CURS_1R  AVÍS: 1 cel·les amb esperada < 5
+27   CURS      NOTA_ALTA  AVÍS: 2 cel·les amb esperada < 5
+28   NOTA  SOBRECARREGAT  AVÍS: 1 cel·les amb esperada < 5
+29   NOTA          DEDIC  AVÍS: 6 cel·les amb esperada < 5
+30   NOTA         GENERE AVÍS: 12 cel·les amb esperada < 5
+31  DEDIC      NOTA_ALTA  AVÍS: 1 cel·les amb esperada < 5
 32 GENERE          DEDIC  AVÍS: 8 cel·les amb esperada < 5
-33 GENERE        CURS_1R  AVÍS: 4 cel·les amb esperada < 5
-34 GENERE    TREB_INTENS  AVÍS: 4 cel·les amb esperada < 5
-35 T_AVAL          DEDIC  AVÍS: 1 cel·les amb esperada < 5
-36 T_AVAL      NOTA_ALTA  AVÍS: 1 cel·les amb esperada < 5
-37 T_AVAL         GENERE  AVÍS: 4 cel·les amb esperada < 5
+33   NOTA    TREB_INTENS  AVÍS: 1 cel·les amb esperada < 5
+34 GENERE        CURS_1R  AVÍS: 4 cel·les amb esperada < 5
+35 GENERE    TREB_INTENS  AVÍS: 4 cel·les amb esperada < 5
+36 T_AVAL          DEDIC  AVÍS: 1 cel·les amb esperada < 5
+37 T_AVAL      NOTA_ALTA  AVÍS: 1 cel·les amb esperada < 5
+38 T_AVAL         GENERE  AVÍS: 4 cel·les amb esperada < 5
 
 =================================================================
              2. VARIABLES CATEGÒRIQUES vs GRUP_ASSIST             
@@ -106,17 +107,17 @@ Totes les parelles ordenades per V de Cramér:
 
 Resultat de cada variable vs GRUP_ASSIST:
          variable  chi2 p_valor     V sig
-1            GRAU 22.22  0.0082 0.258  **
-2          T_AVAL 19.66  0.0000 0.243 ***
-3            NOTA 18.20  0.0011 0.233  **
-4            CURS 14.86  0.0110 0.211   *
-5       NOTA_ALTA 10.37  0.0013 0.176  **
-6         CURS_1R 10.08  0.0015 0.174  **
-7           DEDIC  4.97  0.1742 0.122  ns
-8     TREB_INTENS  3.76  0.0526 0.106  ns
-9  DOBLE_GRAU_EST  3.27  0.0705 0.099  ns
-10         GENERE  1.54  0.6738 0.068  ns
-11  SOBRECARREGAT  0.02  0.8798 0.008  ns
+1            GRAU 23.78  0.0047 0.264  **
+2          T_AVAL 20.57  0.0000 0.245 ***
+3            NOTA 18.42  0.0010 0.232  **
+4            CURS 15.62  0.0080 0.214  **
+5         CURS_1R 10.59  0.0011 0.176  **
+6       NOTA_ALTA  9.31  0.0023 0.165  **
+7           DEDIC  6.53  0.0884 0.138  ns
+8     TREB_INTENS  4.80  0.0285 0.118   *
+9  DOBLE_GRAU_EST  4.04  0.0444 0.109   *
+10         GENERE  1.21  0.7499 0.060  ns
+11  SOBRECARREGAT  0.01  0.9373 0.004  ns
 
 ⚠ Variables amb cel·les de freqüència esperada < 5:
   variable                             avis
@@ -126,6 +127,58 @@ Resultat de cada variable vs GRUP_ASSIST:
 4   GENERE AVÍS: 4 cel·les amb esperada < 5
 
 =================================================================
+ 1B-2B. SOLUCIÓ FREQÜÈNCIES ESPERADES < 5 — MONTE CARLO
+=================================================================
+
+Parelles IGNORADES (no necessiten correcció):
+ · Redundants per construcció (variable derivada):
+   GRAU×DOBLE_GRAU_EST | CURS×CURS_1R | NOTA×NOTA_ALTA | DEDIC×TREB_INTENS
+ · Parelles amb GRAU: massa categories i poques obs. per cel·la.
+   DOBLE_GRAU_EST agrupa adequadament → resultats de GRAU no s'interpreten.
+
+--- 1B. Parelles entre variables categòriques ---
+
+   var1           var2     V p_valor sig   p_mc sig_mc       canvi
+ GENERE  SOBRECARREGAT 0.234  0.0003 *** 0.0003    *** sense canvi
+   CURS    TREB_INTENS 0.226  0.0037  ** 0.0036     ** sense canvi
+   CURS         T_AVAL 0.221  0.0051  ** 0.0088     ** sense canvi
+   CURS         GENERE 0.200  0.0003 *** 0.0068     ** sense canvi
+  DEDIC        CURS_1R 0.195  0.0046  ** 0.0045     ** sense canvi
+   NOTA         T_AVAL 0.181  0.0250   * 0.0311      * sense canvi
+ GENERE DOBLE_GRAU_EST 0.173  0.0170   * 0.0108      * sense canvi
+   CURS  SOBRECARREGAT 0.171  0.0752  ns 0.0755     ns sense canvi
+   NOTA DOBLE_GRAU_EST 0.163  0.0597  ns 0.0629     ns sense canvi
+ GENERE      NOTA_ALTA 0.162  0.0304   * 0.0330      * sense canvi
+   CURS          DEDIC 0.158  0.0440   * 0.0431      * sense canvi
+   CURS DOBLE_GRAU_EST 0.153  0.1569  ns 0.1548     ns sense canvi
+   CURS           NOTA 0.152  0.0464   * 0.0507     ns   perd sig.
+   NOTA        CURS_1R 0.146  0.1205  ns 0.1169     ns sense canvi
+   CURS      NOTA_ALTA 0.145  0.2088  ns 0.2069     ns sense canvi
+   NOTA  SOBRECARREGAT 0.140  0.1517  ns 0.1525     ns sense canvi
+   NOTA          DEDIC 0.121  0.2366  ns 0.2384     ns sense canvi
+   NOTA         GENERE 0.119  0.2749  ns 0.2533     ns sense canvi
+  DEDIC      NOTA_ALTA 0.114  0.2152  ns 0.2106     ns sense canvi
+ GENERE          DEDIC 0.111  0.1768  ns 0.1766     ns sense canvi
+   NOTA    TREB_INTENS 0.109  0.3954  ns 0.4076     ns sense canvi
+ GENERE        CURS_1R 0.102  0.3105  ns 0.2407     ns sense canvi
+ GENERE    TREB_INTENS 0.101  0.3201  ns 0.3826     ns sense canvi
+ T_AVAL          DEDIC 0.086  0.4668  ns 0.4674     ns sense canvi
+ T_AVAL      NOTA_ALTA 0.068  0.2091  ns 0.3400     ns sense canvi
+ T_AVAL         GENERE 0.055  0.7903  ns 0.6983     ns sense canvi
+
+--- 2B. Variables vs GRUP_ASSIST ---
+
+ variable     V p_valor sig   p_mc sig_mc       canvi
+     GRAU 0.264  0.0047  ** 0.0035     ** sense canvi
+     NOTA 0.232  0.0010  ** 0.0004    *** sense canvi
+     CURS 0.214  0.0080  ** 0.0057     ** sense canvi
+   GENERE 0.060  0.7499  ns 0.7855     ns sense canvi
+
+Total parelles analitzades amb MC: 30
+Parelles amb canvi de significació: 1
+
+
+=================================================================
  3. CORRELACIÓ SPEARMAN ENTRE VARIABLES LIKERT
 =================================================================
 
@@ -133,179 +186,185 @@ Parelles Likert significatives amb |rho| > 0.3 (ordenades per |rho|):
   rho_kendall s'informa quan la proporció d'empats > 10% en alguna variable
 
           var1     var2 rho_spearman p_spearman rho_kendall p_kendall
-rho67 IA_HABIT IA_COMPR        0.732          0       0.651         0
-rho2     M_FAM  M_SALUT        0.726          0       0.636         0
-rho26 M_PASSIU   M_TEOR        0.678          0       0.603         0
-rho61   E_EXPL  E_RITME        0.651          0       0.628         0
-rho78 IA_SUBST IA_ATENC        0.650          0       0.556         0
-rho71 IA_HABIT  IA_REND        0.619          0       0.540         0
-rho81  IA_CONF IA_ATENC        0.608          0       0.525         0
-rho23  M_AVORR   M_PROF        0.590          0       0.516         0
+rho70 IA_HABIT IA_COMPR        0.735          0       0.655         0
+rho2     M_FAM  M_SALUT        0.730          0       0.640         0
+rho28 M_PASSIU   M_TEOR        0.679          0       0.605         0
+rho81 IA_SUBST IA_ATENC        0.657          0       0.562         0
+rho64   E_EXPL  E_RITME        0.638          0       0.615         0
+rho74 IA_HABIT  IA_REND        0.613          0       0.534         0
+rho84  IA_CONF IA_ATENC        0.613          0       0.528         0
+rho25  M_AVORR   M_PROF        0.596          0       0.523         0
 rho5   M_AUTON   M_UTIL        0.565          0       0.487         0
-rho     M_TREB    M_FAM        0.558          0       0.472         0
-rho58  E_CLIMA   E_EXPL        0.558          0       0.530         0
-rho22  M_AVORR   M_TEOR        0.546          0       0.472         0
-rho20   M_UTIL   M_PROF        0.545          0       0.463         0
-rho76 IA_COMPR  IA_PDFS        0.545          0       0.481         0
-rho60  E_CLIMA   E_PROP        0.544          0       0.498         0
-rho72 IA_HABIT  IA_PDFS        0.536          0       0.461         0
-rho75 IA_COMPR  IA_REND        0.532          0       0.466         0
-rho59  E_CLIMA  E_RITME        0.530          0       0.495         0
-rho43 E_PES_AC E_ACT_AC        0.527          0       0.471         0
-rho17   M_UTIL  M_AVORR        0.520          0       0.439         0
-rho46   E_PART E_ACT_AC        0.512          0       0.442         0
-rho21  M_AVORR M_PASSIU        0.508          0       0.434         0
-rho85  IA_REND  IA_PDFS        0.504          0       0.428         0
-rho56   E_CURT   E_DESC        0.485          0       0.418         0
-rho3   M_AUTON     M_CV        0.480          0       0.415         0
-rho44   E_PART  E_DINAM        0.474          0       0.404         0
-rho47  E_DINAM   E_REDU        0.472          0       0.398         0
-rho68 IA_HABIT IA_SUBST        0.467          0       0.397         0
-rho33   M_TEOR IA_SUBST        0.463          0       0.392         0
-rho31   M_TEOR   M_PROF        0.456          0       0.396         0
-rho77 IA_SUBST  IA_CONF        0.449          0       0.380         0
-rho50  E_DINAM  E_RITME        0.448          0       0.398         0
-rho1    M_TREB  M_SALUT        0.444          0       0.374         0
-rho10  M_AUTON IA_SUBST        0.435          0       0.363         0
-rho64  E_RITME   E_PROP        0.435          0       0.398         0
-rho70 IA_HABIT IA_ATENC        0.429          0       0.361         0
-rho9   M_AUTON   M_PROF        0.427          0       0.359         0
-rho27 M_PASSIU   M_PROF        0.426          0       0.365         0
-rho24  M_AVORR  M_AMICS        0.425          0       0.361         0
-rho62   E_EXPL   E_PROP        0.424          0       0.394         0
-rho51  E_DINAM E_ACT_AC        0.422          0       0.366         0
-rho34   M_TEOR IA_ATENC        0.417          0       0.346         0
-rho73 IA_COMPR IA_SUBST        0.417          0       0.356         0
-rho6   M_AUTON  M_AVORR        0.409          0       0.337         0
-rho83 IA_ATENC  IA_REND        0.408          0       0.341         0
-rho25  M_AVORR IA_SUBST        0.404          0       0.335         0
-rho74 IA_COMPR IA_ATENC        0.392          0       0.335         0
-rho13     M_CV IA_SUBST        0.387          0       0.322         0
-rho41 E_PES_AC   E_PART        0.387          0       0.333         0
-rho48  E_DINAM  E_CLIMA        0.384          0       0.336         0
-rho45   E_PART   E_REDU        0.381          0       0.320         0
-rho42 E_PES_AC  E_DINAM        0.378          0       0.328         0
-rho66 E_ACT_AC E_PES_AS        0.374          0       0.329         0
-rho80 IA_SUBST  IA_PDFS        0.374          0       0.310         0
-rho4   M_AUTON   M_EXAM        0.368          0       0.310         0
-rho29 M_PASSIU IA_SUBST        0.368          0       0.305         0
-rho32   M_TEOR  M_AMICS        0.367          0       0.312         0
-rho39  M_AMICS IA_SUBST        0.366          0       0.308         0
-rho53   E_REDU   E_CURT        0.364          0       0.306         0
-rho79 IA_SUBST  IA_REND        0.364          0       0.306         0
-rho40  M_AMICS IA_ATENC        0.363          0       0.311         0
-rho16   M_EXAM IA_SUBST        0.357          0       0.294         0
-rho11     M_CV   M_UTIL        0.353          0       0.303         0
-rho52  E_DINAM   E_PROP        0.351          0       0.303         0
-rho15   M_EXAM   M_TEOR        0.350          0       0.293         0
-rho82  IA_CONF  IA_REND        0.350          0       0.292         0
-rho37  M_REPET IA_SUBST        0.347          0       0.291         0
-rho8   M_AUTON   M_TEOR        0.346          0       0.288         0
-rho38  M_REPET IA_ATENC        0.343          0       0.288         0
-rho57   E_CURT  E_CLIMA        0.341          0       0.302         0
-rho69 IA_HABIT  IA_CONF        0.341          0       0.292         0
-rho84 IA_ATENC  IA_PDFS        0.339          0       0.282         0
-rho28 M_PASSIU  M_AMICS        0.336          0       0.288         0
-rho54   E_REDU  E_CLIMA        0.334          0       0.288         0
-rho19   M_UTIL   M_TEOR        0.333          0       0.285         0
-rho14   M_EXAM M_PASSIU        0.329          0       0.273         0
-rho49  E_DINAM   E_EXPL        0.329          0       0.295         0
-rho18   M_UTIL M_PASSIU        0.325          0       0.275         0
-rho36  M_REPET  M_AMICS        0.320          0       0.276         0
-rho65 E_ACT_AC   E_PROP        0.320          0       0.285         0
-rho63  E_RITME E_ACT_AC        0.317          0       0.288         0
-rho35   M_PROF  M_AMICS        0.315          0       0.267         0
-rho55   E_REDU   E_PROP        0.312          0       0.268         0
-rho7   M_AUTON M_PASSIU        0.311          0       0.265         0
-rho12     M_CV  M_REPET        0.305          0       0.257         0
-rho30 M_PASSIU IA_ATENC        0.304          0       0.250         0
+rho     M_TREB    M_FAM        0.562          0       0.476         0
+rho61  E_CLIMA   E_EXPL        0.550          0       0.523         0
+rho24  M_AVORR   M_TEOR        0.549          0       0.475         0
+rho22   M_UTIL   M_PROF        0.542          0       0.460         0
+rho63  E_CLIMA   E_PROP        0.541          0       0.496         0
+rho62  E_CLIMA  E_RITME        0.538          0       0.504         0
+rho79 IA_COMPR  IA_PDFS        0.538          0       0.474         0
+rho78 IA_COMPR  IA_REND        0.529          0       0.462         0
+rho46 E_PES_AC E_ACT_AC        0.528          0       0.472         0
+rho75 IA_HABIT  IA_PDFS        0.527          0       0.453         0
+rho19   M_UTIL  M_AVORR        0.520          0       0.439         0
+rho23  M_AVORR M_PASSIU        0.520          0       0.445         0
+rho49   E_PART E_ACT_AC        0.512          0       0.442         0
+rho88  IA_REND  IA_PDFS        0.490          0       0.415         0
+rho3   M_AUTON     M_CV        0.489          0       0.423         0
+rho50  E_DINAM   E_REDU        0.477          0       0.403         0
+rho71 IA_HABIT IA_SUBST        0.476          0       0.404         0
+rho35   M_TEOR IA_SUBST        0.475          0       0.403         0
+rho47   E_PART  E_DINAM        0.475          0       0.405         0
+rho59   E_CURT   E_DESC        0.472          0       0.407         0
+rho80 IA_SUBST  IA_CONF        0.459          0       0.389         0
+rho33   M_TEOR   M_PROF        0.456          0       0.395         0
+rho1    M_TREB  M_SALUT        0.449          0       0.379         0
+rho10  M_AUTON IA_SUBST        0.439          0       0.367         0
+rho29 M_PASSIU   M_PROF        0.435          0       0.372         0
+rho26  M_AVORR  M_AMICS        0.434          0       0.369         0
+rho67  E_RITME   E_PROP        0.433          0       0.396         0
+rho73 IA_HABIT IA_ATENC        0.433          0       0.365         0
+rho53  E_DINAM  E_RITME        0.431          0       0.383         0
+rho76 IA_COMPR IA_SUBST        0.429          0       0.366         0
+rho9   M_AUTON   M_PROF        0.428          0       0.361         0
+rho37   M_TEOR IA_ATENC        0.424          0       0.352         0
+rho54  E_DINAM E_ACT_AC        0.421          0       0.366         0
+rho65   E_EXPL   E_PROP        0.416          0       0.387         0
+rho6   M_AUTON  M_AVORR        0.412          0       0.341         0
+rho27  M_AVORR IA_SUBST        0.409          0       0.340         0
+rho77 IA_COMPR IA_ATENC        0.398          0       0.341         0
+rho13     M_CV IA_SUBST        0.395          0       0.330         0
+rho86 IA_ATENC  IA_REND        0.393          0       0.330         0
+rho48   E_PART   E_REDU        0.383          0       0.323         0
+rho44 E_PES_AC   E_PART        0.380          0       0.327         0
+rho45 E_PES_AC  E_DINAM        0.379          0       0.328         0
+rho4   M_AUTON   M_EXAM        0.374          0       0.315         0
+rho83 IA_SUBST  IA_PDFS        0.372          0       0.309         0
+rho31 M_PASSIU IA_SUBST        0.371          0       0.306         0
+rho17   M_EXAM IA_SUBST        0.370          0       0.305         0
+rho51  E_DINAM  E_CLIMA        0.368          0       0.323         0
+rho34   M_TEOR  M_AMICS        0.367          0       0.313         0
+rho69 E_ACT_AC E_PES_AS        0.367          0       0.323         0
+rho16   M_EXAM   M_TEOR        0.358          0       0.299         0
+rho42  M_AMICS IA_SUBST        0.357          0       0.300         0
+rho82 IA_SUBST  IA_REND        0.356          0       0.298         0
+rho43  M_AMICS IA_ATENC        0.355          0       0.304         0
+rho11     M_CV   M_UTIL        0.354          0       0.304         0
+rho30 M_PASSIU  M_AMICS        0.352          0       0.302         0
+rho8   M_AUTON   M_TEOR        0.351          0       0.292         0
+rho56   E_REDU   E_CURT        0.351          0       0.294         0
+rho60   E_CURT  E_CLIMA        0.349          0       0.308         0
+rho72 IA_HABIT  IA_CONF        0.349          0       0.298         0
+rho40  M_REPET IA_SUBST        0.346          0       0.289         0
+rho87 IA_ATENC  IA_PDFS        0.345          0       0.287         0
+rho55  E_DINAM   E_PROP        0.343          0       0.296         0
+rho21   M_UTIL   M_TEOR        0.342          0       0.292         0
+rho41  M_REPET IA_ATENC        0.341          0       0.287         0
+rho85  IA_CONF  IA_REND        0.341          0       0.285         0
+rho20   M_UTIL M_PASSIU        0.336          0       0.284         0
+rho39  M_REPET  M_AMICS        0.331          0       0.286         0
+rho52  E_DINAM   E_EXPL        0.326          0       0.293         0
+rho15   M_EXAM M_PASSIU        0.325          0       0.269         0
+rho38   M_PROF  M_AMICS        0.320          0       0.271         0
+rho57   E_REDU  E_CLIMA        0.320          0       0.276         0
+rho14     M_CV IA_ATENC        0.314          0       0.264         0
+rho7   M_AUTON M_PASSIU        0.313          0       0.266         0
+rho58   E_REDU   E_PROP        0.308          0       0.265         0
+rho12     M_CV  M_REPET        0.306          0       0.258         0
+rho36   M_TEOR  IA_CONF        0.304          0       0.253         0
+rho68 E_ACT_AC   E_PROP        0.304          0       0.269         0
+rho32 M_PASSIU IA_ATENC        0.303          0       0.250         0
+rho66  E_RITME E_ACT_AC        0.303          0       0.275         0
+rho18   M_EXAM IA_ATENC        0.302          0       0.248         0
       empats_elev sig
-rho67        TRUE ***
+rho70        TRUE ***
 rho2         TRUE ***
-rho26        TRUE ***
-rho61        TRUE ***
-rho78        TRUE ***
-rho71        TRUE ***
+rho28        TRUE ***
 rho81        TRUE ***
-rho23        TRUE ***
+rho64        TRUE ***
+rho74        TRUE ***
+rho84        TRUE ***
+rho25        TRUE ***
 rho5         TRUE ***
 rho          TRUE ***
-rho58        TRUE ***
+rho61        TRUE ***
+rho24        TRUE ***
 rho22        TRUE ***
-rho20        TRUE ***
-rho76        TRUE ***
-rho60        TRUE ***
-rho72        TRUE ***
-rho75        TRUE ***
-rho59        TRUE ***
-rho43        TRUE ***
-rho17        TRUE ***
+rho63        TRUE ***
+rho62        TRUE ***
+rho79        TRUE ***
+rho78        TRUE ***
 rho46        TRUE ***
-rho21        TRUE ***
-rho85        TRUE ***
-rho56        TRUE ***
+rho75        TRUE ***
+rho19        TRUE ***
+rho23        TRUE ***
+rho49        TRUE ***
+rho88        TRUE ***
 rho3         TRUE ***
-rho44        TRUE ***
-rho47        TRUE ***
-rho68        TRUE ***
-rho33        TRUE ***
-rho31        TRUE ***
-rho77        TRUE ***
 rho50        TRUE ***
+rho71        TRUE ***
+rho35        TRUE ***
+rho47        TRUE ***
+rho59        TRUE ***
+rho80        TRUE ***
+rho33        TRUE ***
 rho1         TRUE ***
 rho10        TRUE ***
-rho64        TRUE ***
-rho70        TRUE ***
+rho29        TRUE ***
+rho26        TRUE ***
+rho67        TRUE ***
+rho73        TRUE ***
+rho53        TRUE ***
+rho76        TRUE ***
 rho9         TRUE ***
+rho37        TRUE ***
+rho54        TRUE ***
+rho65        TRUE ***
+rho6         TRUE ***
 rho27        TRUE ***
-rho24        TRUE ***
-rho62        TRUE ***
+rho77        TRUE ***
+rho13        TRUE ***
+rho86        TRUE ***
+rho48        TRUE ***
+rho44        TRUE ***
+rho45        TRUE ***
+rho4         TRUE ***
+rho83        TRUE ***
+rho31        TRUE ***
+rho17        TRUE ***
 rho51        TRUE ***
 rho34        TRUE ***
-rho73        TRUE ***
-rho6         TRUE ***
-rho83        TRUE ***
-rho25        TRUE ***
-rho74        TRUE ***
-rho13        TRUE ***
-rho41        TRUE ***
-rho48        TRUE ***
-rho45        TRUE ***
-rho42        TRUE ***
-rho66        TRUE ***
-rho80        TRUE ***
-rho4         TRUE ***
-rho29        TRUE ***
-rho32        TRUE ***
-rho39        TRUE ***
-rho53        TRUE ***
-rho79        TRUE ***
-rho40        TRUE ***
+rho69        TRUE ***
 rho16        TRUE ***
+rho42        TRUE ***
+rho82        TRUE ***
+rho43        TRUE ***
 rho11        TRUE ***
+rho30        TRUE ***
+rho8         TRUE ***
+rho56        TRUE ***
+rho60        TRUE ***
+rho72        TRUE ***
+rho40        TRUE ***
+rho87        TRUE ***
+rho55        TRUE ***
+rho21        TRUE ***
+rho41        TRUE ***
+rho85        TRUE ***
+rho20        TRUE ***
+rho39        TRUE ***
 rho52        TRUE ***
 rho15        TRUE ***
-rho82        TRUE ***
-rho37        TRUE ***
-rho8         TRUE ***
 rho38        TRUE ***
 rho57        TRUE ***
-rho69        TRUE ***
-rho84        TRUE ***
-rho28        TRUE ***
-rho54        TRUE ***
-rho19        TRUE ***
 rho14        TRUE ***
-rho49        TRUE ***
-rho18        TRUE ***
-rho36        TRUE ***
-rho65        TRUE ***
-rho63        TRUE ***
-rho35        TRUE ***
-rho55        TRUE ***
 rho7         TRUE ***
+rho58        TRUE ***
 rho12        TRUE ***
-rho30        TRUE ***
+rho36        TRUE ***
+rho68        TRUE ***
+rho32        TRUE ***
+rho66        TRUE ***
+rho18        TRUE ***
 
 =================================================================
  4. VARIABLES LIKERT vs GRUP_ASSIST
@@ -316,79 +375,79 @@ Mann-Whitney + Spearman + Rank-biserial per a cada variable Likert:
   rho_kendall s'informa quan empats > 10%
 
        variable        bloc       W   p_mw sig_mw rho_spearman p_spearman
-W...1  IA_SUBST          IA 19230.5 0.0000    ***       -0.358     0.0000
-W...2   M_AUTON      Motius 18619.5 0.0000    ***       -0.319     0.0000
-W...3   M_AVORR      Motius 17953.0 0.0000    ***       -0.276     0.0000
-W...4    M_TEOR      Motius 17953.0 0.0000    ***       -0.276     0.0000
-W...5    M_EXAM      Motius 17871.0 0.0000    ***       -0.271     0.0000
-W...6    M_PROF      Motius 17735.5 0.0000    ***       -0.265     0.0000
-W...7   M_AMICS      Motius 17307.0 0.0000    ***       -0.243     0.0000
-W...8  IA_ATENC          IA 17258.5 0.0000    ***       -0.234     0.0000
-W...9   M_REPET      Motius 17243.5 0.0000    ***       -0.235     0.0000
-W...10 IA_HABIT          IA 17201.5 0.0000    ***       -0.233     0.0000
-W...11  M_SALUT      Motius 10132.0 0.0000    ***        0.232     0.0000
-W...12   M_UTIL      Motius 17028.0 0.0001    ***       -0.219     0.0001
-W...13 M_PASSIU      Motius 16961.0 0.0001    ***       -0.213     0.0001
-W...14    M_FAM      Motius 10940.0 0.0014     **        0.175     0.0013
-W...15  IA_PDFS          IA 16345.5 0.0010    ***       -0.181     0.0009
-W...16     M_CV      Motius 16289.0 0.0019     **       -0.170     0.0018
-W...17   E_HORA Estratègies 16040.5 0.0022     **       -0.167     0.0021
-W...18 IA_COMPR          IA 15946.0 0.0038     **       -0.159     0.0036
-W...19  IA_REND          IA 15689.0 0.0174      *       -0.130     0.0172
-W...20  E_DINAM Estratègies 11736.5 0.0234      *        0.124     0.0231
-W...21   M_DIST      Motius 15212.5 0.0668     ns       -0.100     0.0667
-W...22 E_ACT_AC Estratègies 12129.5 0.0624     ns        0.102     0.0622
-W...23   E_DESC Estratègies 12144.0 0.0770     ns        0.097     0.0769
-W...24  IA_CONF          IA 15144.0 0.0768     ns       -0.097     0.0766
-W...25   E_PART Estratègies 12639.0 0.2363     ns        0.065     0.2366
-W...26   M_ACAD      Motius 14634.0 0.2173     ns       -0.068     0.2176
-W...27 E_PES_AS Estratègies 12696.0 0.2488     ns        0.063     0.2491
-W...28 IA_PREOC          IA 14440.0 0.3618     ns       -0.050     0.3623
-W...29 E_PES_AC Estratègies 12972.0 0.3839     ns        0.048     0.3844
-W...30   E_REDU Estratègies 12988.0 0.4362     ns        0.043     0.4367
-W...31  E_RITME Estratègies 13170.5 0.4892     ns        0.038     0.4896
-W...32  E_CLIMA Estratègies 13334.0 0.6754     ns        0.023     0.6756
-W...33   E_EXPL Estratègies 13531.0 0.8383     ns        0.011     0.8380
-W...34   M_TREB      Motius 13718.0 0.9427     ns       -0.004     0.9424
-W...35   E_PROP Estratègies 13700.5 0.9574     ns       -0.003     0.9570
-W...36   E_CURT Estratègies 13654.0 0.9981     ns        0.000     0.9976
+W...1  IA_SUBST          IA 20276.5 0.0000    ***       -0.362     0.0000
+W...2   M_AUTON      Motius 19627.0 0.0000    ***       -0.323     0.0000
+W...3   M_AVORR      Motius 19148.0 0.0000    ***       -0.293     0.0000
+W...4    M_TEOR      Motius 19076.5 0.0000    ***       -0.289     0.0000
+W...5    M_PROF      Motius 18802.0 0.0000    ***       -0.275     0.0000
+W...6    M_EXAM      Motius 18770.0 0.0000    ***       -0.270     0.0000
+W...7   M_AMICS      Motius 18353.0 0.0000    ***       -0.253     0.0000
+W...8  IA_HABIT          IA 18243.5 0.0000    ***       -0.244     0.0000
+W...9  IA_ATENC          IA 18185.5 0.0000    ***       -0.237     0.0000
+W...10  M_SALUT      Motius 10551.5 0.0000    ***        0.238     0.0000
+W...11  M_REPET      Motius 18149.0 0.0000    ***       -0.237     0.0000
+W...12 M_PASSIU      Motius 18138.5 0.0000    ***       -0.232     0.0000
+W...13   M_UTIL      Motius 17954.5 0.0000    ***       -0.223     0.0000
+W...14    M_FAM      Motius 11373.5 0.0007    ***        0.183     0.0007
+W...15     M_CV      Motius 17346.5 0.0007    ***       -0.184     0.0006
+W...16  IA_PDFS          IA 17082.5 0.0013     **       -0.174     0.0012
+W...17 IA_COMPR          IA 16929.0 0.0017     **       -0.170     0.0016
+W...18   E_HORA Estratègies 16740.0 0.0033     **       -0.159     0.0031
+W...19  IA_REND          IA 16697.0 0.0083     **       -0.143     0.0081
+W...20  E_DINAM Estratègies 12518.0 0.0365      *        0.113     0.0363
+W...21  IA_CONF          IA 15993.5 0.0605     ns       -0.102     0.0603
+W...22   M_DIST      Motius 15982.0 0.0649     ns       -0.100     0.0648
+W...23   E_DESC Estratègies 12792.0 0.0781     ns        0.095     0.0780
+W...24 E_ACT_AC Estratègies 12982.5 0.1058     ns        0.088     0.1057
+W...25   E_PART Estratègies 13301.5 0.2369     ns        0.064     0.2372
+W...26   M_ACAD      Motius 15318.5 0.2419     ns       -0.063     0.2423
+W...27 E_PES_AS Estratègies 13403.5 0.2701     ns        0.060     0.2705
+W...28 IA_PREOC          IA 15131.5 0.3843     ns       -0.047     0.3848
+W...29  E_RITME Estratègies 13741.5 0.4015     ns        0.045     0.4019
+W...30   E_REDU Estratègies 13805.5 0.5366     ns        0.033     0.5370
+W...31  E_CLIMA Estratègies 13926.5 0.5913     ns        0.029     0.5916
+W...32 E_PES_AC Estratègies 13992.5 0.6558     ns        0.024     0.6560
+W...33   E_EXPL Estratègies 14284.5 0.9102     ns        0.006     0.9098
+W...34   E_CURT Estratègies 14407.0 0.9538     ns       -0.003     0.9534
+W...35   E_PROP Estratègies 14294.0 0.9420     ns        0.004     0.9417
+W...36   M_TREB      Motius 14344.0 0.9896     ns        0.001     0.9892
        r_biserial rho_kendall empats_elev
-W...1      -0.408      -0.319        TRUE
-W...2      -0.363      -0.286        TRUE
-W...3      -0.315      -0.247        TRUE
-W...4      -0.315      -0.248        TRUE
-W...5      -0.309      -0.243        TRUE
-W...6      -0.299      -0.240        TRUE
-W...7      -0.267      -0.223        TRUE
-W...8      -0.264      -0.210        TRUE
-W...9      -0.263      -0.215        TRUE
-W...10     -0.260      -0.211        TRUE
-W...11      0.258       0.212        TRUE
-W...12     -0.247      -0.199        TRUE
-W...13     -0.242      -0.192        TRUE
-W...14      0.199       0.157        TRUE
-W...15     -0.197      -0.165        TRUE
-W...16     -0.193      -0.154        TRUE
-W...17     -0.175      -0.156        TRUE
-W...18     -0.168      -0.148        TRUE
-W...19     -0.149      -0.116        TRUE
-W...20      0.141       0.112        TRUE
-W...21     -0.114      -0.090        TRUE
-W...22      0.112       0.093        TRUE
-W...23      0.111       0.086        TRUE
-W...24     -0.109      -0.088        TRUE
-W...25      0.075       0.057        TRUE
-W...26     -0.072      -0.063        TRUE
-W...27      0.070       0.057        TRUE
-W...28     -0.057      -0.044        TRUE
-W...29      0.050       0.044        TRUE
-W...30      0.049       0.038        TRUE
-W...31      0.036       0.036        TRUE
-W...32      0.024       0.022        TRUE
-W...33      0.009       0.011        TRUE
-W...34     -0.005      -0.004        TRUE
-W...35     -0.003      -0.003        TRUE
-W...36      0.000       0.000        TRUE
+W...1      -0.412      -0.322        TRUE
+W...2      -0.367      -0.290        TRUE
+W...3      -0.334      -0.262        TRUE
+W...4      -0.329      -0.260        TRUE
+W...5      -0.310      -0.249        TRUE
+W...6      -0.307      -0.242        TRUE
+W...7      -0.278      -0.232        TRUE
+W...8      -0.271      -0.221        TRUE
+W...9      -0.267      -0.213        TRUE
+W...10      0.265       0.218        TRUE
+W...11     -0.264      -0.216        TRUE
+W...12     -0.263      -0.209        TRUE
+W...13     -0.251      -0.202        TRUE
+W...14      0.208       0.164        TRUE
+W...15     -0.208      -0.166        TRUE
+W...16     -0.190      -0.159        TRUE
+W...17     -0.179      -0.158        TRUE
+W...18     -0.166      -0.148        TRUE
+W...19     -0.163      -0.128        TRUE
+W...20      0.128       0.102        TRUE
+W...21     -0.114      -0.092        TRUE
+W...22     -0.113      -0.090        TRUE
+W...23      0.109       0.085        TRUE
+W...24      0.096       0.080        TRUE
+W...25      0.073       0.057        TRUE
+W...26     -0.067      -0.059        TRUE
+W...27      0.066       0.054        TRUE
+W...28     -0.054      -0.042        TRUE
+W...29      0.043       0.044        TRUE
+W...30      0.038       0.030        TRUE
+W...31      0.030       0.027        TRUE
+W...32      0.025       0.022        TRUE
+W...33      0.005       0.006        TRUE
+W...34     -0.004      -0.003        TRUE
+W...35      0.004       0.004        TRUE
+W...36      0.001       0.001        TRUE
 
 =================================================================
  5. CORRELACIÓ SPEARMAN ENTRE VARIABLES NUMÈRIQUES
@@ -398,19 +457,19 @@ Correlació Spearman entre variables numèriques:
   rho_kendall s'informa quan la proporció d'empats > 10% en alguna variable
 
         var1     var2 rho_spearman p_spearman sig rho_kendall p_kendall
-rho1    EDAT  N_ASSIG       -0.234     0.0000 ***      -0.179    0.0000
-rho2    EDAT P_ASSIST       -0.105     0.0553  ns      -0.079    0.0534
-rho4   DESPL P_ASSIST        0.060     0.2720  ns          NA        NA
-rho5 N_ASSIG P_ASSIST       -0.036     0.5169  ns      -0.026    0.5292
-rho     EDAT    DESPL        0.024     0.6668  ns       0.018    0.6645
-rho3   DESPL  N_ASSIG        0.023     0.6727  ns       0.018    0.6611
+rho1    EDAT  N_ASSIG       -0.246     0.0000 ***      -0.188    0.0000
+rho2    EDAT P_ASSIST       -0.111     0.0408   *      -0.083    0.0394
+rho4   DESPL P_ASSIST        0.065     0.2318  ns          NA        NA
+rho3   DESPL  N_ASSIG        0.031     0.5621  ns       0.024    0.5505
+rho5 N_ASSIG P_ASSIST       -0.031     0.5653  ns      -0.023    0.5732
+rho     EDAT    DESPL        0.007     0.9041  ns       0.004    0.9122
      empats_elev
 rho1        TRUE
 rho2        TRUE
 rho4       FALSE
+rho3        TRUE
 rho5        TRUE
 rho         TRUE
-rho3        TRUE
 
 =================================================================
  6. VARIABLES NUMÈRIQUES vs GRUP_ASSIST
@@ -422,6 +481,6 @@ Mann-Whitney + Rank-biserial per a cada variable numèrica:
   r_biserial > 0 → Regular > Irregular
 
       variable       W p_valor sig r_biserial
-W...1    DESPL 12295.5  0.1180  ns      0.100
-W...2     EDAT 14823.0  0.1757  ns     -0.085
-W...3  N_ASSIG 14601.5  0.2693  ns     -0.069
+W...1    DESPL 12750.5  0.0755  ns      0.112
+W...2     EDAT 15729.5  0.1244  ns     -0.096
+W...3  N_ASSIG 15211.0  0.3356  ns     -0.060

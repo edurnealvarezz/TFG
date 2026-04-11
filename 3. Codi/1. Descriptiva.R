@@ -11,7 +11,7 @@ lapply(packages, install_if_missing)
 rm(packages)
 
 setwd("C:/Users/edurn/Downloads/TFG")
-load("2. Dades/0. Dades definitives.RData")
+load("2. Dades/0. Dades inicials.RData")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")

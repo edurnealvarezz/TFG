@@ -2,67 +2,67 @@
  === Distribució GRUP_ASSIST: ===
 
 Irregular (<80%)   Regular (≥80%) 
-             143              191 
+             148              194 
 
 Irregular (<80%)   Regular (≥80%) 
-            42.8             57.2 
+            43.3             56.7 
 
  === Estadíastiques bàsiques numèriques: ===
 # A tibble: 4 × 6
   Variable Mitjana Mediana    sd   min   max
   <chr>      <dbl>   <dbl> <dbl> <dbl> <dbl>
-1 EDAT       22.0       20  7.84    18    82
-2 DESPL      50.6       40 42.7      1   605
-3 N_ASSIG     9.95      10  2.69     1    16
-4 P_ASSIST   70.6       80 29.1      0   100
+1 EDAT       22.1       20  8.15    18    82
+2 DESPL      50.4       40 42.4      1   605
+3 N_ASSIG     9.92      10  2.70     1    16
+4 P_ASSIST   70.3       80 29.2      0   100
 
  === Mitjana motius no assistència per grup ===
 # A tibble: 15 × 3
    Motiu    `Irregular (<80%)` `Regular (≥80%)`
    <chr>                 <dbl>            <dbl>
- 1 M_TREB                 3.08             3.06
- 2 M_FAM                  2.55             3.09
- 3 M_SALUT                2.58             3.45
+ 1 M_TREB                 3.08             3.08
+ 2 M_FAM                  2.54             3.11
+ 3 M_SALUT                2.57             3.46
  4 M_DIST                 2.74             2.40
- 5 M_AUTON                3.67             2.85
- 6 M_CV                   2.90             2.48
- 7 M_EXAM                 3.16             2.40
- 8 M_UTIL                 3.92             3.35
- 9 M_AVORR                3.59             2.84
-10 M_PASSIU               2.89             2.29
-11 M_TEOR                 3.11             2.30
-12 M_PROF                 4.01             3.35
+ 5 M_AUTON                3.68             2.85
+ 6 M_CV                   2.93             2.47
+ 7 M_EXAM                 3.15             2.40
+ 8 M_UTIL                 3.93             3.34
+ 9 M_AVORR                3.63             2.83
+10 M_PASSIU               2.93             2.27
+11 M_TEOR                 3.14             2.29
+12 M_PROF                 4.03             3.33
 13 M_REPET                2.60             1.98
-14 M_ACAD                 2.17             1.91
-15 M_AMICS                2.45             1.81
+14 M_ACAD                 2.16             1.90
+15 M_AMICS                2.49             1.81
 
  === Mitjana estratègies assistència per grup ===
 # A tibble: 13 × 3
    Estratègia `Irregular (<80%)` `Regular (≥80%)`
    <chr>                   <dbl>            <dbl>
- 1 E_PES_AC                 4.91             5.05
- 2 E_PART                   3.58             3.84
- 3 E_DINAM                  4.22             4.61
- 4 E_REDU                   3.71             3.87
- 5 E_CURT                   4.41             4.50
- 6 E_DESC                   3.45             3.83
- 7 E_CLIMA                  5.26             5.28
- 8 E_EXPL                   5.65             5.71
- 9 E_RITME                  5.38             5.52
-10 E_ACT_AC                 4.59             4.94
-11 E_PROP                   4.91             4.95
-12 E_HORA                   5.35             4.83
-13 E_PES_AS                 4.32             4.55
+ 1 E_PES_AC                 4.95             5.03
+ 2 E_PART                   3.59             3.85
+ 3 E_DINAM                  4.24             4.60
+ 4 E_REDU                   3.74             3.87
+ 5 E_CURT                   4.43             4.49
+ 6 E_DESC                   3.45             3.82
+ 7 E_CLIMA                  5.26             5.29
+ 8 E_EXPL                   5.66             5.72
+ 9 E_RITME                  5.39             5.53
+10 E_ACT_AC                 4.62             4.93
+11 E_PROP                   4.90             4.96
+12 E_HORA                   5.34             4.83
+13 E_PES_AS                 4.32             4.56
 
  === Mitjana ús IA per grup ===
 # A tibble: 8 × 3
   Us_IA    `Irregular (<80%)` `Regular (≥80%)`
   <chr>                 <dbl>            <dbl>
-1 IA_HABIT               5.04             4.43
-2 IA_COMPR               5.31             4.92
-3 IA_SUBST               3.64             2.33
+1 IA_HABIT               5.06             4.43
+2 IA_COMPR               5.32             4.91
+3 IA_SUBST               3.66             2.32
 4 IA_CONF                2.48             2.16
-5 IA_ATENC               3.01             2.19
-6 IA_PREOC               3.78             3.60
-7 IA_REND                4.39             4.01
-8 IA_PDFS                4.94             4.40
+5 IA_ATENC               3.03             2.19
+6 IA_PREOC               3.78             3.61
+7 IA_REND                4.41             3.99
+8 IA_PDFS                4.93             4.39

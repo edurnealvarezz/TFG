@@ -10,7 +10,7 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-setwd("C:/Users/edurn/Downloads/TFG")
+#setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/2. Dades tractades.RData")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
@@ -196,6 +196,123 @@ ggplot(df_vs_grup, aes(x = reorder(variable, V), y = V,
        subtitle = "Opac = significatiu (p < 0.05)",
        x = "", y = "V de Cramér") +
   theme_minimal(base_size = 12)
+
+
+#### ============================================================ ####
+####         2.2. SOLUCIÓ FREQÜÈNCIES ESPERADES < 5               ####
+#### ============================================================ ####
+
+cat("\n=================================================================\n")
+cat(" 1B-2B. SOLUCIÓ FREQÜÈNCIES ESPERADES < 5 — MONTE CARLO\n")
+cat("=================================================================\n\n")
+
+# --- Criteris d'exclusió ---
+cat("Parelles IGNORADES (no necessiten correcció):\n")
+cat(" · Redundants per construcció (variable derivada):\n")
+cat("   GRAU×DOBLE_GRAU_EST | CURS×CURS_1R | NOTA×NOTA_ALTA | DEDIC×TREB_INTENS\n")
+cat(" · Parelles amb GRAU: massa categories i poques obs. per cel·la.\n")
+cat("   DOBLE_GRAU_EST agrupa adequadament → resultats de GRAU no s'interpreten.\n\n")
+
+# Funció Monte Carlo per a parelles de variables
+mc_chi2 <- function(v1, v2, B = 10000) {
+  taula <- table(dades[[v1]], dades[[v2]])
+  suppressWarnings(chisq.test(taula, simulate.p.value = TRUE, B = B))$p.value
+}
+
+# Funció Monte Carlo per a variable vs GRUP_ASSIST
+mc_chi2_grup <- function(v, B = 10000) {
+  taula <- table(dades[[v]], dades$GRUP_ASSIST)
+  suppressWarnings(chisq.test(taula, simulate.p.value = TRUE, B = B))$p.value
+}
+
+# --- 1B. Parelles entre variables ---
+cat("--- 1B. Parelles entre variables categòriques ---\n\n")
+
+pars_mc <- avis_cat %>%
+  filter(var1 != "GRAU", var2 != "GRAU") %>%
+  filter(!(var1 == "CURS"  & var2 == "CURS_1R"),
+         !(var1 == "NOTA"  & var2 == "NOTA_ALTA"),
+         !(var1 == "DEDIC" & var2 == "TREB_INTENS"))
+
+df_mc_pars <- pars_mc %>%
+  select(var1, var2) %>%
+  left_join(df_cat %>% select(var1, var2, chi2, p_valor, V, sig),
+            by = c("var1", "var2"))
+
+set.seed(42)
+df_mc_pars$p_mc <- mapply(mc_chi2, df_mc_pars$var1, df_mc_pars$var2)
+df_mc_pars <- df_mc_pars %>%
+  mutate(
+    sig_mc = sig_label(p_mc),
+    canvi = case_when(
+      sig != "ns" & sig_mc == "ns" ~ "perd sig.",
+      sig == "ns" & sig_mc != "ns" ~ "guanya sig.",
+      TRUE ~ "sense canvi"
+    )
+  )
+
+print(df_mc_pars %>%
+        select(var1, var2, V, p_valor, sig, p_mc, sig_mc, canvi) %>%
+        mutate(across(c(p_valor, p_mc), ~round(.x, 4))),
+      row.names = FALSE)
+
+# --- 2B. Variables vs GRUP_ASSIST ---
+cat("\n--- 2B. Variables vs GRUP_ASSIST ---\n\n")
+
+df_mc_grup <- avis_grup %>%
+  select(variable) %>%
+  left_join(df_vs_grup %>% select(variable, chi2, p_valor, V, sig),
+            by = "variable")
+
+set.seed(42)
+df_mc_grup$p_mc <- sapply(df_mc_grup$variable, mc_chi2_grup)
+df_mc_grup <- df_mc_grup %>%
+  mutate(
+    sig_mc = sig_label(p_mc),
+    canvi = case_when(
+      sig != "ns" & sig_mc == "ns" ~ "perd sig.",
+      sig == "ns" & sig_mc != "ns" ~ "guanya sig.",
+      TRUE ~ "sense canvi"
+    )
+  )
+
+print(df_mc_grup %>%
+        select(variable, V, p_valor, sig, p_mc, sig_mc, canvi) %>%
+        mutate(across(c(p_valor, p_mc), ~round(.x, 4))),
+      row.names = FALSE)
+
+cat(sprintf("\nTotal parelles analitzades amb MC: %d\n", nrow(df_resum_mc)))
+cat(sprintf("Parelles amb canvi de significació: %d\n\n",
+            sum(df_resum_mc$canvi != "sense canvi")))
+
+# Gràfic comparatiu
+df_plot_mc <- df_resum_mc %>%
+  select(parella, context, V, p_valor, p_mc, canvi) %>%
+  pivot_longer(c(p_valor, p_mc), names_to = "metode", values_to = "p") %>%
+  mutate(
+    metode = recode(metode, "p_valor" = "Chi² estàndard", "p_mc" = "Monte Carlo"),
+    significatiu = p < 0.05
+  )
+
+ggplot(df_plot_mc,
+       aes(x = reorder(parella, -V), y = p,
+           color = metode, shape = significatiu)) +
+  geom_line(aes(group = parella), color = "gray75", linewidth = 0.4) +
+  geom_point(size = 2.8, alpha = 0.9) +
+  geom_hline(yintercept = 0.05, linetype = "dashed",
+             color = "red", linewidth = 0.7) +
+  facet_wrap(~context, scales = "free_y", ncol = 1) +
+  scale_color_manual(values = c("Chi² estàndard" = "#4A90B8",
+                                "Monte Carlo"    = "#E07B54")) +
+  scale_shape_manual(values = c("TRUE" = 16, "FALSE" = 1),
+                     labels = c("TRUE" = "p < 0.05", "FALSE" = "p ≥ 0.05")) +
+  coord_flip() +
+  labs(title    = "Chi² estàndard vs. Monte Carlo (B = 10 000)",
+       subtitle = "Parelles amb freqüències esperades < 5 | Línia = α = 0.05",
+       x = "", y = "p-valor",
+       color = "Mètode", shape = "") +
+  theme_minimal(base_size = 10) +
+  theme(legend.position = "bottom")
 
 
 #### ============================================================ ####
