@@ -1,5 +1,5 @@
 packages <- c("dplyr", "ggplot2", "tibble", "tidyr",
-              "ranger", "caret", "pROC")
+              "ranger", "caret", "pROC", "fastshap")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -11,10 +11,8 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-install_if_missing("fastshap")
-
-#setwd("C:/Users/edurn/Downloads/TFG")
-setwd("C:/Users/Edurne/Downloads/TFG")
+setwd("C:/Users/edurn/Downloads/TFG")
+#setwd("C:/Users/Edurne/Downloads/TFG")
 
 load("2. Dades/4. Dades EFA.RData")
 
@@ -134,7 +132,6 @@ mtry_vals <- unique(c(floor(sqrt(p_a)), floor(p_a / 3), floor(p_a / 2), 10, p_a)
 # afegeixo el 10 perque sinó hi ha molta distància entre 7 i 15
 
 node_vals <- c(5, 10, 15) # mida minima dels nodes
-
 num_trees <- c(10, 100, 250, 300, 500, 1000)
 
 cat(sprintf("p = %d predictors | mtry testats: %s | min.node.size: %s | num.trees: %s\n\n",
@@ -371,8 +368,13 @@ pfun <- function(object, newdata) {
   predict(object, data = as.matrix(newdata))$predictions[, 2]
 }
 
-# Calcul SHAP (nsim=100 iteracions de permutacio)
-set.seed(2024)
+# --------------- 4.1. Càlcul shap ---------------
+
+# per cada observació del test i cada variable, calcula un valor SHAP 
+# = quant contribueix aquesta variable a emputxar la predicció cap a 
+# Regular o Irregular respecte a la predicció mitjana
+
+set.seed(1234)
 shap_df_a <- as.data.frame(
   fastshap::explain(rf_a,
                     X = as.data.frame(train_a[, -1]),
@@ -381,7 +383,7 @@ shap_df_a <- as.data.frame(
                     newdata = as.data.frame(test_a[, -1]))
 )
 
-set.seed(2024)
+set.seed(1234)
 shap_df_b <- as.data.frame(
   fastshap::explain(rf_b,
                     X = as.data.frame(train_b[, -1]),
@@ -390,7 +392,11 @@ shap_df_b <- as.data.frame(
                     newdata = as.data.frame(test_b[, -1]))
 )
 
-# --- 5.1 Importancia SHAP global (mean |SHAP|) ---
+# --------------- 4.2. Importància SHAP global ---------------
+
+# és la mitjana del valor absolut dels SHAP values per cada 
+# variable sobre totes les observacions del test
+
 shap_imp_a <- tibble(
   variable = names(shap_df_a),
   mean_abs_shap = colMeans(abs(shap_df_a))
@@ -430,7 +436,11 @@ ggplot(shap_imp_b %>% slice_head(n = 15),
        x = "", y = "Importancia SHAP") +
   theme_minimal(base_size = 13)
 
-# --- 5.2 SHAP Beeswarm (summary plot) top 12 RF-A ---
+# --------------- 4.3. SHAP Beeswarm ---------------
+# transforma els dades per poder pintar un punt per cada 
+# combinació observació × variable, i pintar segons el valor 
+# real de la variable.
+
 top12_a <- shap_imp_a$variable[1:min(12, nrow(shap_imp_a))]
 
 shap_long_a <- shap_df_a %>%
@@ -482,7 +492,12 @@ ggplot(shap_long_b, aes(x = shap, y = variable, color = valor)) +
        x = "Valor SHAP", y = "") +
   theme_minimal(base_size = 12)
 
-# --- 5.3 SHAP Dependence plots — top 4 RF-A ---
+# --------------- 4.4. SHAP gràfics dependència ---------------
+
+# per cadascuna de les 4 variables més importants
+# fa un scatter plot de valor real de la variable (eix X) 
+# vs valor SHAP (eix Y), amb una corba LOESS a sobre.
+
 top4_a <- shap_imp_a$variable[1:4]
 
 for (v in top4_a) {
@@ -506,9 +521,9 @@ for (v in top4_a) {
 ####        6. TAULA COMPARATIVA FINAL: Logit vs RF-A vs RF-B     ####
 #### ============================================================ ####
 
-cat("\n=================================================================\n")
-cat("   6. TAULA COMPARATIVA FINAL: Logit vs RF-A vs RF-B\n")
-cat("=================================================================\n\n")
+cat("\n====================================\n")
+cat("         6. TAULA COMPARATIVA FINAL   \n")
+cat("======================================\n\n")
 
 # Carregar metriques del logit si existeix
 if (file.exists("2. Dades/metriques_logit.rds")) {
@@ -548,13 +563,10 @@ if (file.exists("2. Dades/metriques_logit.rds")) {
           legend.position = "bottom")
 }
 
-#### ============================================================ ####
-####        7. GUARDAR METRIQUES                                   ####
-#### ============================================================ ####
+# sembla que el millor és el logit
 
 saveRDS(met_rfa_test, "2. Dades/metriques_rf_a.rds")
 saveRDS(met_rfb_test, "2. Dades/metriques_rf_b.rds")
-cat("\nMetriques guardades a: metriques_rf_a.rds i metriques_rf_b.rds\n")
 
 sink()
 dev.off()

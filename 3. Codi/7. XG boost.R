@@ -179,6 +179,7 @@ mostrar_metriques_xgb <- function(met, titol = NULL) {
 ####        1. GRID SEARCH — SELECCIÓ D'HIPERPARÀMETRES           ####
 #### ============================================================ ####
 
+
 cat("=================================================================\n")
 cat("   1. GRID SEARCH (early stopping sobre val)\n")
 cat("=================================================================\n\n")
@@ -208,7 +209,6 @@ grid_results <- vector("list", nrow(grid))
 for (i in seq_len(nrow(grid))) {
   p_i <- list(
     objective = "binary:logistic",
-    eval_metric = "auc",
     eta = eta_fix,
     max_depth = grid$max_depth[i],
     subsample = subsample_fix,
@@ -222,24 +222,12 @@ for (i in seq_len(nrow(grid))) {
   m_i <- xgb.train(
     params = p_i,
     data = dtrain,
-    nrounds = 1000,
-    evals = list(train = dtrain, eval = dval),
-    early_stopping_rounds = 50,
+    nrounds = 300,
     verbose = 0
   )
 
-  # Extreure best_iteration i val AUC directament del log (robust)
-  eval_log <- m_i$evaluation_log
-  auc_col <- grep("eval.*auc", names(eval_log), value = TRUE)[1]
-  if (!is.na(auc_col)) {
-    best_i <- which.max(eval_log[[auc_col]])
-    best_score_i <- eval_log[[auc_col]][best_i]
-  } else {
-    best_i <- nrow(eval_log)
-    best_score_i <- NA_real_
-  }
-  best_i <- as.integer(best_i)
-  best_score_i <- as.numeric(best_score_i)
+  prob_val_i <- predict(m_i, dval)
+  val_auc_i <- as.numeric(auc(roc(Y_val, prob_val_i, quiet = TRUE)))
 
   grid_results[[i]] <- data.frame(
     max_depth = grid$max_depth[i],
@@ -247,8 +235,7 @@ for (i in seq_len(nrow(grid))) {
     gamma = grid$gamma[i],
     lambda = grid$lambda[i],
     alpha = grid$alpha[i],
-    best_nrounds = best_i,
-    val_auc = best_score_i,
+    val_auc = val_auc_i,
     stringsAsFactors = FALSE
   )
 
@@ -257,11 +244,6 @@ for (i in seq_len(nrow(grid))) {
   }
 }
 
-print(best_i)
-print(best_score_i)
-str(best_i)
-str(best_score_i)
-
 df_grid <- do.call(rbind, grid_results)
 df_grid <- df_grid[order(-df_grid$val_auc), ]
 
@@ -269,14 +251,13 @@ cat("\nTop 10 combinacions per AUC de validació:\n")
 print(head(df_grid, 10), row.names = FALSE)
 
 best_row <- df_grid[1, ]
-best_nrounds <- best_row$best_nrounds
 best_val_auc <- best_row$val_auc
 
 cat(sprintf("\nMillors hiperparàmetres (val AUC = %.4f):\n", best_val_auc))
 cat(sprintf("  max_depth = %d | min_child_weight = %d | gamma = %.1f\n",
             best_row$max_depth, best_row$min_child_weight, best_row$gamma))
-cat(sprintf("  lambda = %.1f | alpha = %.1f | nrounds = %d\n\n",
-            best_row$lambda, best_row$alpha, best_nrounds))
+cat(sprintf("  lambda = %.1f | alpha = %.1f\n\n",
+            best_row$lambda, best_row$alpha))
 
 #### ============================================================ ####
 ####              2. MODEL FINAL XGBoost                          ####
@@ -299,21 +280,21 @@ best_params <- list(
   alpha = best_row$alpha
 )
 
+# nrounds alt + early stopping sobre dval per trobar el punt òptim
 set.seed(1234)
 xgb_model <- xgb.train(
   params = best_params,
   data = dtrain,
-  nrounds = best_nrounds,
+  nrounds = 1000,
   evals = list(train = dtrain, eval = dval),
   early_stopping_rounds = 50,
   verbose = 1
 )
 
-best_nrounds <- xgb_model$best_iteration
-if (!isTRUE(best_nrounds >= 1)) best_nrounds <- xgb_model$niter
-best_val_auc <- xgb_model$best_score
-
-cat(sprintf("\nnrounds finals: %d | Val AUC: %.4f\n\n", best_nrounds, best_val_auc))
+# AUC final sobre val calculat directament (no depèn de best_score intern)
+prob_val_final <- predict(xgb_model, dval)
+best_val_auc_final <- as.numeric(auc(roc(Y_val, prob_val_final, quiet = TRUE)))
+cat(sprintf("\nVal AUC model final: %.4f\n\n", best_val_auc_final))
 
 prob_test_xgb <- predict(xgb_model, dtest)
 prob_val_xgb <- predict(xgb_model, dval)
@@ -511,41 +492,74 @@ cat("=================================================================\n")
 cat("   6. COMPARACIÓ GLOBAL DE MODELS\n")
 cat("=================================================================\n\n")
 
-models_llista <- list()
-
-if (file.exists("2. Dades/metriques_logit.rds")) {
-  models_llista[["Logit"]] <- readRDS("2. Dades/metriques_logit.rds")
-}
-if (file.exists("2. Dades/metriques_rf.rds")) {
-  models_llista[["RF"]] <- readRDS("2. Dades/metriques_rf.rds")
-}
-models_llista[["XGBoost"]] <- metriques_xgb
-
-df_comp <- do.call(rbind, lapply(models_llista, function(m) {
-  cv_info <- if (!is.na(m$AUC_cv_mean)) {
-    sprintf("%.4f ± %.4f", m$AUC_cv_mean, m$AUC_cv_sd)
-  } else if (!is.null(m$OOB_error) && !is.na(m$OOB_error)) {
-    sprintf("OOB err = %.4f", m$OOB_error)
-  } else {
-    "—"
-  }
+# Funció per extreure una fila de mètriques de qualsevol format (logit/RF/XGBoost)
+extreure_fila <- function(m) {
+  cv_info <- tryCatch({
+    if (!is.null(m$AUC_cv_mean) && length(m$AUC_cv_mean) == 1 && !is.na(m$AUC_cv_mean))
+      sprintf("%.4f ± %.4f", m$AUC_cv_mean, m$AUC_cv_sd)
+    else if (!is.null(m$OOB_error) && length(m$OOB_error) == 1 && !is.na(m$OOB_error))
+      sprintf("OOB err = %.4f", m$OOB_error)
+    else "—"
+  }, error = function(e) "—")
 
   data.frame(
     Model = m$model,
     AUC_CV = cv_info,
-    AUC_test = m$AUC,
-    Accuracy = m$accuracy,
-    Precision = m$precision,
-    Recall = m$recall,
-    F1 = m$F1,
-    Balanced_Acc = m$balanced_accuracy,
+    AUC_test = round(m$AUC, 4),
+    Accuracy = round(m$accuracy, 4),
+    Precision = round(m$precision, 4),
+    Recall = round(m$recall, 4),
+    F1 = round(m$F1, 4),
+    Balanced_Acc = round(m$balanced_accuracy, 4),
     stringsAsFactors = FALSE
   )
-}))
+}
+
+models_llista <- list()
+
+fitxers <- c(
+  Logit = "2. Dades/metriques_logit.rds",
+  `RF-A` = "2. Dades/metriques_rf_a.rds",
+  `RF-B` = "2. Dades/metriques_rf_b.rds"
+)
+
+for (nom in names(fitxers)) {
+  if (file.exists(fitxers[[nom]])) {
+    models_llista[[nom]] <- readRDS(fitxers[[nom]])
+  }
+}
+models_llista[["XGBoost"]] <- metriques_xgb
+
+df_comp <- do.call(rbind, lapply(models_llista, extreure_fila))
 rownames(df_comp) <- NULL
 
 cat("Taula comparativa de models (sobre conjunt test):\n\n")
 print(df_comp, row.names = FALSE)
+
+metriques_num <- c("AUC_test", "Balanced_Acc", "F1", "Accuracy", "Precision", "Recall")
+
+df_comp_long <- df_comp %>%
+  select(Model, all_of(metriques_num)) %>%
+  mutate(across(-Model, as.numeric)) %>%
+  pivot_longer(-Model, names_to = "metrica", values_to = "valor") %>%
+  mutate(metrica = factor(metrica, levels = metriques_num))
+
+colors_models <- c("#4A90B8", "#E07B54", "#8E6BBF", "#2ECC71",
+                   "#E74C3C", "#F39C12")[seq_len(n_distinct(df_comp_long$Model))]
+
+print(
+  ggplot(df_comp_long, aes(x = metrica, y = valor, fill = Model)) +
+    geom_col(position = "dodge", alpha = 0.85) +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = colors_models) +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(title = "Comparació de models",
+         subtitle = "Mètriques sobre conjunt test",
+         x = "", y = "Valor") +
+    theme_minimal(base_size = 13) +
+    theme(axis.text.x = element_text(angle = 25, hjust = 1),
+          legend.position = "bottom")
+)
 
 #### ============================================================ ####
 ####          7. GUARDAR MÈTRIQUES PER A COMPARACIÓ               ####
@@ -556,9 +570,8 @@ cat("\n→ Mètriques guardades a: 2. Dades/metriques_xgb.rds\n\n")
 
 cat("Vista prèvia del format de mètriques:\n")
 print(as.data.frame(metriques_xgb[c("model", "n_test", "threshold",
-                                     "AUC_cv_mean", "AUC", "accuracy",
-                                     "precision", "recall", "F1",
-                                     "balanced_accuracy")]))
+                                     "AUC", "accuracy", "precision",
+                                     "recall", "F1", "balanced_accuracy")]))
 
 sink()
 dev.off()

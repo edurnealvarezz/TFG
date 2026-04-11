@@ -1,0 +1,280 @@
+=================================================================
+   0. PREPARACIÓ DE DADES
+=================================================================
+
+Observacions totals: 342
+Predictors inclosos: 48
+Distribució Y — Irregular (0): 148 | Regular (1): 194
+
+Partició: Train = 240 | Val = 51 | Test = 51
+  Train — Regular: 56.2% | Irregular: 43.8%
+  Val   — Regular: 52.9% | Irregular: 47.1%
+  Test  — Regular: 62.7% | Irregular: 37.3%
+
+=================================================================
+   1. GRID SEARCH (early stopping sobre val)
+=================================================================
+
+Combinacions a avaluar: 243
+Params fixos: eta = 0.01 | subsample = 0.6 | colsample_bytree = 0.6
+Early stopping: 50 rondes sense millora en val AUC
+
+  25 / 243 combinacions completades...
+  50 / 243 combinacions completades...
+  75 / 243 combinacions completades...
+  100 / 243 combinacions completades...
+  125 / 243 combinacions completades...
+  150 / 243 combinacions completades...
+  175 / 243 combinacions completades...
+  200 / 243 combinacions completades...
+  225 / 243 combinacions completades...
+
+Top 10 combinacions per AUC de validació:
+ max_depth min_child_weight gamma lambda alpha   val_auc
+         4                5     0      3   0.5 0.8395062
+         4               15     1      3   1.0 0.8387346
+         3               15     0      5   1.0 0.8379630
+         3               15     2      3   0.0 0.8371914
+         2               15     1      3   1.0 0.8371914
+         3               15     2      5   1.0 0.8371914
+         2               15     0      5   0.5 0.8364198
+         2               15     1      1   0.0 0.8356481
+         2               15     2      3   0.5 0.8356481
+         2               15     1      1   0.5 0.8348765
+
+Millors hiperparàmetres (val AUC = 0.8395):
+  max_depth = 4 | min_child_weight = 5 | gamma = 0.0
+  lambda = 3.0 | alpha = 0.5
+
+=================================================================
+   2. MODEL FINAL XGBoost (millors hiperparàmetres del grid)
+=================================================================
+
+Multiple eval metrics are present. Will use eval_auc for early stopping.
+Will train until eval_auc hasn't improved in 50 rounds.
+
+[1]	train-auc:0.751005	eval-auc:0.773148 
+[2]	train-auc:0.759083	eval-auc:0.735340 
+[3]	train-auc:0.785855	eval-auc:0.800154 
+[4]	train-auc:0.784691	eval-auc:0.831019 
+[5]	train-auc:0.789171	eval-auc:0.818673 
+[6]	train-auc:0.793369	eval-auc:0.810957 
+[7]	train-auc:0.806138	eval-auc:0.818673 
+[8]	train-auc:0.809947	eval-auc:0.838735 
+[9]	train-auc:0.814815	eval-auc:0.843364 
+[10]	train-auc:0.814568	eval-auc:0.852623 
+[11]	train-auc:0.813369	eval-auc:0.847994 
+[12]	train-auc:0.817989	eval-auc:0.851852 
+[13]	train-auc:0.815168	eval-auc:0.850309 
+[14]	train-auc:0.818801	eval-auc:0.848765 
+[15]	train-auc:0.818095	eval-auc:0.853395 
+[16]	train-auc:0.819436	eval-auc:0.851852 
+[17]	train-auc:0.821481	eval-auc:0.848765 
+[18]	train-auc:0.828466	eval-auc:0.856481 
+[19]	train-auc:0.828818	eval-auc:0.851080 
+[20]	train-auc:0.831534	eval-auc:0.849537 
+[21]	train-auc:0.832734	eval-auc:0.851080 
+[22]	train-auc:0.830829	eval-auc:0.847222 
+[23]	train-auc:0.829700	eval-auc:0.851852 
+[24]	train-auc:0.834180	eval-auc:0.847222 
+[25]	train-auc:0.833686	eval-auc:0.850309 
+[26]	train-auc:0.835238	eval-auc:0.847222 
+[27]	train-auc:0.834533	eval-auc:0.848765 
+[28]	train-auc:0.835802	eval-auc:0.845679 
+[29]	train-auc:0.837037	eval-auc:0.841049 
+[30]	train-auc:0.835062	eval-auc:0.847222 
+[31]	train-auc:0.837037	eval-auc:0.837963 
+[32]	train-auc:0.835062	eval-auc:0.839506 
+[33]	train-auc:0.833298	eval-auc:0.842593 
+[34]	train-auc:0.834286	eval-auc:0.839506 
+[35]	train-auc:0.834921	eval-auc:0.839506 
+[36]	train-auc:0.836543	eval-auc:0.839506 
+[37]	train-auc:0.835626	eval-auc:0.844136 
+[38]	train-auc:0.836684	eval-auc:0.847222 
+[39]	train-auc:0.836402	eval-auc:0.845679 
+[40]	train-auc:0.835908	eval-auc:0.848765 
+[41]	train-auc:0.835344	eval-auc:0.851852 
+[42]	train-auc:0.837531	eval-auc:0.850309 
+[43]	train-auc:0.837954	eval-auc:0.842593 
+[44]	train-auc:0.836473	eval-auc:0.845679 
+[45]	train-auc:0.838589	eval-auc:0.847222 
+[46]	train-auc:0.839365	eval-auc:0.845679 
+[47]	train-auc:0.839224	eval-auc:0.841049 
+[48]	train-auc:0.838589	eval-auc:0.844136 
+[49]	train-auc:0.837954	eval-auc:0.850309 
+[50]	train-auc:0.838730	eval-auc:0.842593 
+[51]	train-auc:0.838448	eval-auc:0.841049 
+[52]	train-auc:0.838871	eval-auc:0.837963 
+[53]	train-auc:0.839859	eval-auc:0.842593 
+[54]	train-auc:0.840988	eval-auc:0.839506 
+[55]	train-auc:0.840847	eval-auc:0.836420 
+[56]	train-auc:0.841623	eval-auc:0.841049 
+[57]	train-auc:0.841975	eval-auc:0.841049 
+[58]	train-auc:0.842328	eval-auc:0.839506 
+[59]	train-auc:0.842610	eval-auc:0.841049 
+[60]	train-auc:0.842822	eval-auc:0.842593 
+[61]	train-auc:0.843527	eval-auc:0.842593 
+[62]	train-auc:0.842751	eval-auc:0.842593 
+[63]	train-auc:0.843034	eval-auc:0.841049 
+[64]	train-auc:0.843810	eval-auc:0.841049 
+[65]	train-auc:0.845220	eval-auc:0.841049 
+[66]	train-auc:0.845009	eval-auc:0.841049 
+[67]	train-auc:0.844444	eval-auc:0.837963 
+Stopping. Best iteration:
+[68]	train-auc:0.844938	eval-auc:0.836420
+
+[68]	train-auc:0.844938	eval-auc:0.836420 
+
+Val AUC model final: 0.8565
+
+=================================================================
+   3. IMPORTÀNCIA DE VARIABLES
+=================================================================
+
+Top 20 variables per importància (Gain):
+              Feature        Gain       Cover   Frequency
+               <char>       <num>       <num>       <num>
+ 1:    MOT_AUTOGESTIO 0.215648675 0.162587742 0.126016260
+ 2:  MOT_DESMOTIVACIO 0.171017623 0.134953507 0.105691057
+ 3:           M_SALUT 0.078486685 0.071721323 0.069105691
+ 4:   MOT_FORCA_MAJOR 0.070913421 0.071625944 0.077235772
+ 5:    IA_EINA_ESTUDI 0.064438303 0.060283440 0.056910569
+ 6:          IA_SUBST 0.050879157 0.054422893 0.048780488
+ 7:  EST_AVALUACIO_AC 0.043207498 0.060298221 0.073170732
+ 8:    IA_SUBSTITUCIO 0.034283070 0.037726434 0.036585366
+ 9:           M_AMICS 0.025114117 0.025621167 0.020325203
+10:          IA_ATENC 0.020558139 0.022128527 0.020325203
+11:           M_REPET 0.019253763 0.018479411 0.024390244
+12:          NOTA_num 0.019168230 0.028461913 0.036585366
+13:            E_PART 0.018838989 0.026669598 0.028455285
+14:            M_EXAM 0.017032471 0.022669064 0.024390244
+15:           E_DINAM 0.016004630 0.013668234 0.020325203
+16:           M_AUTON 0.013869326 0.016036438 0.016260163
+17: EST_GRUPS_REDUITS 0.013013856 0.016722613 0.020325203
+18:            M_PROF 0.012693096 0.012535542 0.008130081
+19:            M_TEOR 0.011394848 0.014567958 0.012195122
+20:            M_TREB 0.008068408 0.006027974 0.008130081
+              Feature        Gain       Cover   Frequency
+=================================================================
+   4. SHAP VALUES (TreeSHAP exacte)
+=================================================================
+
+SHAP (TreeSHAP exacte) per a 51 obs i 48 variables.
+
+Top 20 variables per importància SHAP:
+# A tibble: 20 × 2
+   variable          mean_abs_shap
+   <chr>                     <dbl>
+ 1 MOT_AUTOGESTIO          0.0379 
+ 2 MOT_DESMOTIVACIO        0.0247 
+ 3 M_SALUT                 0.0223 
+ 4 IA_EINA_ESTUDI          0.00902
+ 5 E_PART                  0.00813
+ 6 MOT_FORCA_MAJOR         0.00809
+ 7 EST_AVALUACIO_AC        0.00588
+ 8 IA_SUBST                0.00584
+ 9 E_DINAM                 0.00575
+10 IA_SUBSTITUCIO          0.00469
+11 EST_GRUPS_REDUITS       0.00362
+12 NOTA_num                0.00331
+13 EST_TEMPS_CLASSE        0.00313
+14 M_TREB                  0.00267
+15 M_TEOR                  0.00252
+16 E_ACT_AC                0.00222
+17 M_AVORR                 0.00211
+18 M_REPET                 0.00209
+19 M_AUTON                 0.00205
+20 DESPL                   0.00184
+
+=================================================================
+   5. MÈTRIQUES DE CLASSIFICACIÓ (llindar Youden)
+=================================================================
+
+--- 5a Mètriques sobre conjunt test ---
+
+--- Mètriques: XGBoost ---
+n = 51 | Llindar Youden = 0.575
+AUC:                    0.8257
+Accuracy:               0.7059
+Precision (PPV):        0.9474
+Recall (Sensibilitat):  0.5625
+Especificitat:          0.9474
+F1:                     0.7059
+Balanced Accuracy:      0.7549
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           18          1
+  Regular(1)             14         18
+--- 5b Mètriques sobre conjunt de validació ---
+    [Val: estimació imparcial usada en el grid search]
+
+
+--- Mètriques: XGBoost (val) ---
+n = 51 | Llindar Youden = 0.566
+AUC:                    0.8565
+Accuracy:               0.8235
+Precision (PPV):        0.8462
+Recall (Sensibilitat):  0.8148
+Especificitat:          0.8333
+F1:                     0.8302
+Balanced Accuracy:      0.8241
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           20          4
+  Regular(1)              5         22
+--- 5c Mètriques sobre train (in-sample) ---
+    [In-sample: OPTIMISTA per definició]
+
+
+--- Mètriques: XGBoost (train in-sample) ---
+n = 240 | Llindar Youden = 0.559
+AUC:                    0.8285
+Accuracy:               0.7625
+Precision (PPV):        0.7746
+Recall (Sensibilitat):  0.8148
+Especificitat:          0.6952
+F1:                     0.7942
+Balanced Accuracy:      0.7550
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           73         32
+  Regular(1)             25        110
+
+--- Resum overfitting: train vs val vs test ---
+  [Val ≈ Test → model generalitza bé | Train >> Val → overfitting]
+
+           Conjunt    AUC Accuracy     F1 Balanced_Acc
+ Train (in-sample) 0.8285   0.7625 0.7942       0.7550
+         Validació 0.8565   0.8235 0.8302       0.8241
+              Test 0.8257   0.7059 0.7059       0.7549
+
+=================================================================
+   6. COMPARACIÓ GLOBAL DE MODELS
+=================================================================
+
+Taula comparativa de models (sobre conjunt test):
+
+       Model           AUC_CV AUC_test Accuracy Precision Recall     F1
+     Logit 3  0.7870 ± 0.0842   0.8428   0.7794    0.9062 0.7073 0.7945
+ RF-A (test) OOB err = 0.1834   0.7550   0.7313    0.8846 0.6053 0.7188
+ RF-B (test) OOB err = 0.1869   0.7704   0.7313    0.7632 0.7632 0.7632
+     XGBoost                —   0.8257   0.7059    0.9474 0.5625 0.7059
+ Balanced_Acc
+       0.7981
+       0.7509
+       0.7264
+       0.7549
+
+→ Mètriques guardades a: 2. Dades/metriques_xgb.rds
+
+Vista prèvia del format de mètriques:
+    model n_test threshold    AUC accuracy precision recall     F1
+1 XGBoost     51     0.575 0.8257   0.7059    0.9474 0.5625 0.7059
+  balanced_accuracy
+1            0.7549
