@@ -1,4 +1,4 @@
-packages <- c("dplyr", "ggplot2", "tidyr", "psych", "reshape2")
+packages <- c("ggplot2", "tidyr", "psych", "reshape2","dplyr")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -7,10 +7,12 @@ install_if_missing <- function(pkg) {
   }
 }
 
+conflicted::conflict_prefer("select", "dplyr")
+
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/Downloads/TFG")
+setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/3. Dades EDA.RData")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
@@ -463,5 +465,8 @@ dades_def <- dades_v2 %>%
 
 sink()
 dev.off()
+
+cols_new <- setdiff(names(dades_def), names(dades))
+df_final <- cbind(dades, dades_def[, cols_new, drop = FALSE])
 
 save(dades_def, file = "2. Dades/4. Dades EFA.RData")

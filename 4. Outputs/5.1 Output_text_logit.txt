@@ -14,7 +14,7 @@ Variables incloses:
  · Factors de motius:      MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR 
  · Factors d'estratègies:  EST_QUALITAT_DOC, EST_AVALUACIO_AC, EST_TEMPS_CLASSE, EST_GRUPS_REDUITS 
  · Factors de IA:          IA_EINA_ESTUDI, IA_SUBSTITUCIO 
- · Variables categòriques: T_AVAL, CURS_1R 
+ · Variables categòriques: T_AVAL, CURS_1R, GENERE, DOBLE_GRAU_EST 
  · Variables numèriques:   EDAT, DESPL, NOTA_num 
 
 
@@ -22,66 +22,74 @@ Call:
 glm(formula = formula_completa, family = binomial, data = dades_train)
 
 Coefficients:
-                   Estimate Std. Error z value Pr(>|z|)   
-(Intercept)       -2.007423   0.908232  -2.210  0.02709 * 
-MOT_DESMOTIVACIO  -0.609386   0.227122  -2.683  0.00729 **
-MOT_AUTOGESTIO    -0.146076   0.239247  -0.611  0.54149   
-MOT_FORCA_MAJOR    0.352533   0.151346   2.329  0.01984 * 
-EST_QUALITAT_DOC  -0.098134   0.184269  -0.533  0.59434   
-EST_AVALUACIO_AC   0.583810   0.219602   2.658  0.00785 **
-EST_TEMPS_CLASSE  -0.095996   0.218754  -0.439  0.66078   
-EST_GRUPS_REDUITS  0.206842   0.241688   0.856  0.39210   
-IA_EINA_ESTUDI    -0.147889   0.241779  -0.612  0.54076   
-IA_SUBSTITUCIO    -0.309353   0.249460  -1.240  0.21494   
-T_AVALContinuada   1.719235   0.725823   2.369  0.01785 * 
-CURS_1R            1.033997   0.385175   2.684  0.00726 **
-EDAT              -0.046862   0.017519  -2.675  0.00748 **
-DESPL              0.000881   0.005366   0.164  0.86959   
-NOTA_num           0.574044   0.183727   3.124  0.00178 **
+                               Estimate Std. Error z value Pr(>|z|)   
+(Intercept)                   -2.532105   0.951284  -2.662  0.00777 **
+MOT_DESMOTIVACIO              -0.509918   0.233185  -2.187  0.02876 * 
+MOT_AUTOGESTIO                -0.213928   0.245469  -0.872  0.38348   
+MOT_FORCA_MAJOR                0.370917   0.154642   2.399  0.01646 * 
+EST_QUALITAT_DOC              -0.067829   0.188526  -0.360  0.71901   
+EST_AVALUACIO_AC               0.605569   0.223556   2.709  0.00675 **
+EST_TEMPS_CLASSE              -0.061719   0.224523  -0.275  0.78340   
+EST_GRUPS_REDUITS              0.129013   0.246742   0.523  0.60107   
+IA_EINA_ESTUDI                -0.175286   0.246871  -0.710  0.47768   
+IA_SUBSTITUCIO                -0.305996   0.254329  -1.203  0.22892   
+T_AVALContinuada               1.757108   0.733266   2.396  0.01656 * 
+CURS_1R                        1.078203   0.390332   2.762  0.00574 **
+GENEREHome                     0.348663   0.308559   1.130  0.25849   
+GENERENo binari               -1.511987   1.323544  -1.142  0.25330   
+GENEREPrefereixo no respondre  0.179775   1.512318   0.119  0.90538   
+DOBLE_GRAU_EST                 0.532561   0.342670   1.554  0.12015   
+EDAT                          -0.040561   0.018011  -2.252  0.02432 * 
+DESPL                          0.001919   0.005540   0.346  0.72906   
+NOTA_num                       0.567788   0.185062   3.068  0.00215 **
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 (Dispersion parameter for binomial family taken to be 1)
 
     Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 285.83  on 259  degrees of freedom
-AIC: 315.83
+Residual deviance: 280.82  on 255  degrees of freedom
+AIC: 318.82
 
 Number of Fisher Scoring iterations: 5
 
 
 Odds Ratios model complet (IC 95% Wald):
-                     OR 2.5 % 97.5 %
-(Intercept)       0.134 0.023  0.797
-MOT_DESMOTIVACIO  0.544 0.348  0.849
-MOT_AUTOGESTIO    0.864 0.541  1.381
-MOT_FORCA_MAJOR   1.423 1.057  1.914
-EST_QUALITAT_DOC  0.907 0.632  1.301
-EST_AVALUACIO_AC  1.793 1.166  2.757
-EST_TEMPS_CLASSE  0.908 0.592  1.395
-EST_GRUPS_REDUITS 1.230 0.766  1.975
-IA_EINA_ESTUDI    0.863 0.537  1.385
-IA_SUBSTITUCIO    0.734 0.450  1.197
-T_AVALContinuada  5.580 1.345 23.146
-CURS_1R           2.812 1.322  5.983
-EDAT              0.954 0.922  0.988
-DESPL             1.001 0.990  1.011
-NOTA_num          1.775 1.239  2.545
+                                 OR 2.5 % 97.5 %
+(Intercept)                   0.079 0.012  0.513
+MOT_DESMOTIVACIO              0.601 0.380  0.948
+MOT_AUTOGESTIO                0.807 0.499  1.306
+MOT_FORCA_MAJOR               1.449 1.070  1.962
+EST_QUALITAT_DOC              0.934 0.646  1.352
+EST_AVALUACIO_AC              1.832 1.182  2.840
+EST_TEMPS_CLASSE              0.940 0.605  1.460
+EST_GRUPS_REDUITS             1.138 0.701  1.845
+IA_EINA_ESTUDI                0.839 0.517  1.361
+IA_SUBSTITUCIO                0.736 0.447  1.212
+T_AVALContinuada              5.796 1.377 24.393
+CURS_1R                       2.939 1.368  6.317
+GENEREHome                    1.417 0.774  2.595
+GENERENo binari               0.220 0.016  2.951
+GENEREPrefereixo no respondre 1.197 0.062 23.193
+DOBLE_GRAU_EST                1.703 0.870  3.334
+EDAT                          0.960 0.927  0.995
+DESPL                         1.002 0.991  1.013
+NOTA_num                      1.764 1.228  2.536
 
 ========= 2. LINEALITAT EN LOG-ODDS ========
 
 --- 2.1 Test de Box-Tidwell (EDAT, DESPL, NOTA_num) ---
 
   variable      coef_BT         p sig          conclusio
-1     EDAT  0.035038488 0.7542167  ns lineal en log-odds
-2    DESPL -0.006437942 0.6963019  ns lineal en log-odds
-3 NOTA_num -0.299100224 0.6781635  ns lineal en log-odds
+1     EDAT  0.052969474 0.6523948  ns lineal en log-odds
+2    DESPL -0.009175268 0.5918070  ns lineal en log-odds
+3 NOTA_num -0.135953084 0.8542006  ns lineal en log-odds
 
 --- 2.2 Comparació AIC: DESPL original vs log(DESPL) ---
 
-AIC model amb DESPL: 315.83
-AIC model amb log(DESPL): 315.54
-ΔAIC (orig - log): 0.28
+AIC model amb DESPL: 318.82
+AIC model amb log(DESPL): 318.37
+ΔAIC (orig - log): 0.45
 
 → DESPL no millora amb transformació logarítmica (ΔAIC ≤ 2).
   DESPL no és rellevant independentment de la forma funcional → s'elimina als models refinats.
@@ -250,7 +258,7 @@ Number of Fisher Scoring iterations: 5
 ===== 3.6 TAULA-RESUM COMPARATIVA DE MODELS (train) =====
 
                                 model n_param    AIC    BIC
-                          1.0 Complet      15 315.83 370.02
+                          1.0 Complet      19 318.82 387.47
  1.1 Likert num (IA_SUBST + IA_ATENC)      11 303.44 343.19
             1.2 Likert num (IA_SUBST)      10 301.57 337.70
     2.1 Dummies (IA_SUBST + IA_ATENC)      19 309.96 378.61

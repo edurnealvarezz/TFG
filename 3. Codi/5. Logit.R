@@ -12,7 +12,7 @@ lapply(packages, install_if_missing)
 rm(packages)
 
 #setwd("C:/Users/edurn/Downloads/TFG")
-setwd("C:/Users/Edurne/Downloads/TFG")
+#setwd("C:/Users/Edurne/Downloads/TFG")
 
 load("2. Dades/4. Dades EFA.RData")
 
@@ -66,7 +66,7 @@ source("3. Codi/Funcions models.R")
 vars_fa_mot <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR")
 vars_fa_est <- c("EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS")
 vars_fa_ia <- c("IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
-vars_cat <- c("T_AVAL", "CURS_1R")
+vars_cat <- c("T_AVAL", "CURS_1R", "GENERE", "DOBLE_GRAU_EST")
 vars_num <- c("EDAT", "DESPL", "NOTA_num")
 
 formula_completa <- as.formula(paste(
@@ -171,6 +171,7 @@ crPlots(model_complet,
 
 vars_fa_est_ref <- "EST_AVALUACIO_AC"
 vars_num_ref <- c("EDAT", "NOTA_num")
+vars_cat <- c("T_AVAL", "CURS_1R")
 
 ##### --- 3.1 Model 1.1: Likert numèrica (IA_SUBST + IA_ATENC) --- #####
 
