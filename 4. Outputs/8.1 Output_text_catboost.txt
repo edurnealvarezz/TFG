@@ -1,0 +1,284 @@
+=================================================================
+   0. PREPARACIÓ DE DADES
+=================================================================
+
+Observacions totals: 342
+Predictors inclosos: 48
+Distribucio Y — Irregular (0): 148 | Regular (1): 194
+
+Particicio: Train = 240 | Val = 51 | Test = 51
+  Train — Regular: 56.2% | Irregular: 43.8%
+  Val   — Regular: 52.9% | Irregular: 47.1%
+  Test  — Regular: 62.7% | Irregular: 37.3%
+
+=================================================================
+   1. GRID SEARCH
+   Criteri: maxima precisio (PPV) amb recall >= 0.40
+=================================================================
+
+Combinacions a avaluar: 54
+Recall minim acceptable: 0.50
+
+  12 / 54 combinacions completades...
+  24 / 54 combinacions completades...
+  36 / 54 combinacions completades...
+  48 / 54 combinacions completades...
+
+Top 10 combinacions (criteri: recall >= 0.40, max precisio):
+ depth learning_rate l2_leaf_reg random_strength val_auc val_precision
+     4          0.03           1             0.5  0.8642        0.9524
+     4          0.03           5             0.5  0.8688        0.9524
+     4          0.01           1             1.5  0.8395        0.9500
+     6          0.01           5             1.5  0.8657        0.9500
+     4          0.05           1             0.5  0.8495        0.9474
+     6          0.03           5             0.5  0.8688        0.9474
+     4          0.01           5             0.5  0.8565        0.9444
+     8          0.03           5             0.5  0.8704        0.9444
+     4          0.03          10             0.5  0.8534        0.9444
+     4          0.05           1             1.5  0.8472        0.9444
+ val_recall val_threshold recall_ok
+     0.7407        0.5642      TRUE
+     0.7407        0.5638      TRUE
+     0.7037        0.5624      TRUE
+     0.7037        0.5685      TRUE
+     0.6667        0.5617      TRUE
+     0.6667        0.5520      TRUE
+     0.6296        0.5293      TRUE
+     0.6296        0.5590      TRUE
+     0.6296        0.5765      TRUE
+     0.6296        0.6661      TRUE
+
+Millors hiperparametres:
+  depth = 4 | learning_rate = 0.030 | l2_leaf_reg = 1.0 | random_strength = 0.5
+  Val AUC = 0.8642 | Val Precisio = 0.9524 | Val Recall = 0.7407 | Llindar = 0.5642
+  recall_ok (>= 0.50): SI
+
+=================================================================
+   2. MODEL FINAL CatBoost (millors hiperparametres del grid)
+=================================================================
+
+0:	test: 0.7183642	best: 0.7183642 (0)	total: 1.57ms	remaining: 4.7s
+1:	test: 0.7631173	best: 0.7631173 (1)	total: 3.01ms	remaining: 4.51s
+2:	test: 0.7708333	best: 0.7708333 (2)	total: 4.2ms	remaining: 4.2s
+3:	test: 0.8070988	best: 0.8070988 (3)	total: 5.23ms	remaining: 3.92s
+4:	test: 0.8341049	best: 0.8341049 (4)	total: 6.21ms	remaining: 3.72s
+5:	test: 0.8464506	best: 0.8464506 (5)	total: 7.3ms	remaining: 3.64s
+6:	test: 0.8433642	best: 0.8464506 (5)	total: 8.32ms	remaining: 3.56s
+7:	test: 0.8379630	best: 0.8464506 (5)	total: 9.38ms	remaining: 3.51s
+8:	test: 0.8395062	best: 0.8464506 (5)	total: 10.4ms	remaining: 3.45s
+9:	test: 0.8549383	best: 0.8549383 (9)	total: 11.4ms	remaining: 3.41s
+10:	test: 0.8518519	best: 0.8549383 (9)	total: 12.4ms	remaining: 3.37s
+11:	test: 0.8518519	best: 0.8549383 (9)	total: 13.4ms	remaining: 3.33s
+12:	test: 0.8472222	best: 0.8549383 (9)	total: 16ms	remaining: 3.67s
+13:	test: 0.8641975	best: 0.8641975 (13)	total: 17.5ms	remaining: 3.73s
+14:	test: 0.8626543	best: 0.8641975 (13)	total: 19ms	remaining: 3.79s
+15:	test: 0.8641975	best: 0.8641975 (13)	total: 20.3ms	remaining: 3.79s
+16:	test: 0.8641975	best: 0.8641975 (13)	total: 21.9ms	remaining: 3.84s
+17:	test: 0.8518519	best: 0.8641975 (13)	total: 23.7ms	remaining: 3.92s
+18:	test: 0.8472222	best: 0.8641975 (13)	total: 25.3ms	remaining: 3.98s
+19:	test: 0.8533951	best: 0.8641975 (13)	total: 27.5ms	remaining: 4.1s
+20:	test: 0.8564815	best: 0.8641975 (13)	total: 30.6ms	remaining: 4.34s
+21:	test: 0.8518519	best: 0.8641975 (13)	total: 34ms	remaining: 4.61s
+22:	test: 0.8518519	best: 0.8641975 (13)	total: 35.9ms	remaining: 4.65s
+23:	test: 0.8410494	best: 0.8641975 (13)	total: 38ms	remaining: 4.72s
+24:	test: 0.8379630	best: 0.8641975 (13)	total: 40.5ms	remaining: 4.82s
+25:	test: 0.8395062	best: 0.8641975 (13)	total: 42.3ms	remaining: 4.83s
+26:	test: 0.8317901	best: 0.8641975 (13)	total: 43.8ms	remaining: 4.82s
+27:	test: 0.8348765	best: 0.8641975 (13)	total: 45.4ms	remaining: 4.82s
+28:	test: 0.8395062	best: 0.8641975 (13)	total: 47ms	remaining: 4.82s
+29:	test: 0.8348765	best: 0.8641975 (13)	total: 50.2ms	remaining: 4.97s
+30:	test: 0.8348765	best: 0.8641975 (13)	total: 51.9ms	remaining: 4.97s
+31:	test: 0.8425926	best: 0.8641975 (13)	total: 54ms	remaining: 5.01s
+32:	test: 0.8441358	best: 0.8641975 (13)	total: 55.7ms	remaining: 5.01s
+33:	test: 0.8410494	best: 0.8641975 (13)	total: 59.9ms	remaining: 5.22s
+34:	test: 0.8410494	best: 0.8641975 (13)	total: 62.2ms	remaining: 5.27s
+35:	test: 0.8425926	best: 0.8641975 (13)	total: 64.6ms	remaining: 5.32s
+36:	test: 0.8379630	best: 0.8641975 (13)	total: 66.4ms	remaining: 5.31s
+37:	test: 0.8395062	best: 0.8641975 (13)	total: 69.5ms	remaining: 5.41s
+38:	test: 0.8348765	best: 0.8641975 (13)	total: 71.3ms	remaining: 5.41s
+39:	test: 0.8287037	best: 0.8641975 (13)	total: 73.5ms	remaining: 5.43s
+40:	test: 0.8364198	best: 0.8641975 (13)	total: 75.4ms	remaining: 5.44s
+41:	test: 0.8364198	best: 0.8641975 (13)	total: 78.3ms	remaining: 5.51s
+42:	test: 0.8317901	best: 0.8641975 (13)	total: 79.9ms	remaining: 5.49s
+43:	test: 0.8364198	best: 0.8641975 (13)	total: 81.2ms	remaining: 5.46s
+44:	test: 0.8317901	best: 0.8641975 (13)	total: 82.7ms	remaining: 5.43s
+45:	test: 0.8348765	best: 0.8641975 (13)	total: 84ms	remaining: 5.4s
+46:	test: 0.8348765	best: 0.8641975 (13)	total: 85.8ms	remaining: 5.39s
+47:	test: 0.8333333	best: 0.8641975 (13)	total: 87.3ms	remaining: 5.37s
+48:	test: 0.8379630	best: 0.8641975 (13)	total: 88.5ms	remaining: 5.33s
+49:	test: 0.8317901	best: 0.8641975 (13)	total: 89.8ms	remaining: 5.3s
+50:	test: 0.8271605	best: 0.8641975 (13)	total: 91.6ms	remaining: 5.3s
+51:	test: 0.8271605	best: 0.8641975 (13)	total: 93.1ms	remaining: 5.28s
+52:	test: 0.8271605	best: 0.8641975 (13)	total: 94.5ms	remaining: 5.26s
+53:	test: 0.8333333	best: 0.8641975 (13)	total: 95.7ms	remaining: 5.22s
+54:	test: 0.8333333	best: 0.8641975 (13)	total: 97.1ms	remaining: 5.2s
+55:	test: 0.8348765	best: 0.8641975 (13)	total: 98.9ms	remaining: 5.2s
+56:	test: 0.8348765	best: 0.8641975 (13)	total: 100ms	remaining: 5.18s
+57:	test: 0.8287037	best: 0.8641975 (13)	total: 103ms	remaining: 5.2s
+58:	test: 0.8271605	best: 0.8641975 (13)	total: 105ms	remaining: 5.21s
+59:	test: 0.8302469	best: 0.8641975 (13)	total: 107ms	remaining: 5.22s
+60:	test: 0.8317901	best: 0.8641975 (13)	total: 109ms	remaining: 5.26s
+61:	test: 0.8302469	best: 0.8641975 (13)	total: 111ms	remaining: 5.26s
+62:	test: 0.8317901	best: 0.8641975 (13)	total: 113ms	remaining: 5.28s
+63:	test: 0.8287037	best: 0.8641975 (13)	total: 115ms	remaining: 5.27s
+Stopped by overfitting detector  (50 iterations wait)
+
+bestTest = 0.8641975309
+bestIteration = 13
+
+Shrink model to first 14 iterations.
+
+Iteracions finals del model: 14
+
+=================================================================
+   3. IMPORTANCIA DE VARIABLES (CatBoost built-in)
+=================================================================
+
+Top 20 variables per importancia:
+# A tibble: 20 × 1
+   importancia
+         <dbl>
+ 1       11.8 
+ 2        9.37
+ 3        8.57
+ 4        8.29
+ 5        5.77
+ 6        5.61
+ 7        5.46
+ 8        5.23
+ 9        3.33
+10        3.28
+11        2.74
+12        2.62
+13        2.45
+14        2.40
+15        2.31
+16        2.22
+17        2.09
+18        2.08
+19        1.98
+20        1.73
+=================================================================
+   4. SHAP VALUES (CatBoost built-in ShapValues)
+=================================================================
+
+Top 20 variables per importancia SHAP:
+# A tibble: 20 × 2
+   variable         mean_abs_shap
+   <chr>                    <dbl>
+ 1 MOT_AUTOGESTIO          0.0652
+ 2 MOT_FORCA_MAJOR         0.0425
+ 3 M_AMICS                 0.0388
+ 4 M_SALUT                 0.0335
+ 5 MOT_DESMOTIVACIO        0.0327
+ 6 IA_EINA_ESTUDI          0.0303
+ 7 E_HORA                  0.0295
+ 8 E_DINAM                 0.0277
+ 9 IA_HABIT                0.0276
+10 NOTA_num                0.0214
+11 M_TEOR                  0.0207
+12 IA_SUBST                0.0167
+13 E_PART                  0.0162
+14 M_AUTON                 0.0160
+15 IA_SUBSTITUCIO          0.0149
+16 E_ACT_AC                0.0124
+17 M_REPET                 0.0122
+18 DESPL                   0.0116
+19 M_EXAM                  0.0110
+20 M_CV                    0.0102
+
+=================================================================
+   5. METRIQUES DE CLASSIFICACIO
+   Llindar: max precisio amb recall >= 0.50 (sobre val)
+=================================================================
+
+-> Llindar seleccionat (max precisio, recall >= 0.50): 0.5642
+   Val Precisio = 0.9524 | Val Recall = 0.7407
+
+--- 5a Metriques sobre conjunt test ---
+
+--- Metriques: CatBoost ---
+n = 51 | Llindar = 0.564
+AUC:                    0.8174
+Accuracy:               0.6863
+Precision (PPV):        0.9000  ← metrica prioritaria
+Recall (Sensibilitat):  0.5625
+Especificitat:          0.8947
+F1:                     0.6923
+Balanced Accuracy:      0.7286
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           17          2
+  Regular(1)             14         18
+--- 5b Metriques sobre conjunt de validacio ---
+
+--- Metriques: CatBoost (val) ---
+n = 51 | Llindar = 0.564
+AUC:                    0.8642
+Accuracy:               0.8431
+Precision (PPV):        0.9524  ← metrica prioritaria
+Recall (Sensibilitat):  0.7407
+Especificitat:          0.9583
+F1:                     0.8333
+Balanced Accuracy:      0.8495
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           23          1
+  Regular(1)              7         20
+--- 5c Metriques sobre train (in-sample) ---
+    [In-sample: OPTIMISTA per definicio]
+
+
+--- Metriques: CatBoost (train in-sample) ---
+n = 240 | Llindar = 0.564
+AUC:                    0.8997
+Accuracy:               0.7500
+Precision (PPV):        0.9121  ← metrica prioritaria
+Recall (Sensibilitat):  0.6148
+Especificitat:          0.9238
+F1:                     0.7345
+Balanced Accuracy:      0.7693
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           97          8
+  Regular(1)             52         83
+
+--- Resum overfitting: train vs val vs test ---
+
+           Conjunt    AUC Precision Recall     F1 Balanced_Acc
+ Train (in-sample) 0.8997    0.9121 0.6148 0.7345       0.7693
+         Validacio 0.8642    0.9524 0.7407 0.8333       0.8495
+              Test 0.8174    0.9000 0.5625 0.6923       0.7286
+
+=================================================================
+   6. COMPARACIO GLOBAL DE MODELS
+=================================================================
+
+Taula comparativa de models (sobre conjunt test):
+
+       Model            AUC_CV AUC_test Accuracy Precision Recall     F1
+     Logit 3 0.7870 +/- 0.0842   0.8428   0.7794    0.9062 0.7073 0.7945
+ RF-A (test)  OOB err = 0.1834   0.7550   0.7313    0.8846 0.6053 0.7188
+ RF-B (test)  OOB err = 0.1869   0.7704   0.7313    0.7632 0.7632 0.7632
+     XGBoost                 —   0.8257   0.7059    0.9474 0.5625 0.7059
+    CatBoost                 —   0.8174   0.6863    0.9000 0.5625 0.6923
+ Balanced_Acc
+       0.7981
+       0.7509
+       0.7264
+       0.7549
+       0.7286
+
+-> Metriques guardades a: 2. Dades/metriques_catboost.rds
+
+Vista previa:
+     model n_test threshold    AUC accuracy precision recall     F1
+1 CatBoost     51     0.564 0.8174   0.6863       0.9 0.5625 0.6923
+  balanced_accuracy
+1            0.7286

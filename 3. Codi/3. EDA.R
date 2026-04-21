@@ -543,9 +543,7 @@ corrplot(mat_num_sp,
 
 
 #### ============================================================ ####
-####  6. VARIABLES NUMÈRIQUES vs GRUP_ASSIST                     ####
-####     Mann-Whitney U + Rank-biserial                          ####
-####     (P_ASSIST exclosa: és la font de GRUP_ASSIST)           ####
+####  6. VARIABLES NUMÈRIQUES vs GRUP_ASSIST                     ####          ####
 #### ============================================================ ####
 
 vars_num_vs_grup <- c("EDAT", "DESPL", "N_ASSIG")
