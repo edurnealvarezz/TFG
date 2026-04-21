@@ -1,4 +1,4 @@
-packages <- c("dplyr", "ggplot2", "tibble", "tidyr", "xgboost", "caret", "pROC")
+packages <- c("dplyr", "ggplot2", "tibble", "tidyr", "xgboost", "caret", "pROC", "PRROC")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -11,7 +11,11 @@ lapply(packages, install_if_missing)
 rm(packages)
 
 setwd("C:/Users/edurn/Downloads/TFG")
-load("2. Dades/4. Dades EFA.RData")
+load("2. Dades/6. Dades RF.RData")
+
+source("3. Codi/Funcions models.R")
+
+MIN_RECALL <- 0.40
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
@@ -92,14 +96,19 @@ cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
 # Funcions de mètriques (prenen prob directament)
 # ----------------------------------------------------------------
 calcular_metriques_xgb <- function(prob, Y_vec, nom_model,
-                                   auc_cv_mean = NA, auc_cv_sd = NA) {
+                                   auc_cv_mean = NA, auc_cv_sd = NA,
+                                   thresh_override = NULL) {
   roc_obj <- roc(Y_vec, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
-  coords_r <- coords(roc_obj, "best",
-                     ret = c("threshold", "sensitivity", "specificity"),
-                     best.method = "youden")
-  thresh <- coords_r$threshold[1]
+  if (!is.null(thresh_override)) {
+    thresh <- thresh_override
+  } else {
+    coords_r <- coords(roc_obj, "best",
+                       ret = c("threshold", "sensitivity", "specificity"),
+                       best.method = "youden")
+    thresh <- coords_r$threshold[1]
+  }
 
   pred <- as.integer(prob >= thresh)
   TP <- sum(pred == 1 & Y_vec == 1)
@@ -135,7 +144,7 @@ calcular_metriques_xgb <- function(prob, Y_vec, nom_model,
 mostrar_metriques_xgb <- function(met, titol = NULL) {
   if (is.null(titol)) titol <- met$model
   cat(sprintf("\n--- Mètriques: %s ---\n", titol))
-  cat(sprintf("n = %d | Llindar Youden = %.3f\n", met$n_test, met$threshold))
+  cat(sprintf("n = %d | Llindar PR = %.3f\n", met$n_test, met$threshold))
   if (!is.na(met$AUC_cv_mean)) {
     cat(sprintf("AUC (val CV):           %.4f ± %.4f\n",
                 met$AUC_cv_mean, met$AUC_cv_sd))
@@ -168,7 +177,7 @@ mostrar_metriques_xgb <- function(met, titol = NULL) {
     geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
     scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
     labs(title = sprintf("Matriu de confusió — %s", titol),
-         subtitle = sprintf("Llindar Youden = %.3f", met$threshold),
+         subtitle = sprintf("Llindar PR = %.3f", met$threshold),
          x = "Valor Predit", y = "Valor Observat") +
     theme_minimal(base_size = 13) +
     theme(panel.grid = element_blank())
@@ -317,6 +326,27 @@ ggplot(roc_df, aes(x = spec_inv, y = sens)) +
        x = "1 - Especificitat", y = "Sensibilitat") +
   theme_minimal(base_size = 13)
 
+# Selecció de llindar per corba PR (sobre conjunt de validació)
+pr_xgb <- seleccionar_llindar_pr(prob_val_xgb, Y_val, MIN_RECALL)
+thresh_pr_xgb <- pr_xgb$threshold
+cat(sprintf("XGBoost — AUPRC: %.4f | Llindar PR: %.4f | recall_ok: %s\n\n",
+            pr_xgb$auprc, thresh_pr_xgb,
+            ifelse(pr_xgb$recall_ok, "SI", "NO (fallback Youden)")))
+
+ggplot(pr_xgb$pr_curve, aes(x = recall, y = precision)) +
+  geom_path(color = "#4A90B8", linewidth = 1) +
+  geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
+             color = "red", linewidth = 0.8) +
+  geom_point(data = data.frame(
+               recall = pr_xgb$recall,
+               precision = ifelse(is.na(pr_xgb$precision), 0, pr_xgb$precision)),
+             color = "#E07B54", size = 3, shape = 17) +
+  labs(title = "Corba Precisio-Recall — XGBoost (val)",
+       subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f",
+                          pr_xgb$auprc, thresh_pr_xgb),
+       x = "Recall", y = "Precisio (PPV)") +
+  theme_minimal(base_size = 13)
+
 #### ============================================================ ####
 ####         3. IMPORTÀNCIA DE VARIABLES                          ####
 #### ============================================================ ####
@@ -438,7 +468,8 @@ cat("--- 5a Mètriques sobre conjunt test ---\n")
 metriques_xgb <- calcular_metriques_xgb(
   prob = prob_test_xgb,
   Y_vec = Y_test,
-  nom_model = "XGBoost"
+  nom_model = "XGBoost",
+  thresh_override = thresh_pr_xgb
 )
 
 mostrar_metriques_xgb(metriques_xgb)
@@ -450,7 +481,8 @@ cat("    [Val: estimació imparcial usada en el grid search]\n\n")
 metriques_xgb_val <- calcular_metriques_xgb(
   prob = prob_val_xgb,
   Y_vec = Y_val,
-  nom_model = "XGBoost (val)"
+  nom_model = "XGBoost (val)",
+  thresh_override = thresh_pr_xgb
 )
 
 mostrar_metriques_xgb(metriques_xgb_val)
@@ -462,7 +494,8 @@ cat("    [In-sample: OPTIMISTA per definició]\n\n")
 metriques_xgb_train <- calcular_metriques_xgb(
   prob = prob_train_xgb,
   Y_vec = Y_train,
-  nom_model = "XGBoost (train in-sample)"
+  nom_model = "XGBoost (train in-sample)",
+  thresh_override = thresh_pr_xgb
 )
 
 mostrar_metriques_xgb(metriques_xgb_train)
@@ -566,7 +599,18 @@ print(
 #### ============================================================ ####
 
 saveRDS(metriques_xgb, "2. Dades/metriques_xgb.rds")
-cat("\n→ Mètriques guardades a: 2. Dades/metriques_xgb.rds\n\n")
+cat("\n-> Metriques guardades a: 2. Dades/metriques_xgb.rds\n\n")
+
+# --- Guardar probabilitats i bbdd encadenada ---
+predictors_ok <- predictors[predictors %in% names(dades_xgb)]
+X_all_xgb_mat <- apply(dades_xgb[, predictors_ok], 2, as.numeric)
+complete_xgb <- complete.cases(X_all_xgb_mat)
+dmat_all_xgb <- xgb.DMatrix(X_all_xgb_mat[complete_xgb, ])
+prob_xgb_tots <- predict(xgb_model, dmat_all_xgb)
+dades_def$prob_xgb <- NA_real_
+dades_def$prob_xgb[complete_xgb] <- prob_xgb_tots
+save(dades_def, file = "2. Dades/7. Dades XGBoost.RData")
+cat("-> dades_def amb prob_xgb guardades a: 2. Dades/7. Dades XGBoost.RData\n\n")
 
 cat("Vista prèvia del format de mètriques:\n")
 print(as.data.frame(metriques_xgb[c("model", "n_test", "threshold",

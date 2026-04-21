@@ -1,5 +1,5 @@
 packages <- c("dplyr", "ggplot2", "tibble", "tidyr",
-              "ranger", "caret", "pROC", "fastshap")
+              "ranger", "caret", "pROC", "PRROC", "fastshap")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -14,7 +14,7 @@ rm(packages)
 setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 
-load("2. Dades/4. Dades EFA.RData")
+load("2. Dades/5. Dades Logit.RData")
 
 sink("4. Outputs/6.1 Output_text_rf.txt")
 pdf("4. Outputs/6.2 Output_grafics_rf.pdf", width = 10, height = 8)
@@ -114,6 +114,8 @@ cat(sprintf("Case weights: Irregular = %.3f | Regular = %.3f\n\n", w_irr, w_reg)
 # a l'arxiu Funcions models hi ha funcions per a calcular mètriques, les carreguem:
 source("3. Codi/Funcions models.R")
 
+MIN_RECALL <- 0.40
+
 #### ============================================================ ####
 ####                     1. RANDOM FOREST A                       ####
 #### ============================================================ ####
@@ -195,8 +197,17 @@ prob_test_a <- predict(rf_a, data = as.matrix(test_a[, -1]))$predictions[, 2]
 prob_oob_a <- rf_a$predictions[, 2]
 
 # calculem mètriques per train i test
-met_rfa_test <- calcular_metriques_rf(prob_test_a, test_a$Y, "RF-A (test)", rf_a$prediction.error)
-met_rfa_train <- calcular_metriques_rf(prob_oob_a, train_a$Y, "RF-A (OOB train)")
+pr_rfa <- seleccionar_llindar_pr(prob_test_a, test_a$Y, MIN_RECALL)
+thresh_pr_a <- pr_rfa$threshold
+cat(sprintf("RF-A — AUPRC: %.4f | Llindar PR: %.4f | recall_ok: %s\n\n",
+            pr_rfa$auprc, thresh_pr_a,
+            ifelse(pr_rfa$recall_ok, "SI", "NO (fallback Youden)")))
+
+met_rfa_test <- calcular_metriques_rf(prob_test_a, test_a$Y, "RF-A (test)",
+                                      rf_a$prediction.error,
+                                      thresh_override = thresh_pr_a)
+met_rfa_train <- calcular_metriques_rf(prob_oob_a, train_a$Y, "RF-A (OOB train)",
+                                       thresh_override = thresh_pr_a)
 
 mostrar_metriques_rf(met_rfa_test)
 mostrar_metriques_rf(met_rfa_train)
@@ -290,8 +301,17 @@ rf_b <- ranger(
 prob_test_b <- predict(rf_b, data = as.matrix(test_b[, -1]))$predictions[, 2]
 prob_oob_b <- rf_b$predictions[, 2]
 
-met_rfb_test <- calcular_metriques_rf(prob_test_b, test_b$Y, "RF-B (test)", rf_b$prediction.error)
-met_rfb_train <- calcular_metriques_rf(prob_oob_b, train_b$Y, "RF-B (OOB train)")
+pr_rfb <- seleccionar_llindar_pr(prob_test_b, test_b$Y, MIN_RECALL)
+thresh_pr_b <- pr_rfb$threshold
+cat(sprintf("RF-B — AUPRC: %.4f | Llindar PR: %.4f | recall_ok: %s\n\n",
+            pr_rfb$auprc, thresh_pr_b,
+            ifelse(pr_rfb$recall_ok, "SI", "NO (fallback Youden)")))
+
+met_rfb_test <- calcular_metriques_rf(prob_test_b, test_b$Y, "RF-B (test)",
+                                      rf_b$prediction.error,
+                                      thresh_override = thresh_pr_b)
+met_rfb_train <- calcular_metriques_rf(prob_oob_b, train_b$Y, "RF-B (OOB train)",
+                                       thresh_override = thresh_pr_b)
 
 mostrar_metriques_rf(met_rfb_test)
 mostrar_metriques_rf(met_rfb_train)
@@ -567,6 +587,32 @@ if (file.exists("2. Dades/metriques_logit.rds")) {
 
 saveRDS(met_rfa_test, "2. Dades/metriques_rf_a.rds")
 saveRDS(met_rfb_test, "2. Dades/metriques_rf_b.rds")
+
+# --- Guardar probabilitats i bbdd encadenada ---
+vars_rfa_ok <- vars_rfa[vars_rfa %in% names(dades_rf)]
+X_all_a <- dades_rf %>%
+  dplyr::select(all_of(vars_rfa_ok)) %>%
+  mutate(across(everything(), as.numeric))
+complete_a <- complete.cases(X_all_a)
+prob_rfa_tots <- rep(NA_real_, nrow(X_all_a))
+prob_rfa_tots[complete_a] <- predict(
+  rf_a, data = as.matrix(X_all_a[complete_a, ]))$predictions[, 2]
+dades_def$prob_rf_a <- NA_real_
+dades_def$prob_rf_a[seq_len(nrow(dades_rf))] <- prob_rfa_tots
+
+vars_rfb_ok <- vars_rfb[vars_rfb %in% names(dades_rf)]
+X_all_b <- dades_rf %>%
+  dplyr::select(all_of(vars_rfb_ok)) %>%
+  mutate(across(everything(), as.numeric))
+complete_b <- complete.cases(X_all_b)
+prob_rfb_tots <- rep(NA_real_, nrow(X_all_b))
+prob_rfb_tots[complete_b] <- predict(
+  rf_b, data = as.matrix(X_all_b[complete_b, ]))$predictions[, 2]
+dades_def$prob_rf_b <- NA_real_
+dades_def$prob_rf_b[seq_len(nrow(dades_rf))] <- prob_rfb_tots
+
+save(dades_def, file = "2. Dades/6. Dades RF.RData")
+cat("\n-> dades_def amb prob_rf_a i prob_rf_b guardades a: 2. Dades/6. Dades RF.RData\n")
 
 sink()
 dev.off()

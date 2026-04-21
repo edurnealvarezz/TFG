@@ -1,4 +1,4 @@
-packages <- c("dplyr", "ggplot2", "tidyr", "car", "pROC",
+packages <- c("dplyr", "ggplot2", "tidyr", "car", "pROC", "PRROC",
               "ResourceSelection", "MASS", "tibble", "caret")
 
 install_if_missing <- function(pkg) {
@@ -57,6 +57,8 @@ cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
 # a l'arxiu Funcions models hi ha funcions per a calcular mètriques, les carreguem:
 
 source("3. Codi/Funcions models.R")
+
+MIN_RECALL <- 0.40
 
 
 #### ============================================================ ####
@@ -423,25 +425,54 @@ r2_nagelkerke <- r2_cs / (1 - exp(ll_null * 2 / nrow(dades_train)))
 cat(sprintf("McFadden R²:   %.4f\n", r2_mcfadden))
 cat(sprintf("Nagelkerke R² (especial per logit): %.4f\n\n", r2_nagelkerke))
 
-# --- 6.3 Mètriques sobre test i train (detecció overfitting) ---
-cat("--- 6.3 Mètriques sobre conjunt test ---\n")
+# --- 6.3 Corba Precisió-Recall i selecció de llindar (PRROC, sobre test) ---
+prob_test <- predict(model_seleccionat, newdata = dades_test, type = "response")
+
+cat("--- 6.3 Llindar per corba Precisio-Recall (PRROC) ---\n\n")
+pr_logit <- seleccionar_llindar_pr(prob_test, dades_test$Y, MIN_RECALL)
+thresh_pr_logit <- pr_logit$threshold
+cat(sprintf("AUPRC: %.4f\n", pr_logit$auprc))
+cat(sprintf("Llindar seleccionat: %.4f | recall_ok (>= %.2f): %s\n\n",
+            thresh_pr_logit, MIN_RECALL,
+            ifelse(pr_logit$recall_ok, "SI", "NO (fallback Youden)")))
+
+ggplot(pr_logit$pr_curve, aes(x = recall, y = precision)) +
+  geom_path(color = "#4A90B8", linewidth = 1) +
+  geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
+             color = "red", linewidth = 0.8) +
+  geom_point(data = data.frame(recall = pr_logit$recall,
+                               precision = ifelse(is.na(pr_logit$precision),
+                                                  0, pr_logit$precision)),
+             color = "#E07B54", size = 3, shape = 17) +
+  annotate("text", x = MIN_RECALL + 0.04, y = 0.1,
+           label = sprintf("Recall min\n= %.2f", MIN_RECALL),
+           color = "red", size = 3.5) +
+  labs(title = "Corba Precisio-Recall — Logit (test)",
+       subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f",
+                          pr_logit$auprc, thresh_pr_logit),
+       x = "Recall", y = "Precisio (PPV)") +
+  theme_minimal(base_size = 13)
+
+cat("--- 6.3b Metriques sobre conjunt test ---\n")
 
 metriques_logit <- calcular_metriques(
   model_glm = model_seleccionat,
   dades_test_df = dades_test,
   nom_model = "Logit 3",
   auc_cv_mean = mean(cv_auc),
-  auc_cv_sd = sd(cv_auc)
+  auc_cv_sd = sd(cv_auc),
+  thresh_override = thresh_pr_logit
 )
 
 mostrar_metriques(metriques_logit)
 
-cat("--- 6.3b Mètriques sobre conjunt train ---\n")
+cat("--- 6.3c Metriques sobre conjunt train ---\n")
 
 metriques_logit_train <- calcular_metriques(
   model_glm = model_seleccionat,
   dades_test_df = dades_train,
-  nom_model = "Logit 3 (train)"
+  nom_model = "Logit 3 (train)",
+  thresh_override = thresh_pr_logit
 )
 
 mostrar_metriques(metriques_logit_train)
@@ -464,7 +495,6 @@ cat("\n")
 cat("\n--- 6.4 Test de Hosmer-Lemeshow (test) ---\n\n")
 # per evaluar la bondat d'ajust
 
-prob_test <- predict(model_seleccionat, newdata = dades_test, type = "response")
 hl <- hoslem.test(dades_test$Y, prob_test, g = 10)
 cat(sprintf("chi² = %.4f | gl = %d | p = %.4f\n", hl$statistic, hl$parameter, hl$p.value))
 cat(ifelse(hl$p.value > 0.05,
@@ -514,6 +544,16 @@ ggplot(df_or, aes(x = reorder(variable, OR), y = OR)) +
 # Format estàndard per comparar tots els models de classificació.
 # En altres scripts: metriques_X <- readRDS("2. Dades/metriques_X.rds")
 saveRDS(metriques_logit, "2. Dades/metriques_logit.rds")
+
+# --- Guardar model i bbdd encadenada ---
+saveRDS(model_seleccionat, "2. Dades/model_logit.rds")
+
+prob_tots_logit <- predict(model_seleccionat, newdata = dades_mod, type = "response")
+dades_def$prob_logit <- NA_real_
+dades_def$prob_logit[seq_len(nrow(dades_mod))] <- prob_tots_logit
+save(dades_def, file = "2. Dades/5. Dades Logit.RData")
+cat("\n-> Model guardat a: 2. Dades/model_logit.rds\n")
+cat("-> dades_def amb prob_logit guardades a: 2. Dades/5. Dades Logit.RData\n\n")
 
 
 sink()

@@ -16,7 +16,7 @@ install.packages(
 )
 
 
-packages <- c("dplyr", "ggplot2", "tibble", "tidyr", "caret", "pROC")
+packages <- c("dplyr", "ggplot2", "tibble", "tidyr", "caret", "pROC", "PRROC")
 
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
@@ -37,7 +37,9 @@ if (!require("catboost", character.only = TRUE)) {
 }
 
 setwd("C:/Users/edurn/Downloads/TFG")
-load("2. Dades/4. Dades EFA.RData")
+load("2. Dades/7. Dades XGBoost.RData")
+
+source("3. Codi/Funcions models.R")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
@@ -122,7 +124,7 @@ extreure_prob_cat <- function(raw_pred) {
 }
 
 # Threshold mínim de recall per al grid search i mètriques finals
-MIN_RECALL <- 0.50
+MIN_RECALL <- 0.40
 
 # ----------------------------------------------------------------
 # Funcions de mètriques
@@ -264,40 +266,15 @@ for (i in seq_len(nrow(grid))) {
   roc_i <- roc(Y_val, prob_val_i, quiet = TRUE)
   auc_i <- as.numeric(auc(roc_i))
 
-  # Llindar: màxima precisió amb recall >= MIN_RECALL
-  coords_i <- tryCatch(
-    coords(roc_i, "all",
-           ret = c("threshold", "ppv", "sensitivity"),
-           transpose = FALSE),
-    error = function(e) NULL
+  pr_sel_i <- tryCatch(
+    seleccionar_llindar_pr(prob_val_i, Y_val, MIN_RECALL),
+    error = function(e) list(threshold = NA, precision = NA,
+                             recall = NA, recall_ok = FALSE)
   )
-
-  if (!is.null(coords_i) && nrow(coords_i) > 0) {
-    coords_i <- coords_i[!is.na(coords_i$ppv) & !is.na(coords_i$sensitivity), ]
-    coords_ok <- coords_i[coords_i$sensitivity >= MIN_RECALL, ]
-
-    if (nrow(coords_ok) > 0) {
-      best_t <- coords_ok[which.max(coords_ok$ppv), ]
-      val_precision_i <- best_t$ppv
-      val_recall_i <- best_t$sensitivity
-      val_thresh_i <- best_t$threshold
-      recall_ok_i <- TRUE
-    } else {
-      # Cap llindar compleix recall >= MIN_RECALL → Youden com a fallback
-      youden_i <- coords(roc_i, "best",
-                         ret = c("threshold", "ppv", "sensitivity"),
-                         best.method = "youden")
-      val_precision_i <- youden_i$ppv[1]
-      val_recall_i <- youden_i$sensitivity[1]
-      val_thresh_i <- youden_i$threshold[1]
-      recall_ok_i <- FALSE
-    }
-  } else {
-    val_precision_i <- NA
-    val_recall_i <- NA
-    val_thresh_i <- NA
-    recall_ok_i <- FALSE
-  }
+  val_precision_i <- pr_sel_i$precision
+  val_recall_i    <- pr_sel_i$recall
+  val_thresh_i    <- pr_sel_i$threshold
+  recall_ok_i     <- pr_sel_i$recall_ok
 
   grid_results[[i]] <- data.frame(
     depth = grid$depth[i],
@@ -540,57 +517,36 @@ cat(sprintf("   Llindar: max precisio amb recall >= %.2f (sobre val)\n", MIN_REC
 cat("=================================================================\n\n")
 
 
-# Determinar llindar final sobre el val set del model final
-roc_val_final <- roc(Y_val, prob_val_cat, quiet = TRUE)
-coords_val <- tryCatch(
-  coords(roc_val_final, "all",
-         ret = c("threshold", "ppv", "sensitivity"),
-         transpose = FALSE),
-  error = function(e) NULL
-)
+# Determinar llindar final sobre el val set del model final (PRROC)
+pr_cat_final <- seleccionar_llindar_pr(prob_val_cat, Y_val, MIN_RECALL)
+thresh_final <- pr_cat_final$threshold
+cat(sprintf("AUPRC: %.4f\n", pr_cat_final$auprc))
+cat(sprintf("-> Llindar seleccionat: %.4f | recall_ok (>= %.2f): %s\n",
+            thresh_final, MIN_RECALL,
+            ifelse(pr_cat_final$recall_ok, "SI", "NO (fallback Youden)")))
+if (!is.na(pr_cat_final$precision))
+  cat(sprintf("   Val Precisio = %.4f | Val Recall = %.4f\n\n",
+              pr_cat_final$precision, pr_cat_final$recall))
+else
+  cat(sprintf("   Val Recall = %.4f (Youden fallback)\n\n", pr_cat_final$recall))
 
-if (!is.null(coords_val) && nrow(coords_val) > 0) {
-  coords_val <- coords_val[!is.na(coords_val$ppv) & !is.na(coords_val$sensitivity), ]
-  coords_val_ok <- coords_val[coords_val$sensitivity >= MIN_RECALL, ]
-
-  if (nrow(coords_val_ok) > 0) {
-    thresh_row <- coords_val_ok[which.max(coords_val_ok$ppv), ]
-    thresh_final <- thresh_row$threshold
-    cat(sprintf("-> Llindar seleccionat (max precisio, recall >= %.2f): %.4f\n",
-                MIN_RECALL, thresh_final))
-    cat(sprintf("   Val Precisio = %.4f | Val Recall = %.4f\n\n",
-                thresh_row$ppv, thresh_row$sensitivity))
-  } else {
-    thresh_final <- coords(roc_val_final, "best",
-                           ret = "threshold",
-                           best.method = "youden")[1, "threshold"]
-    cat(sprintf("-> Cap llindar assoleix recall >= %.2f -> Youden: %.4f\n\n",
-                MIN_RECALL, thresh_final))
-  }
-} else {
-  thresh_final <- 0.5
-  cat("-> No s'ha pogut calcular el llindar -> default 0.5\n\n")
-}
-
-# Gràfic: corba precisió-recall per al val set
-pr_df <- data.frame(
-  threshold = coords_val$threshold,
-  precision = coords_val$ppv,
-  recall = coords_val$sensitivity
-)
-
+# Gràfic: corba precisió-recall per al val set (PRROC)
 print(
-  ggplot(pr_df, aes(x = recall, y = precision)) +
+  ggplot(pr_cat_final$pr_curve, aes(x = recall, y = precision)) +
     geom_path(color = "#4A90B8", linewidth = 1) +
     geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
                color = "red", linewidth = 0.8) +
-    geom_point(aes(x = thresh_row$sensitivity, y = thresh_row$ppv),
+    geom_point(data = data.frame(
+                 recall = pr_cat_final$recall,
+                 precision = ifelse(is.na(pr_cat_final$precision),
+                                    0, pr_cat_final$precision)),
                color = "#E07B54", size = 3, shape = 17) +
     annotate("text", x = MIN_RECALL + 0.03, y = 0.1,
              label = sprintf("Recall minim\n= %.2f", MIN_RECALL),
              color = "red", size = 3.5) +
-    labs(title = "Corba Precisio-Recall — CatBoost (val)",
-         subtitle = "Triangle taronja = llindar seleccionat",
+    labs(title = "Corba Precisio-Recall — CatBoost (val, PRROC)",
+         subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f",
+                            pr_cat_final$auprc, thresh_final),
          x = "Recall (Sensibilitat)", y = "Precisio (PPV)") +
     theme_minimal(base_size = 13)
 )
@@ -731,6 +687,20 @@ cat("Vista previa:\n")
 print(as.data.frame(metriques_cat[c("model", "n_test", "threshold",
                                     "AUC", "accuracy", "precision",
                                     "recall", "F1", "balanced_accuracy")]))
+
+# --- Guardar probabilitats i bbdd encadenada ---
+predictors_ok_cat <- predictors[predictors %in% names(dades_cat)]
+X_all_cat <- as.data.frame(
+  apply(dades_cat[, predictors_ok_cat], 2, as.numeric))
+complete_cat <- complete.cases(X_all_cat)
+pool_all_cat <- catboost.load_pool(data = X_all_cat[complete_cat, ])
+prob_cat_tots_raw <- catboost.predict(catboost_model, pool_all_cat,
+                                      prediction_type = "Probability")
+prob_cat_tots <- extreure_prob_cat(prob_cat_tots_raw)
+dades_def$prob_catboost <- NA_real_
+dades_def$prob_catboost[complete_cat] <- prob_cat_tots
+save(dades_def, file = "2. Dades/8. Dades CatBoost.RData")
+cat("-> dades_def amb prob_catboost guardades a: 2. Dades/8. Dades CatBoost.RData\n\n")
 
 sink()
 dev.off()

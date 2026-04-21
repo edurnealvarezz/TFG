@@ -1,20 +1,63 @@
 # -------------------------------------
 # Funció de mètriques de classificació
 # -------------------------------------
-# s'utiltizarà per tots els models de classificació per a poder-los comparar
+
+# Helper: selecciona llindar des de la corba PR (PRROC)
+# Maximitza precisió amb recall >= min_recall; fallback Youden si no assolible
+seleccionar_llindar_pr <- function(prob, Y_vec, min_recall = 0.40) {
+  pr_obj <- pr.curve(
+    scores.class0 = prob[Y_vec == 1],
+    scores.class1 = prob[Y_vec == 0],
+    curve = TRUE
+  )
+  pr_df <- as.data.frame(pr_obj$curve)
+  names(pr_df) <- c("recall", "precision", "threshold")
+  pr_df <- pr_df[!is.na(pr_df$precision) & !is.na(pr_df$recall), ]
+  pr_ok <- pr_df[pr_df$recall >= min_recall, ]
+
+  if (nrow(pr_ok) > 0) {
+    best_pr <- pr_ok[which.max(pr_ok$precision), ]
+    list(
+      threshold = best_pr$threshold,
+      precision = best_pr$precision,
+      recall    = best_pr$recall,
+      auprc     = pr_obj$auc.integral,
+      recall_ok = TRUE,
+      pr_curve  = pr_df
+    )
+  } else {
+    roc_fb <- roc(Y_vec, prob, quiet = TRUE)
+    youden  <- coords(roc_fb, "best",
+                      ret = c("threshold", "sensitivity", "ppv"),
+                      best.method = "youden")
+    list(
+      threshold = youden$threshold[1],
+      precision = youden$ppv[1],
+      recall    = youden$sensitivity[1],
+      auprc     = pr_obj$auc.integral,
+      recall_ok = FALSE,
+      pr_curve  = pr_df
+    )
+  }
+}
 
 calcular_metriques <- function(model_glm, dades_test_df, nom_model,
-                               auc_cv_mean = NA, auc_cv_sd = NA) {
+                               auc_cv_mean = NA, auc_cv_sd = NA,
+                               thresh_override = NULL) {
   Y_test <- dades_test_df$Y
   prob <- predict(model_glm, newdata = dades_test_df, type = "response")
 
   roc_obj <- roc(Y_test, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
-  coords_r <- coords(roc_obj, "best",
-                     ret = c("threshold", "sensitivity", "specificity"),
-                     best.method = "youden")
-  thresh <- coords_r$threshold[1]
+  if (!is.null(thresh_override)) {
+    thresh <- thresh_override
+  } else {
+    coords_r <- coords(roc_obj, "best",
+                       ret = c("threshold", "sensitivity", "specificity"),
+                       best.method = "youden")
+    thresh <- coords_r$threshold[1]
+  }
 
   pred <- as.integer(prob >= thresh)
   TP <- sum(pred == 1 & Y_test == 1)
@@ -53,8 +96,7 @@ calcular_metriques <- function(model_glm, dades_test_df, nom_model,
 mostrar_metriques <- function(met, titol = NULL) {
   if (is.null(titol)) titol <- met$model
   cat(sprintf("\n--- Mètriques: %s ---\n", titol))
-  cat(sprintf("n test = %d | Llindar Youden = %.3f\n", met$n_test, met$threshold))
-  # Llindar Youden és threshold optim per fer la partició del 0 al 1
+  cat(sprintf("n test = %d | Llindar PR = %.3f\n", met$n_test, met$threshold))
   if (!is.na(met$AUC_cv_mean)) {
     cat(sprintf("AUC (10-fold CV train): %.4f ± %.4f\n", met$AUC_cv_mean, met$AUC_cv_sd))
   }
@@ -86,7 +128,7 @@ mostrar_metriques <- function(met, titol = NULL) {
     geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
     scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
     labs(title = sprintf("Matriu de confusió — %s", titol),
-         subtitle = sprintf("Llindar Youden = %.3f", met$threshold),
+         subtitle = sprintf("Llindar PR = %.3f", met$threshold),
          x = "Valor Predit", y = "Valor Observat") +
     theme_minimal(base_size = 13) +
     theme(panel.grid = element_blank())
@@ -98,14 +140,19 @@ mostrar_metriques <- function(met, titol = NULL) {
 # --------------------------
 # Funcions de metriques RF
 # --------------------------
-calcular_metriques_rf <- function(prob, Y_vec, nom_model, oob_error = NA) {
+calcular_metriques_rf <- function(prob, Y_vec, nom_model, oob_error = NA,
+                                  thresh_override = NULL) {
   roc_obj <- roc(Y_vec, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
-  coords_r <- coords(roc_obj, "best",
-                     ret = c("threshold", "sensitivity", "specificity"),
-                     best.method = "youden")
-  thresh <- coords_r$threshold[1]
+  if (!is.null(thresh_override)) {
+    thresh <- thresh_override
+  } else {
+    coords_r <- coords(roc_obj, "best",
+                       ret = c("threshold", "sensitivity", "specificity"),
+                       best.method = "youden")
+    thresh <- coords_r$threshold[1]
+  }
 
   pred <- as.integer(prob >= thresh)
   TP <- sum(pred == 1 & Y_vec == 1)
@@ -140,7 +187,7 @@ calcular_metriques_rf <- function(prob, Y_vec, nom_model, oob_error = NA) {
 mostrar_metriques_rf <- function(met, titol = NULL) {
   if (is.null(titol)) titol <- met$model
   cat(sprintf("\n--- Metriques: %s ---\n", titol))
-  cat(sprintf("n = %d | Llindar Youden = %.3f\n", met$n_test, met$threshold))
+  cat(sprintf("n = %d | Llindar PR = %.3f\n", met$n_test, met$threshold))
   if (!is.na(met$OOB_error))
     cat(sprintf("OOB error: %.4f\n", met$OOB_error))
   cat(sprintf("AUC:               %.4f\n", met$AUC))
@@ -171,7 +218,7 @@ grafic_cm <- function(met, titol = NULL) {
     geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
     scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
     labs(title = sprintf("Matriu de confusio — %s", titol),
-         subtitle = sprintf("Llindar Youden = %.3f", met$threshold),
+         subtitle = sprintf("Llindar PR = %.3f", met$threshold),
          x = "Valor Predit", y = "Valor Observat") +
     theme_minimal(base_size = 13) +
     theme(panel.grid = element_blank())
