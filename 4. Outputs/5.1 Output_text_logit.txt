@@ -333,60 +333,82 @@ Detall observacions amb Cook's D > 4/n:
 
 ========== 6. AVALUACIÓ DEL MODEL FINAL ==========
 
---- 6.1 10-fold Cross-Validation (AUC) sobre train ---
+--- 6.1 Repeated 5x10-fold Cross-Validation (totes les metriques) ---
 
-AUC per fold: 0.8068 | 0.8352 | 0.8297 | 0.7556 | 0.602 | 0.8304 | 0.8807 | 0.8571 | 0.7778 | 0.6952
-AUC mitjana (CV): 0.7870 ± 0.0842
+Repeated 5x10-fold CV sobre train:
+
+      Metrica Mitjana     SD IC_2.5 IC_97.5
+          AUC  0.7924 0.0837 0.6276  0.9444
+        AUPRC  0.8202 0.0998 0.6145  0.9737
+    Precision  0.9097 0.0947 0.7543  1.0000
+       Recall  0.5805 0.1310 0.4026  0.8710
+           F1  0.6996 0.1027 0.5591  0.8969
+ Balanced_Acc  0.7523 0.0719 0.6561  0.8943
 
 --- 6.2 Pseudo-R² (train) ---
 
 McFadden R²:   0.2503
 Nagelkerke R² (especial per logit): 0.3895
 
---- 6.3 Mètriques sobre conjunt test ---
+--- 6.3 Llindar per corba Precisio-Recall (PRROC) ---
+
+AUPRC: 0.9019
+Llindar seleccionat: 0.6513 | recall_ok (>= 0.40): SI
+
+--- 6.3b Metriques sobre conjunt test ---
 
 --- Mètriques: Logit 3 ---
-n test = 68 | Llindar Youden = 0.564
-AUC (10-fold CV train): 0.7870 ± 0.0842
+n test = 68 | Llindar PR = 0.651
+AUC (10-fold CV train): 0.7924 ± 0.0837
 AUC (test):             0.8428
-Accuracy:               0.7794
-Precision (PPV):        0.9062
-Recall (Sensibilitat):  0.7073
-Especificitat:          0.8889
-F1:                     0.7945
-Balanced Accuracy:      0.7981
+Accuracy:               0.7500
+Precision (PPV):        0.9615
+Recall (Sensibilitat):  0.6098
+Especificitat:          0.9630
+F1:                     0.7463
+Balanced Accuracy:      0.7864
 
 Matriu de confusió:
               Predit
 Observat       Irregular(0) Regular(1)
-  Irregular(0)           24          3
-  Regular(1)             12         29
---- 6.3b Mètriques sobre conjunt train ---
+  Irregular(0)           26          1
+  Regular(1)             16         25
+--- 6.3c Metriques sobre conjunt train ---
 
 --- Mètriques: Logit 3 (train) ---
-n test = 274 | Llindar Youden = 0.621
+n test = 274 | Llindar PR = 0.651
 AUC (test):             0.8174
-Accuracy:               0.7372
-Precision (PPV):        0.8347
-Recall (Sensibilitat):  0.6601
-Especificitat:          0.8347
-F1:                     0.7372
-Balanced Accuracy:      0.7474
+Accuracy:               0.7190
+Precision (PPV):        0.8333
+Recall (Sensibilitat):  0.6209
+Especificitat:          0.8430
+F1:                     0.7116
+Balanced Accuracy:      0.7319
 
 Matriu de confusió:
               Predit
 Observat       Irregular(0) Regular(1)
-  Irregular(0)          101         20
-  Regular(1)             52        101
+  Irregular(0)          102         19
+  Regular(1)             58         95
 
 --- Resum overfitting: train vs test ---
 
  Conjunt    AUC Accuracy Precision Recall     F1 Balanced_Acc
-   Train 0.8174   0.7372    0.8347 0.6601 0.7372       0.7474
-    Test 0.8428   0.7794    0.9062 0.7073 0.7945       0.7981
+   Train 0.8174    0.719    0.8333 0.6209 0.7116       0.7319
+    Test 0.8428    0.750    0.9615 0.6098 0.7463       0.7864
+
+--- 6.3d IC Bootstrap Precisio (B = 1000, percentil) ---
+
+Precisio (PPV) puntual:  0.9615
+IC Bootstrap 95%:        [0.8750, 1.0000]
+Amplada IC:              0.1250
 
 
 --- 6.4 Test de Hosmer-Lemeshow (test) ---
 
 chi² = 10.8988 | gl = 8 | p = 0.2075
 → No es rebutja H0: el model s'ajusta bé (p > 0.05)
+Llindar aplicat per pred_logit: 0.6513 (PR, no 0.5)
+
+-> dades_def amb prob_logit guardades a: 2. Dades/5. Dades Logit.RData
+

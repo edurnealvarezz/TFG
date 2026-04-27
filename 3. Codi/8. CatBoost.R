@@ -699,6 +699,9 @@ prob_cat_tots_raw <- catboost.predict(catboost_model, pool_all_cat,
 prob_cat_tots <- extreure_prob_cat(prob_cat_tots_raw)
 dades_def$prob_catboost <- NA_real_
 dades_def$prob_catboost[complete_cat] <- prob_cat_tots
+dades_def$pred_catboost <- NA_integer_
+dades_def$pred_catboost[complete_cat] <- as.integer(prob_cat_tots >= thresh_final)
+cat(sprintf("Llindar aplicat per pred_catboost: %.4f (PR, no 0.5)\n", thresh_final))
 save(dades_def, file = "2. Dades/8. Dades CatBoost.RData")
 cat("-> dades_def amb prob_catboost guardades a: 2. Dades/8. Dades CatBoost.RData\n\n")
 

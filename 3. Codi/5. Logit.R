@@ -11,7 +11,7 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/Downloads/TFG")
+setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 
 load("2. Dades/4. Dades EFA.RData")
@@ -396,20 +396,75 @@ ggplot(df_infl, aes(x = leverage, y = res_pears, size = cook_D, color = flag_any
 
 cat("\n========== 6. AVALUACIÓ DEL MODEL FINAL ==========\n\n")
 
-# --- 6.1 Cross-validation 10-fold (AUC) sobre train ---
-cat("--- 6.1 10-fold Cross-Validation (AUC) sobre train ---\n\n")
+# --- 6.1 Repeated 5x10-fold CV (totes les metriques) sobre train ---
+cat("--- 6.1 Repeated 5x10-fold Cross-Validation (totes les metriques) ---\n\n")
 
 set.seed(1234)
-folds <- createFolds(dades_train$Y, k = 10, list = TRUE)
+n_rep  <- 5
+n_fold <- 10
+cv_rows <- vector("list", n_rep * n_fold)
+k <- 0
 
-cv_auc <- sapply(folds, function(test_idx) {
-  m_cv <- glm(formula_sel, data = dades_train[-test_idx, ], family = binomial)
-  prob_cv <- predict(m_cv, newdata = dades_train[test_idx, ], type = "response")
-  as.numeric(auc(roc(dades_train$Y[test_idx], prob_cv, quiet = TRUE)))
-})
+for (r in seq_len(n_rep)) {
+  folds_r <- createFolds(dades_train$Y, k = n_fold, list = TRUE)
+  for (fold_idx in seq_along(folds_r)) {
+    k <- k + 1
+    test_idx <- folds_r[[fold_idx]]
+    m_cv <- tryCatch(
+      glm(formula_sel, data = dades_train[-test_idx, ], family = binomial),
+      error = function(e) NULL
+    )
+    if (is.null(m_cv)) next
+    prob_cv <- predict(m_cv, newdata = dades_train[test_idx, ], type = "response")
+    Y_cv    <- dades_train$Y[test_idx]
 
-cat(sprintf("AUC per fold: %s\n", paste(round(cv_auc, 4), collapse = " | ")))
-cat(sprintf("AUC mitjana (CV): %.4f ± %.4f\n\n", mean(cv_auc), sd(cv_auc)))
+    auc_cv_i <- tryCatch(
+      as.numeric(auc(roc(Y_cv, prob_cv, quiet = TRUE))),
+      error = function(e) NA_real_
+    )
+    pr_cv_i <- tryCatch(
+      seleccionar_llindar_pr(prob_cv, Y_cv, MIN_RECALL),
+      error = function(e) list(threshold = 0.5, auprc = NA_real_)
+    )
+    pred_cv  <- as.integer(prob_cv >= pr_cv_i$threshold)
+    TP_cv <- sum(pred_cv == 1 & Y_cv == 1)
+    TN_cv <- sum(pred_cv == 0 & Y_cv == 0)
+    FP_cv <- sum(pred_cv == 1 & Y_cv == 0)
+    FN_cv <- sum(pred_cv == 0 & Y_cv == 1)
+    prec_cv   <- if (TP_cv + FP_cv > 0) TP_cv / (TP_cv + FP_cv) else NA_real_
+    rec_cv    <- if (TP_cv + FN_cv > 0) TP_cv / (TP_cv + FN_cv) else NA_real_
+    spec_cv   <- if (TN_cv + FP_cv > 0) TN_cv / (TN_cv + FP_cv) else NA_real_
+    f1_cv     <- if (!is.na(prec_cv) & !is.na(rec_cv) & (prec_cv + rec_cv) > 0)
+                   2 * prec_cv * rec_cv / (prec_cv + rec_cv) else NA_real_
+    balacc_cv <- if (!is.na(rec_cv) & !is.na(spec_cv)) (rec_cv + spec_cv) / 2 else NA_real_
+
+    cv_rows[[k]] <- data.frame(
+      rep = r, fold = fold_idx,
+      AUC = auc_cv_i, AUPRC = pr_cv_i$auprc,
+      Precision = prec_cv, Recall = rec_cv,
+      F1 = f1_cv, Balanced_Acc = balacc_cv
+    )
+  }
+}
+
+df_cv  <- do.call(rbind, cv_rows)
+cv_auc <- df_cv$AUC  # compatibilitat amb calcular_metriques
+
+metriques_cv_noms <- c("AUC", "AUPRC", "Precision", "Recall", "F1", "Balanced_Acc")
+df_cv_resum <- do.call(rbind, lapply(metriques_cv_noms, function(m) {
+  vals <- df_cv[[m]]
+  data.frame(
+    Metrica = m,
+    Mitjana = round(mean(vals, na.rm = TRUE), 4),
+    SD      = round(sd(vals,   na.rm = TRUE), 4),
+    IC_2.5  = round(quantile(vals, 0.025, na.rm = TRUE), 4),
+    IC_97.5 = round(quantile(vals, 0.975, na.rm = TRUE), 4)
+  )
+}))
+
+cat(sprintf("Repeated %dx%d-fold CV sobre train:\n\n", n_rep, n_fold))
+print(df_cv_resum, row.names = FALSE)
+cat("\n")
 
 # --- 6.2 Pseudo-R² (sobre train) ---
 cat("--- 6.2 Pseudo-R² (train) ---\n\n")
@@ -491,6 +546,46 @@ df_ov_logit <- data.frame(
 print(df_ov_logit, row.names = FALSE)
 cat("\n")
 
+# --- 6.3d IC Bootstrap de Precisió (test, B = 1000) ---
+cat("--- 6.3d IC Bootstrap Precisio (B = 1000, percentil) ---\n\n")
+
+set.seed(1234)
+B <- 1000
+boot_ppv <- numeric(B)
+
+for (b in seq_len(B)) {
+  idx_b <- sample(nrow(dades_test), replace = TRUE)
+  dades_b <- dades_test[idx_b, ]
+  prob_b <- predict(model_seleccionat, newdata = dades_b, type = "response")
+  pred_b <- as.integer(prob_b >= thresh_pr_logit)
+  TP_b <- sum(pred_b == 1 & dades_b$Y == 1)
+  FP_b <- sum(pred_b == 1 & dades_b$Y == 0)
+  boot_ppv[b] <- if (TP_b + FP_b > 0) TP_b / (TP_b + FP_b) else NA_real_
+}
+
+boot_ppv_clean <- boot_ppv[!is.na(boot_ppv)]
+ic_low  <- quantile(boot_ppv_clean, 0.025)
+ic_high <- quantile(boot_ppv_clean, 0.975)
+
+cat(sprintf("Precisio (PPV) puntual:  %.4f\n", metriques_logit$precision))
+cat(sprintf("IC Bootstrap 95%%:        [%.4f, %.4f]\n", ic_low, ic_high))
+cat(sprintf("Amplada IC:              %.4f\n\n", ic_high - ic_low))
+
+ggplot(data.frame(ppv = boot_ppv_clean), aes(x = ppv)) +
+  geom_histogram(bins = 40, fill = "#4A90B8", color = "white", alpha = 0.85) +
+  geom_vline(xintercept = metriques_logit$precision,
+             color = "#E07B54", linewidth = 1.2) +
+  geom_vline(xintercept = c(ic_low, ic_high),
+             color = "red", linewidth = 0.9, linetype = "dashed") +
+  annotate("text", x = metriques_logit$precision, y = Inf,
+           label = sprintf("PPV = %.3f", metriques_logit$precision),
+           vjust = 1.5, hjust = -0.1, color = "#E07B54", size = 4) +
+  labs(title = "Distribucio Bootstrap Precisio (PPV) — Logit (test)",
+       subtitle = sprintf("IC 95%% = [%.4f, %.4f] | B = %d",
+                          ic_low, ic_high, B),
+       x = "Precisio (PPV)", y = "Frequencia") +
+  theme_minimal(base_size = 13)
+
 # --- 6.4 Hosmer-Lemeshow (sobre test) ---
 cat("\n--- 6.4 Test de Hosmer-Lemeshow (test) ---\n\n")
 # per evaluar la bondat d'ajust
@@ -551,8 +646,12 @@ saveRDS(model_seleccionat, "2. Dades/model_logit.rds")
 prob_tots_logit <- predict(model_seleccionat, newdata = dades_mod, type = "response")
 dades_def$prob_logit <- NA_real_
 dades_def$prob_logit[seq_len(nrow(dades_mod))] <- prob_tots_logit
+# Predicció binària amb el llindar PR (no 0.5)
+dades_def$pred_logit <- NA_integer_
+dades_def$pred_logit[seq_len(nrow(dades_mod))] <- as.integer(prob_tots_logit >= thresh_pr_logit)
+cat(sprintf("Llindar aplicat per pred_logit: %.4f (PR, no 0.5)\n\n", thresh_pr_logit))
 save(dades_def, file = "2. Dades/5. Dades Logit.RData")
-cat("\n-> Model guardat a: 2. Dades/model_logit.rds\n")
+
 cat("-> dades_def amb prob_logit guardades a: 2. Dades/5. Dades Logit.RData\n\n")
 
 

@@ -599,6 +599,8 @@ prob_rfa_tots[complete_a] <- predict(
   rf_a, data = as.matrix(X_all_a[complete_a, ]))$predictions[, 2]
 dades_def$prob_rf_a <- NA_real_
 dades_def$prob_rf_a[seq_len(nrow(dades_rf))] <- prob_rfa_tots
+dades_def$pred_rf_a <- NA_integer_
+dades_def$pred_rf_a[seq_len(nrow(dades_rf))] <- as.integer(prob_rfa_tots >= thresh_pr_a)
 
 vars_rfb_ok <- vars_rfb[vars_rfb %in% names(dades_rf)]
 X_all_b <- dades_rf %>%
@@ -610,6 +612,13 @@ prob_rfb_tots[complete_b] <- predict(
   rf_b, data = as.matrix(X_all_b[complete_b, ]))$predictions[, 2]
 dades_def$prob_rf_b <- NA_real_
 dades_def$prob_rf_b[seq_len(nrow(dades_rf))] <- prob_rfb_tots
+
+dades_def$pred_rf_b <- NA_integer_
+dades_def$pred_rf_b[seq_len(nrow(dades_rf))] <- as.integer(prob_rfb_tots >= thresh_pr_b)
+cat(sprintf("Llindar aplicat per pred_rf_b: %.4f (PR, no 0.5)\n\n", thresh_pr_b))
+save(dades_def, file = "2. Dades/6. Dades RF.RData")
+
+
 
 save(dades_def, file = "2. Dades/6. Dades RF.RData")
 cat("\n-> dades_def amb prob_rf_a i prob_rf_b guardades a: 2. Dades/6. Dades RF.RData\n")

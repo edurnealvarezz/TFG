@@ -609,6 +609,9 @@ dmat_all_xgb <- xgb.DMatrix(X_all_xgb_mat[complete_xgb, ])
 prob_xgb_tots <- predict(xgb_model, dmat_all_xgb)
 dades_def$prob_xgb <- NA_real_
 dades_def$prob_xgb[complete_xgb] <- prob_xgb_tots
+dades_def$pred_xgb <- NA_integer_
+dades_def$pred_xgb[complete_xgb] <- as.integer(prob_xgb_tots >= thresh_pr_xgb)
+cat(sprintf("Llindar aplicat per pred_xgb: %.4f (PR, no 0.5)\n", thresh_pr_xgb))
 save(dades_def, file = "2. Dades/7. Dades XGBoost.RData")
 cat("-> dades_def amb prob_xgb guardades a: 2. Dades/7. Dades XGBoost.RData\n\n")
 

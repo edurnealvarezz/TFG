@@ -1,0 +1,213 @@
+=================================================================
+   0. PREPARACIO DE DADES
+=================================================================
+
+Particio: Train = 274 obs | Test = 68 obs | Predictors SL = 48
+Train Y: Irregular=121 (44.2%) | Regular=153 (55.8%)
+
+Pesos: w_irr=1.132 | w_reg=0.895
+
+Formula Logit base:
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num
+
+Formula Logit Millorat:
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+
+
+=================================================================
+   2. OOF PREDICTIONS (10-fold CV sobre train)
+=================================================================
+
+NOTA: OOF evita data leakage en el meta-learner.
+      Cada observacio train es predita per un model que NO la va veure.
+
+  Fold  1/10 completat
+  Fold  2/10 completat
+  Fold  3/10 completat
+  Fold  4/10 completat
+  Fold  5/10 completat
+  Fold  6/10 completat
+  Fold  7/10 completat
+  Fold  8/10 completat
+  Fold  9/10 completat
+  Fold 10/10 completat
+
+AUC OOF per learner:
+    Learner AUC_OOF n_valid
+   LogitMil  0.7975     274
+      Logit  0.7892     274
+        SVM  0.7682     274
+ ElasticNet  0.7555     274
+         RF  0.7487     274
+    XGBoost  0.7347     274
+        KNN  0.7195     274
+
+=================================================================
+   3. PREDICCIONS LEVEL-0 SOBRE TEST (models entrenats en tot train)
+=================================================================
+
+AUC test per learner (individual):
+    Learner AUC_test n_valid
+         RF   0.8636      68
+        SVM   0.8564      68
+   LogitMil   0.8528      68
+      Logit   0.8428      68
+    XGBoost   0.8428      68
+ ElasticNet   0.8284      68
+        KNN   0.8121      68
+
+=================================================================
+   4. META-LEARNER (Ridge logit, alpha=0, coefs >= 0)
+=================================================================
+
+Lower.limits=0 -> combinacio convexa dels learners (interpretable).
+Els coeficients Ridge diuen quant aporta cada model al ensemble.
+
+OOF files complets: 274 / 274
+
+Lambda optim (lambda.min): 0.102479
+Lambda 1se:                231.297197
+
+Coeficients meta-learner (Ridge, lambda.min):
+                 s1
+(Intercept) -2.2502
+Logit        1.0238
+LogitMil     1.1881
+RF           0.6428
+XGBoost      0.0818
+SVM          0.8071
+ElasticNet   0.3805
+KNN          0.3965
+
+=================================================================
+   5. PREDICCIONS SUPERLEARNER SOBRE TEST
+=================================================================
+
+AUPRC SuperLearner: 0.9100
+Llindar (recall>=0.60): 0.6362 | recall_ok: SI
+
+n test (complets): 68
+AUC:               0.8573
+AUPRC:             0.9100
+Precision (PPV):   0.9630
+Recall:            0.6341
+Especificitat:     0.9630
+F1:                0.7647
+Balanced Acc:      0.7986
+Brier Score:       0.1564  (0=perfecte, 0.25=atzar)
+
+TP=26 | TN=26 | FP=1 | FN=15
+
+Matriu de confusio:
+        Predit
+Observat Irr(0) Reg(1)
+  Irr(0)     26      1
+  Reg(1)     15     26
+
+
+=================================================================
+   6. CALIBRACIO
+=================================================================
+
+Brier ABANS Platt:  0.1564
+Brier DESPRES Platt: 0.1430
+
+-> Platt millora calibracio
+
+
+=================================================================
+   7. ANALISI DE DESACORD (disagreement analysis)
+=================================================================
+
+Alta variancia entre learners = observacio difícil / perfil mixt.
+
+Distribucio de la variancia entre learners (test):
+    Min.  1st Qu.   Median     Mean  3rd Qu.     Max. 
+0.001000 0.005969 0.009633 0.013504 0.016161 0.075237 
+
+Top 11 obs amb mes desacord (15%):
+ Logit LogitMil    RF XGBoost   SVM ElasticNet   KNN variancia prob_sl Y
+ 0.061    0.087 0.500   0.428 0.503      0.308 0.857     0.075   0.296 0
+ 0.190    0.205 0.402   0.151 0.564      0.497 0.714     0.046   0.351 0
+ 0.294    0.384 0.621   0.733 0.752      0.637 0.857     0.041   0.539 1
+ 0.297    0.317 0.487   0.447 0.542      0.410 0.857     0.035   0.429 0
+ 0.104    0.141 0.418   0.332 0.544      0.283 0.571     0.033   0.288 1
+ 0.289    0.216 0.320   0.175 0.463      0.377 0.714     0.033   0.337 0
+ 0.546    0.438 0.247   0.064 0.330      0.426 0.571     0.032   0.413 1
+ 0.497    0.423 0.449   0.353 0.643      0.560 0.857     0.028   0.538 1
+ 0.869    0.862 0.526   0.463 0.676      0.725 0.857     0.028   0.769 1
+ 0.403    0.408 0.130   0.085 0.185      0.441 0.429     0.025   0.316 0
+ 0.265    0.204 0.397   0.116 0.363      0.443 0.571     0.024   0.314 1
+ pred_sl
+       0
+       0
+       0
+       0
+       0
+       0
+       0
+       0
+       1
+       0
+       0
+
+Distribucio Y en alt-desacord: Regular=54.5% | Irregular=45.5%
+
+Precisio SuperLearner en alt-desacord: 0.545
+Precisio SuperLearner en baix-desacord: 0.807
+
+
+=================================================================
+   8. SHAP DEL META-LEARNER
+=================================================================
+
+Per model lineal: SHAP_j = beta_j * (x_ij - mean_oof_j)
+Interpreta quant contribueix cada learner a cada prediccio individual.
+
+Importancia SHAP (mean |SHAP|) dels learners Level-0:
+# A tibble: 7 × 2
+  Learner    mean_abs_shap
+  <chr>              <dbl>
+1 LogitMil          0.290 
+2 Logit             0.239 
+3 SVM               0.147 
+4 RF                0.105 
+5 KNN               0.0867
+6 ElasticNet        0.0802
+7 XGBoost           0.0223
+
+=================================================================
+   9. COMPARACIO GLOBAL DE MODELS
+=================================================================
+
+Taula comparativa final:
+
+        Model AUC_test Precision Recall     F1 Balanced_Acc
+        Logit   0.8428    0.9615 0.6098 0.7463       0.7864
+     LogitMil   0.8528    0.9643 0.6585 0.7826       0.8107
+         RF-A   0.7550    0.8846 0.6053 0.7188       0.7509
+         RF-B   0.7704    0.7632 0.7632 0.7632       0.7264
+      XGBoost   0.8257    0.9474 0.5625 0.7059       0.7549
+     CatBoost   0.8174    0.9000 0.5625 0.6923       0.7286
+ SuperLearner   0.8573    0.9630 0.6341 0.7647       0.7986
+
+Millor model per metrica:
+  AUC_test      : SuperLearner (0.8573)
+  Precision     : LogitMil (0.9643)
+  Recall        : RF-B (0.7632)
+  F1            : LogitMil (0.7826)
+  Balanced_Acc  : LogitMil (0.8107)
+
+=================================================================
+   10. GUARDAR RESULTATS
+=================================================================
+
+-> metriques_superlearner.rds, model_superlearner_meta.rds, oof_predictions.rds guardats
+
+Observations amb prob_superlearner: 342
+  -> Train (OOF): 274 | Test: 68
+
+-> dades_def guardades a: 2. Dades/10. Dades SuperLearner.RData
+

@@ -1,0 +1,243 @@
+Particio: Train = 274 obs | Test = 68 obs
+
+Formula base (Logit 3):
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num
+
+
+========== 1. CONTRAST ORTOGONAL IA_SUBST (L vs. Q) ==========
+
+Component lineal   (L): z = -3.534 | p = 0.0004
+Component quadratic (Q): z = 0.147 | p = 0.8828
+
+LRT: model_seleccionat vs. model amb poly(IA_SUBST_num, 2):
+Analysis of Deviance Table
+
+Model 1: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num
+Model 2: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + T_AVAL + 
+    CURS_1R + EDAT + NOTA_num + poly(IA_SUBST_num, 2)
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)
+1       265     281.96                     
+2       264     281.93  1 0.021725   0.8828
+
+Conclucio: component quadratic no significatiu (p = 0.8828)
+
+
+========== 2. TESTS D'INTERACCIONS (LRT) ==========
+
+Taula de tests d'interaccio:
+
+                 Interaccio   Chi2 gl  p_LRT Significativa
+  MOT_DESMOTIVACIO x T_AVAL 1.2682  1 0.2601            no
+    IA_SUBST_num x NOTA_num 2.3118  1 0.1284            no
+ CURS_1R x MOT_DESMOTIVACIO 8.2941  1 0.0040            SI
+     MOT_FORCA_MAJOR x EDAT 0.1031  1 0.7482            no
+     IA_SUBST_num x CURS_1R 3.9352  1 0.0473            SI
+
+--- 2b. Test anidat: CURS_1R × MOT_DESMOTIVACIO vs. + IA_SUBST_num × CURS_1R ---
+
+LRT anidat (base → +DESM:CURS → +IA:CURS):
+Analysis of Deviance Table
+
+Model 1: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num
+Model 2: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+Model 3: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num + MOT_DESMOTIVACIO:CURS_1R + 
+    IA_SUBST_num:CURS_1R
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
+1       265     281.96                        
+2       264     273.66  1   8.2941 0.003977 **
+3       263     273.39  1   0.2750 0.600001   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+BIC base:                             332.47
+BIC model A (+ DESM:CURS_1R):         329.79
+BIC model B (+ DESM:CURS_1R + IA:CURS): 335.13
+
+Interpretacio: si BIC(A) < BIC(base) i LRT A vs base p<0.05 -> afegir DESM:CURS_1R.
+Si LRT B vs A no es significatiu -> IA_SUBST_num:CURS_1R no aporta valor afegit.
+
+Interaccions significatives:
+  -> CURS_1R x MOT_DESMOTIVACIO
+     (terme CURS_1R:MOT_DESMOTIVACIO no trobat al model; comprova noms de factors)
+
+  -> IA_SUBST_num x CURS_1R
+     IA_SUBST_num:CURS_1R: Coef = 0.4148 | SE = 0.2093 | z = 1.982 | p = 0.0475
+
+
+========== 3. CONSTRUCCIO DEL MODEL MILLORAT ==========
+
+-> Afegida interaccio: CURS_1R:MOT_DESMOTIVACIO
+-> Exclosa interaccio IA_SUBST_num:CURS_1R (test anidat: no aporta sobre DESM:CURS_1R)
+
+Formula model millorat:
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+
+Resum model millorat:
+
+Call:
+glm(formula = formula_mil, family = binomial, data = dades_train)
+
+Coefficients:
+                         Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -0.92391    0.92696  -0.997 0.318906    
+MOT_DESMOTIVACIO         -0.81948    0.21263  -3.854 0.000116 ***
+MOT_FORCA_MAJOR           0.30281    0.15223   1.989 0.046677 *  
+EST_AVALUACIO_AC          0.54578    0.16830   3.243 0.001184 ** 
+IA_SUBST_num             -0.38135    0.10390  -3.670 0.000242 ***
+T_AVALContinuada          1.63574    0.71324   2.293 0.021825 *  
+CURS_1R                   1.03791    0.36930   2.810 0.004947 ** 
+EDAT                     -0.04216    0.01671  -2.523 0.011630 *  
+NOTA_num                  0.59889    0.18367   3.261 0.001111 ** 
+MOT_DESMOTIVACIO:CURS_1R  1.07510    0.37897   2.837 0.004555 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 376.10  on 273  degrees of freedom
+Residual deviance: 273.66  on 264  degrees of freedom
+AIC: 293.66
+
+Number of Fisher Scoring iterations: 5
+
+
+Odds Ratios (IC 95% Wald):
+                            OR 2.5 % 97.5 %
+(Intercept)              0.397 0.065  2.442
+MOT_DESMOTIVACIO         0.441 0.290  0.668
+MOT_FORCA_MAJOR          1.354 1.004  1.824
+EST_AVALUACIO_AC         1.726 1.241  2.400
+IA_SUBST_num             0.683 0.557  0.837
+T_AVALContinuada         5.133 1.268 20.773
+CURS_1R                  2.823 1.369  5.822
+EDAT                     0.959 0.928  0.991
+NOTA_num                 1.820 1.270  2.609
+MOT_DESMOTIVACIO:CURS_1R 2.930 1.394  6.159
+
+LRT: model_seleccionat vs. model_millorat:
+Analysis of Deviance Table
+
+Model 1: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num
+Model 2: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
+1       265     281.96                        
+2       264     273.66  1   8.2941 0.003977 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+========== 4. Repeated 5x10-fold CV (totes les metriques) ==========
+
+Repeated 5x10-fold CV — Model Millorat:
+
+      Metrica Mitjana     SD IC_2.5 IC_97.5
+          AUC  0.8063 0.0772 0.6503  0.9526
+        AUPRC  0.8347 0.0865 0.6265  0.9769
+    Precision  0.8376 0.1196 0.5909  1.0000
+       Recall  0.7178 0.0949 0.6025  0.9234
+           F1  0.7667 0.0802 0.6250  0.9311
+ Balanced_Acc  0.7707 0.0801 0.6112  0.9218
+
+
+========== 5. LLINDAR PR I METRIQUES SOBRE TEST ==========
+
+AUPRC: 0.9074
+Llindar seleccionat: 0.5530 | recall_ok (>= 0.60): SI
+
+Precisio CV (5x10-fold): 0.8376 +/- 0.1196 [IC95% 0.5909, 1.0000]
+NOTA: la precisio sobre test pot estar inflada perque el llindar s'ha seleccionat
+sobre el MATEIX conjunt de test (biaix d'optimisme). La precisio CV es mes fiable.
+
+--- 5.1 Metriques sobre test ---
+
+--- Mètriques: Logit Millorat ---
+n test = 68 | Llindar PR = 0.553
+AUC (10-fold CV train): 0.8063 ± 0.0772
+AUC (test):             0.8528
+Accuracy:               0.7794
+Precision (PPV):        0.9643
+Recall (Sensibilitat):  0.6585
+Especificitat:          0.9630
+F1:                     0.7826
+Balanced Accuracy:      0.8107
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           26          1
+  Regular(1)             14         27
+--- 5.2 Metriques sobre train ---
+
+--- Mètriques: Logit Millorat (train) ---
+n test = 274 | Llindar PR = 0.553
+AUC (test):             0.8321
+Accuracy:               0.7409
+Precision (PPV):        0.7733
+Recall (Sensibilitat):  0.7582
+Especificitat:          0.7190
+F1:                     0.7657
+Balanced Accuracy:      0.7386
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           87         34
+  Regular(1)             37        116
+
+--- Resum overfitting: train vs test ---
+
+ Conjunt    AUC Precision Recall     F1 Balanced_Acc
+   Train 0.8321    0.7733 0.7582 0.7657       0.7386
+    Test 0.8528    0.9643 0.6585 0.7826       0.8107
+
+AVIS: precisio test (0.964) > precisio train (0.773): patro invers a l'overfitting classic.
+Causa probable: llindar seleccionat per maximitzar precisio sobre el conjunt de test.
+Precisio CV (sense biaix): 0.838 — usa aquest valor per a conclusions.
+
+--- 5.3 IC Bootstrap Precisio (B = 1000, percentil) ---
+
+Precisio (PPV) puntual:  0.9643
+IC Bootstrap 95%:        [0.8846, 1.0000]
+Amplada IC:              0.1154
+
+
+========== 6. CALIBRATION PLOT ==========
+
+Hosmer-Lemeshow: chi2 = 16.4332 | gl = 8 | p = 0.0366
+-> Es rebutja H0: problemes d'ajust (p < 0.05)
+
+
+========== 7. EFECTES MARGINALS PROMIG (AME) ==========
+
+
+             Term           Contrast Estimate Std. Error     z Pr(>|z|)    S
+ CURS_1R          1 - 0               0.21126    0.05866  3.60  < 0.001 11.6
+ EDAT             dY/dX              -0.00728    0.00275 -2.64  0.00819  6.9
+ EST_AVALUACIO_AC dY/dX               0.09430    0.02716  3.47  < 0.001 10.9
+ IA_SUBST_num     dY/dX              -0.06589    0.01598 -4.12  < 0.001 14.7
+ MOT_DESMOTIVACIO dY/dX              -0.10923    0.03092 -3.53  < 0.001 11.2
+ MOT_FORCA_MAJOR  dY/dX               0.05232    0.02592  2.02  0.04351  4.5
+ NOTA_num         dY/dX               0.10348    0.02933  3.53  < 0.001 11.2
+ T_AVAL           Continuada - Única  0.26610    0.10179  2.61  0.00894  6.8
+    2.5 %   97.5 %
+  0.09628  0.32623
+ -0.01268 -0.00188
+  0.04107  0.14753
+ -0.09721 -0.03457
+ -0.16984 -0.04862
+  0.00152  0.10312
+  0.04598  0.16097
+  0.06660  0.46560
+
+Type: response
+
+Llindar aplicat per pred_logit_mil: 0.5530 (PR recall>=0.60)
+
+-> dades_def amb prob_logit_mil guardades a: 2. Dades/9. Dades Logit Millorat.RData
+
