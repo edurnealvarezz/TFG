@@ -15,7 +15,7 @@ load("2. Dades/6. Dades RF.RData")
 
 source("3. Codi/Funcions models.R")
 
-MIN_RECALL <- 0.40
+MIN_RECALL <- 0.6
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
@@ -53,16 +53,15 @@ dades_xgb_net <- dades_xgb %>%
   select(Y, all_of(predictors)) %>%
   drop_na()
 
-cat("=================================================================\n")
-cat("   0. PREPARACIÓ DE DADES\n")
-cat("=================================================================\n\n")
+cat(" ============= 0. PREPARACIÓ DE DADES ============= \n")
+
 cat(sprintf("Observacions totals: %d\n", nrow(dades_xgb_net)))
 cat(sprintf("Predictors inclosos: %d\n", length(predictors)))
 cat(sprintf("Distribució Y — Irregular (0): %d | Regular (1): %d\n\n",
             sum(dades_xgb_net$Y == 0), sum(dades_xgb_net$Y == 1)))
 
-# Partició 70% train | 15% val (early stopping) | 15% test (avaluació final)
-# Val set separat del test per evitar data leakage en la selecció de hiperparàmetres
+# partició 70% train, 15% validació i 15% test
+# validació separat del test per evitar data leakage en la selecció de hiperparàmetres
 set.seed(1234)
 idx_train <- createDataPartition(dades_xgb_net$Y, p = 0.70, list = FALSE)
 dades_rest <- dades_xgb_net[-idx_train, ]
@@ -92,108 +91,15 @@ cat(sprintf("  Val   — Regular: %.1f%% | Irregular: %.1f%%\n",
 cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
             mean(Y_test) * 100, (1 - mean(Y_test)) * 100))
 
-# ----------------------------------------------------------------
-# Funcions de mètriques (prenen prob directament)
-# ----------------------------------------------------------------
-calcular_metriques_xgb <- function(prob, Y_vec, nom_model,
-                                   auc_cv_mean = NA, auc_cv_sd = NA,
-                                   thresh_override = NULL) {
-  roc_obj <- roc(Y_vec, prob, quiet = TRUE)
-  auc_val <- as.numeric(auc(roc_obj))
-
-  if (!is.null(thresh_override)) {
-    thresh <- thresh_override
-  } else {
-    coords_r <- coords(roc_obj, "best",
-                       ret = c("threshold", "sensitivity", "specificity"),
-                       best.method = "youden")
-    thresh <- coords_r$threshold[1]
-  }
-
-  pred <- as.integer(prob >= thresh)
-  TP <- sum(pred == 1 & Y_vec == 1)
-  TN <- sum(pred == 0 & Y_vec == 0)
-  FP <- sum(pred == 1 & Y_vec == 0)
-  FN <- sum(pred == 0 & Y_vec == 1)
-
-  accuracy <- (TP + TN) / (TP + TN + FP + FN)
-  precision <- ifelse(TP + FP > 0, TP / (TP + FP), NA)
-  recall <- ifelse(TP + FN > 0, TP / (TP + FN), NA)
-  specificity <- ifelse(TN + FP > 0, TN / (TN + FP), NA)
-  f1 <- ifelse(!is.na(precision) & !is.na(recall) & (precision + recall) > 0,
-               2 * precision * recall / (precision + recall), NA)
-  balanced_acc <- (recall + specificity) / 2
-
-  list(
-    model = nom_model,
-    n_test = length(Y_vec),
-    threshold = round(thresh, 3),
-    AUC = round(auc_val, 4),
-    AUC_cv_mean = round(auc_cv_mean, 4),
-    AUC_cv_sd = round(auc_cv_sd, 4),
-    accuracy = round(accuracy, 4),
-    precision = round(precision, 4),
-    recall = round(recall, 4),
-    specificity = round(specificity, 4),
-    F1 = round(f1, 4),
-    balanced_accuracy = round(balanced_acc, 4),
-    TP = TP, TN = TN, FP = FP, FN = FN
-  )
-}
-
-mostrar_metriques_xgb <- function(met, titol = NULL) {
-  if (is.null(titol)) titol <- met$model
-  cat(sprintf("\n--- Mètriques: %s ---\n", titol))
-  cat(sprintf("n = %d | Llindar PR = %.3f\n", met$n_test, met$threshold))
-  if (!is.na(met$AUC_cv_mean)) {
-    cat(sprintf("AUC (val CV):           %.4f ± %.4f\n",
-                met$AUC_cv_mean, met$AUC_cv_sd))
-  }
-  cat(sprintf("AUC:                    %.4f\n", met$AUC))
-  cat(sprintf("Accuracy:               %.4f\n", met$accuracy))
-  cat(sprintf("Precision (PPV):        %.4f\n", met$precision))
-  cat(sprintf("Recall (Sensibilitat):  %.4f\n", met$recall))
-  cat(sprintf("Especificitat:          %.4f\n", met$specificity))
-  cat(sprintf("F1:                     %.4f\n", met$F1))
-  cat(sprintf("Balanced Accuracy:      %.4f\n\n", met$balanced_accuracy))
-
-  cat("Matriu de confusió:\n")
-  cm <- matrix(c(met$TN, met$FN, met$FP, met$TP), nrow = 2,
-               dimnames = list(Observat = c("Irregular(0)", "Regular(1)"),
-                               Predit = c("Irregular(0)", "Regular(1)")))
-  print(cm)
-
-  df_cm <- data.frame(
-    Observat = factor(c("Irregular", "Irregular", "Regular", "Regular"),
-                      levels = c("Regular", "Irregular")),
-    Predit = factor(c("Irregular", "Regular", "Irregular", "Regular"),
-                    levels = c("Irregular", "Regular")),
-    n = c(met$TN, met$FP, met$FN, met$TP),
-    etiq = c("TN", "FP", "FN", "TP")
-  )
-
-  p_cm <- ggplot(df_cm, aes(x = Predit, y = Observat, fill = n)) +
-    geom_tile(color = "white", linewidth = 1) +
-    geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
-    scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
-    labs(title = sprintf("Matriu de confusió — %s", titol),
-         subtitle = sprintf("Llindar PR = %.3f", met$threshold),
-         x = "Valor Predit", y = "Valor Observat") +
-    theme_minimal(base_size = 13) +
-    theme(panel.grid = element_blank())
-  print(p_cm)
-}
+source("3. Codi/Funcions models.R")
 
 #### ============================================================ ####
-####        1. GRID SEARCH — SELECCIÓ D'HIPERPARÀMETRES           ####
+####                  1. SELECCIÓ D'HIPERPARÀMETRES               ####
 #### ============================================================ ####
 
+cat(" ================= GRID SEARCH ================= \n")
 
-cat("=================================================================\n")
-cat("   1. GRID SEARCH (early stopping sobre val)\n")
-cat("=================================================================\n\n")
-
-# Params fixos fora del grid
+# paràmetres fixos fora del grid
 eta_fix <- 0.01
 subsample_fix <- 0.6
 colsample_fix <- 0.6
@@ -272,9 +178,7 @@ cat(sprintf("  lambda = %.1f | alpha = %.1f\n\n",
 ####              2. MODEL FINAL XGBoost                          ####
 #### ============================================================ ####
 
-cat("=================================================================\n")
-cat("   2. MODEL FINAL XGBoost (millors hiperparàmetres del grid)\n")
-cat("=================================================================\n\n")
+cat(" ================== MODEL FINAL ==================== \n")
 
 best_params <- list(
   objective = "binary:logistic",
@@ -300,7 +204,7 @@ xgb_model <- xgb.train(
   verbose = 1
 )
 
-# AUC final sobre val calculat directament (no depèn de best_score intern)
+# AUC final sobre validació calculat directament
 prob_val_final <- predict(xgb_model, dval)
 best_val_auc_final <- as.numeric(auc(roc(Y_val, prob_val_final, quiet = TRUE)))
 cat(sprintf("\nVal AUC model final: %.4f\n\n", best_val_auc_final))
@@ -319,7 +223,7 @@ ggplot(roc_df, aes(x = spec_inv, y = sens)) +
   geom_path(color = "#4A90B8", linewidth = 1.2) +
   geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
   annotate("text", x = 0.62, y = 0.2,
-           label = sprintf("AUC test = %.3f\nAUC val = %.3f",
+           label = sprintf("AUC test = %.3f\nAUC validació = %.3f",
                            as.numeric(auc(roc_xgb)), best_val_auc),
            size = 4.5, color = "#4A90B8") +
   labs(title = "Corba ROC — XGBoost (test)",
@@ -351,9 +255,10 @@ ggplot(pr_xgb$pr_curve, aes(x = recall, y = precision)) +
 ####         3. IMPORTÀNCIA DE VARIABLES                          ####
 #### ============================================================ ####
 
-cat("=================================================================\n")
-cat("   3. IMPORTÀNCIA DE VARIABLES\n")
-cat("=================================================================\n\n")
+# es mira la importància segons les que ajuden a minimitzar la impuresa
+# són les que tenen un gain més elevat
+
+cat(" ===================== IMPORTÀNCIA DE VARIABLES ===================== \n")
 
 imp_xgb <- xgb.importance(model = xgb_model, feature_names = colnames(X_train))
 cat("Top 20 variables per importància (Gain):\n")
@@ -370,16 +275,14 @@ ggplot(df_imp, aes(x = reorder(Feature, Gain), y = Gain, fill = Gain)) +
        x = "", y = "Gain") +
   theme_minimal(base_size = 13)
 
-#### ============================================================ ####
-####                    4. SHAP VALUES (TreeSHAP)                 ####
-#### ============================================================ ####
+#### ================================================= ####
+####                    4. SHAP VALUES                 ####
+#### ================================================= ####
 
-cat("=================================================================\n")
-cat("   4. SHAP VALUES (TreeSHAP exacte)\n")
-cat("=================================================================\n\n")
+# mira quin % de probabilitat s'atribueix a cada variable
 
-# TreeSHAP exacte built-in de xgboost
-# L'última columna és el BIAS (intercept) → s'elimina
+cat(" =============== SHAP VALUES ===============\n")
+
 shap_matrix <- predict(xgb_model, dtest, predcontrib = TRUE)
 shap_df <- as.data.frame(shap_matrix[, -ncol(shap_matrix)])
 names(shap_df) <- colnames(X_test)
@@ -396,7 +299,7 @@ shap_imp <- tibble(
 cat("Top 20 variables per importància SHAP:\n")
 print(shap_imp %>% slice_head(n = 20))
 
-# Gràfic 4a: Importància SHAP
+# Gràfic: Importància SHAP
 shap_top20 <- shap_imp %>% slice_head(n = 20)
 
 ggplot(shap_top20, aes(x = reorder(variable, mean_abs_shap),
@@ -409,7 +312,11 @@ ggplot(shap_top20, aes(x = reorder(variable, mean_abs_shap),
        x = "", y = "Importància SHAP (mean |SHAP|)") +
   theme_minimal(base_size = 13)
 
-# Gràfic 4b: Beeswarm (top 15)
+# Gràfic: Beeswarm
+# cada punt és un alumne del test, si està a la dreta -> variable ajuda a que sigui Regular
+# si està a l'esquerra -> Irregular
+# color vermell: valor elevat i blau: valor baix
+
 top15_vars <- shap_imp$variable[seq_len(min(15, nrow(shap_imp)))]
 
 shap_long <- shap_df %>%
@@ -435,7 +342,12 @@ ggplot(shap_long, aes(x = shap, y = variable, color = valor)) +
        x = "Valor SHAP", y = "") +
   theme_minimal(base_size = 12)
 
-# Gràfic 4c: Dependence plots (top 4)
+# Gràfic: Dependence plots
+# mira les 4 variables més importants
+# si punt > 0 -> variable ajuda a que l'alumne assisteixi més
+# si punt < 0 -> valor emputxa a que l'alumne falti a classe
+# mirar la linea: si baixa a mesura q augmenta variable la prob d'anar a classe disminueix
+
 top4_vars <- shap_imp$variable[1:4]
 
 for (v in top4_vars) {
@@ -455,15 +367,13 @@ for (v in top4_vars) {
 }
 
 #### ============================================================ ####
-####          5. MÈTRIQUES DE CLASSIFICACIÓ                       ####
+####               5. MÈTRIQUES DE CLASSIFICACIÓ                  ####
 #### ============================================================ ####
 
-cat("\n=================================================================\n")
-cat("   5. MÈTRIQUES DE CLASSIFICACIÓ (llindar Youden)\n")
-cat("=================================================================\n\n")
+cat(" =================== MÈTRIQUES DE CLASSIFICACIÓ =================== \n")
 
-# --- 5a Test (avaluació final) ---
-cat("--- 5a Mètriques sobre conjunt test ---\n")
+# ------------ Mètriques sobre el conjunt test ------------
+cat(" Mètriques sobre conjunt test \n")
 
 metriques_xgb <- calcular_metriques_xgb(
   prob = prob_test_xgb,
@@ -474,9 +384,9 @@ metriques_xgb <- calcular_metriques_xgb(
 
 mostrar_metriques_xgb(metriques_xgb)
 
-# --- 5b Validació (estimació imparcial; usada per seleccionar hiperparàmetres) ---
-cat("--- 5b Mètriques sobre conjunt de validació ---\n")
-cat("    [Val: estimació imparcial usada en el grid search]\n\n")
+# ------------ Mètriques sobre el conjunt de validació ------------
+cat("Mètriques sobre conjunt de validació \n")
+cat("    [s'ha utilitzat en el grid search]\n\n")
 
 metriques_xgb_val <- calcular_metriques_xgb(
   prob = prob_val_xgb,
@@ -487,9 +397,9 @@ metriques_xgb_val <- calcular_metriques_xgb(
 
 mostrar_metriques_xgb(metriques_xgb_val)
 
-# --- 5c Train in-sample (per diagnosi d'overfitting) ---
-cat("--- 5c Mètriques sobre train (in-sample) ---\n")
-cat("    [In-sample: OPTIMISTA per definició]\n\n")
+# ------------ Mètriques sobre el conjunt de train ------------
+cat("Mètriques sobre train \n")
+cat("    [Per mirar que no hi hagi overfitting]\n\n")
 
 metriques_xgb_train <- calcular_metriques_xgb(
   prob = prob_train_xgb,
@@ -500,7 +410,7 @@ metriques_xgb_train <- calcular_metriques_xgb(
 
 mostrar_metriques_xgb(metriques_xgb_train)
 
-# Taula resum overfitting (train in-sample vs val vs test)
+# Taula resum overfitting)
 cat("\n--- Resum overfitting: train vs val vs test ---\n")
 cat("  [Val ≈ Test → model generalitza bé | Train >> Val → overfitting]\n\n")
 
@@ -518,35 +428,10 @@ print(df_ov_xgb, row.names = FALSE)
 cat("\n")
 
 #### ============================================================ ####
-####         6. COMPARACIÓ GLOBAL DE MODELS                       ####
+####              6. COMPARACIÓ GLOBAL DE MODELS                  ####
 #### ============================================================ ####
 
-cat("=================================================================\n")
-cat("   6. COMPARACIÓ GLOBAL DE MODELS\n")
-cat("=================================================================\n\n")
-
-# Funció per extreure una fila de mètriques de qualsevol format (logit/RF/XGBoost)
-extreure_fila <- function(m) {
-  cv_info <- tryCatch({
-    if (!is.null(m$AUC_cv_mean) && length(m$AUC_cv_mean) == 1 && !is.na(m$AUC_cv_mean))
-      sprintf("%.4f ± %.4f", m$AUC_cv_mean, m$AUC_cv_sd)
-    else if (!is.null(m$OOB_error) && length(m$OOB_error) == 1 && !is.na(m$OOB_error))
-      sprintf("OOB err = %.4f", m$OOB_error)
-    else "—"
-  }, error = function(e) "—")
-
-  data.frame(
-    Model = m$model,
-    AUC_CV = cv_info,
-    AUC_test = round(m$AUC, 4),
-    Accuracy = round(m$accuracy, 4),
-    Precision = round(m$precision, 4),
-    Recall = round(m$recall, 4),
-    F1 = round(m$F1, 4),
-    Balanced_Acc = round(m$balanced_accuracy, 4),
-    stringsAsFactors = FALSE
-  )
-}
+cat(" =================== COMPARACIÓ GLOBAL DE MODELS =================== \n")
 
 models_llista <- list()
 
@@ -594,14 +479,9 @@ print(
           legend.position = "bottom")
 )
 
-#### ============================================================ ####
-####          7. GUARDAR MÈTRIQUES PER A COMPARACIÓ               ####
-#### ============================================================ ####
-
 saveRDS(metriques_xgb, "2. Dades/metriques_xgb.rds")
-cat("\n-> Metriques guardades a: 2. Dades/metriques_xgb.rds\n\n")
 
-# --- Guardar probabilitats i bbdd encadenada ---
+# --- Guardar probabilitats i bbdd ---
 predictors_ok <- predictors[predictors %in% names(dades_xgb)]
 X_all_xgb_mat <- apply(dades_xgb[, predictors_ok], 2, as.numeric)
 complete_xgb <- complete.cases(X_all_xgb_mat)
@@ -611,14 +491,8 @@ dades_def$prob_xgb <- NA_real_
 dades_def$prob_xgb[complete_xgb] <- prob_xgb_tots
 dades_def$pred_xgb <- NA_integer_
 dades_def$pred_xgb[complete_xgb] <- as.integer(prob_xgb_tots >= thresh_pr_xgb)
-cat(sprintf("Llindar aplicat per pred_xgb: %.4f (PR, no 0.5)\n", thresh_pr_xgb))
+cat(sprintf("Llindar aplicat per pred_xgb: %.4f \n", thresh_pr_xgb))
 save(dades_def, file = "2. Dades/7. Dades XGBoost.RData")
-cat("-> dades_def amb prob_xgb guardades a: 2. Dades/7. Dades XGBoost.RData\n\n")
-
-cat("Vista prèvia del format de mètriques:\n")
-print(as.data.frame(metriques_xgb[c("model", "n_test", "threshold",
-                                     "AUC", "accuracy", "precision",
-                                     "recall", "F1", "balanced_accuracy")]))
 
 sink()
 dev.off()

@@ -23,9 +23,12 @@ pdf("4. Outputs/6.2 Output_grafics_rf.pdf", width = 10, height = 8)
 ####                   0. PREPARACIÓ DE DADES                     ####
 #### ============================================================ ####
 
+# transformem les variables perquè siguin numèriques
+# així mantenim ordinalitat i eivtem problemes amb factors
+
 dades_rf <- dades_def %>%
   mutate(
-    Y = as.integer(GRUP_ASSIST == "Regular (≥80%)"),
+    Y = as.integer(GRUP_ASSIST == "Regular (≥80%)"), # creem variable resposta
     NOTA_num = as.numeric(NOTA),
     IA_SUBST_num = as.numeric(IA_SUBST),
     T_AVAL_num = as.integer(T_AVAL == "Continuada"),
@@ -48,7 +51,7 @@ vars_rfa <- c(
   "DESPL", "N_ASSIG"
 )
 
-# --- Predictors RF-B: Likert originals significatives (MW p<0.05) + categoriques ---
+# Predictors RF-B: Likert originals significatives (MW p<0.05) + categòriques
 vars_rfb <- c(
   # Motius (MW p<0.05 a l'EDA)
   "IA_SUBST", "M_AUTON", "M_AVORR", "M_TEOR", "M_PROF",
@@ -62,34 +65,29 @@ vars_rfb <- c(
   "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num", "DESPL", "N_ASSIG"
 )
 
-# Filtrar predictors existents i convertir a numeric
 prep_dades_rf <- function(df, vars) {
-  vars <- vars[vars %in% names(df)]
+  vars <- vars[vars %in% names(df)] # ens assegurem que existeixen les variables
   df %>%
-    dplyr::select(Y, all_of(vars)) %>%
-    mutate(across(-Y, as.numeric)) %>%
+    dplyr::select(Y, all_of(vars)) %>% # seleccionem Y i predictors escollits
+    mutate(across(-Y, as.numeric)) %>% # totes a numèriques
     drop_na()
 }
 
 dades_rfa <- prep_dades_rf(dades_rf, vars_rfa)
 dades_rfb <- prep_dades_rf(dades_rf, vars_rfb)
 
-
-#### ============================================================ ####
-####                   0. PREPARACIÓ DE DADES                     ####
-#### ============================================================ ####
-
 cat(sprintf("RF-A (factors EFA): %d obs | %d predictors\n",
             nrow(dades_rfa), ncol(dades_rfa) - 1))
 cat(sprintf("RF-B (Likert orig): %d obs | %d predictors\n\n",
             nrow(dades_rfb), ncol(dades_rfb) - 1))
 
+# mirem desbalanceig per corregir després
 cat(sprintf("Distribucio Y — Irregular (0): %d | Regular (1): %d\n",
             sum(dades_rfa$Y == 0), sum(dades_rfa$Y == 1)))
 cat(sprintf("Rati de desbalanceig: %.2f\n\n",
             sum(dades_rfa$Y == 0) / sum(dades_rfa$Y == 1)))
 
-# --- Particio train/test (80/20) ---
+# --- Partició train/test (80/20) ---
 set.seed(1234)
 idx_train_a <- createDataPartition(factor(dades_rfa$Y), p = 0.80, list = FALSE)
 train_a <- dades_rfa[idx_train_a, ]
@@ -114,7 +112,7 @@ cat(sprintf("Case weights: Irregular = %.3f | Regular = %.3f\n\n", w_irr, w_reg)
 # a l'arxiu Funcions models hi ha funcions per a calcular mètriques, les carreguem:
 source("3. Codi/Funcions models.R")
 
-MIN_RECALL <- 0.40
+MIN_RECALL <- 0.60
 
 #### ============================================================ ####
 ####                     1. RANDOM FOREST A                       ####
@@ -124,7 +122,7 @@ cat("\n==============================================\n")
 cat("              1. RANDOM FOREST A                \n")
 cat("================================================\n\n")
 
-# --------------- 1.1. Tunning d'hiperparametres ---------------
+# --------------- 1.1. Tunning d'hiperparàmetres ---------------
 
 p_a <- ncol(train_a) - 1 # num predictors
 
