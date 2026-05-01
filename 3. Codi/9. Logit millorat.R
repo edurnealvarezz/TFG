@@ -12,18 +12,23 @@ lapply(packages, install_if_missing)
 rm(packages)
 
 
+vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
+             "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
+             "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
+vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG")
+vars_pers <- c("EDAT", "DESPL")
+
 setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 
-load("2. Dades/5. Dades Logit.RData")
-#load("2. Dades/6. Dades RF.RData")
+load("2. Dades/8. Dades CatBoost.RData")
 model_seleccionat <- readRDS("2. Dades/model_logit.rds")
 source("3. Codi/Funcions models.R")
 
 sink("4. Outputs/9.1 Output_text_logit_millorat.txt")
 pdf("4. Outputs/9.2 Output_grafics_logit_millorat.pdf", width = 10, height = 8)
 
-MIN_RECALL <- 0.60
+MIN_RECALL <- 0.6
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -50,28 +55,33 @@ print(formula_base)
 cat("\n")
 
 #### ============================================================ ####
-####     1. CONTRAST ORTOGONAL IA_SUBST: LINEAL vs. QUADRATIC    ####
+####                  1. CONTRAST LINEALITAT                      ####
 #### ============================================================ ####
 
-cat("\n========== 1. CONTRAST ORTOGONAL IA_SUBST (L vs. Q) ==========\n\n")
+# --------- 1.2 Contrast linealitat IA_SUBST ---------
 
+cat("\n========== 1.1 CONTRAST LINEALITAT IA_SUBST ==========\n\n")
+
+# primer fem el model quadràtic
 formula_lq <- update(formula_base, . ~ . - IA_SUBST_num + poly(IA_SUBST_num, 2))
 model_lq   <- glm(formula_lq, data = dades_train, family = binomial)
 
 coef_lq <- coef(summary(model_lq))
-p_L <- coef_lq["poly(IA_SUBST_num, 2)1", "Pr(>|z|)"]
-p_Q <- coef_lq["poly(IA_SUBST_num, 2)2", "Pr(>|z|)"]
+p_L <- coef_lq["poly(IA_SUBST_num, 2)1", "Pr(>|z|)"] # significió component lineal
+p_Q <- coef_lq["poly(IA_SUBST_num, 2)2", "Pr(>|z|)"] # significació component quadràtic
 
 cat(sprintf("Component lineal   (L): z = %.3f | p = %.4f\n",
             coef_lq["poly(IA_SUBST_num, 2)1", "z value"], p_L))
 cat(sprintf("Component quadratic (Q): z = %.3f | p = %.4f\n",
             coef_lq["poly(IA_SUBST_num, 2)2", "z value"], p_Q))
 
+# fem LRT per comparar model base vs model quadràtic
 lrt_lq <- anova(model_seleccionat, model_lq, test = "LRT")
 cat("\nLRT: model_seleccionat vs. model amb poly(IA_SUBST_num, 2):\n")
 print(lrt_lq)
 
 # Grafic de probabilitat predicta per IA_SUBST_num
+# fem un gràfic creant un individu promig amb la mediana de les altres variables i variem IA_SUBST_num
 ia_grid <- data.frame(IA_SUBST_num = seq(1, 6, by = 0.1))
 other_vars <- setdiff(all.vars(formula_base)[-1], "IA_SUBST_num")
 for (v in other_vars) {
@@ -101,14 +111,148 @@ ggplot(df_ia_plot, aes(x = IA_SUBST_num, y = prob, color = model, linetype = mod
   theme_minimal(base_size = 13) +
   theme(legend.position = "top")
 
-cat(sprintf("\nConclucio: component quadratic %s (p = %.4f)\n\n",
+# les línies són pràctiment idèntics, el component quadràtic no aporta millora 
+# i el LRT no és significatiu
+
+cat(sprintf("\nConclusió: component quadratic %s (p = %.4f)\n\n",
             ifelse(p_Q < 0.05, "SIGNIFICATIU -> incorporar al model", "no significatiu"),
             p_Q))
+
+# --------- 1.2 Contrast linealitat NOTA_num ---------
+cat("\n========== 1.2 CONTRAST LINEALITAT NOTA_num ==========\n\n")
+
+if ("NOTA_num" %in% all.vars(formula_base)) {
+  formula_nota_q <- update(formula_base, . ~ . - NOTA_num + poly(NOTA_num, 2))
+  model_nota_q   <- glm(formula_nota_q, data = dades_train, family = binomial)
+
+  coef_nota  <- coef(summary(model_nota_q))
+  p_L_nota   <- coef_nota["poly(NOTA_num, 2)1", "Pr(>|z|)"]
+  p_Q_nota   <- coef_nota["poly(NOTA_num, 2)2", "Pr(>|z|)"]
+
+  cat(sprintf("Component lineal   (L): z = %.3f | p = %.4f\n",
+              coef_nota["poly(NOTA_num, 2)1", "z value"], p_L_nota))
+  cat(sprintf("Component quadratic (Q): z = %.3f | p = %.4f\n",
+              coef_nota["poly(NOTA_num, 2)2", "z value"], p_Q_nota))
+
+  lrt_nota <- anova(model_seleccionat, model_nota_q, test = "LRT")
+  cat("\nLRT: model_seleccionat vs. model amb poly(NOTA_num, 2):\n")
+  print(lrt_nota)
+
+  nota_grid <- data.frame(
+    NOTA_num = seq(min(dades_train$NOTA_num, na.rm = TRUE),
+                   max(dades_train$NOTA_num, na.rm = TRUE),
+                   length.out = 100)
+  )
+  other_vars_nota <- setdiff(all.vars(formula_base)[-1], "NOTA_num")
+  for (v in other_vars_nota) {
+    col <- dades_train[[v]]
+    nota_grid[[v]] <- if (is.numeric(col)) median(col, na.rm = TRUE) else {
+      lvl <- names(sort(table(col), decreasing = TRUE))[1]
+      if (is.factor(col)) factor(lvl, levels = levels(col)) else lvl
+    }
+  }
+
+  nota_grid$prob_lin <- predict(model_seleccionat, newdata = nota_grid, type = "response")
+  nota_grid$prob_q   <- predict(model_nota_q,      newdata = nota_grid, type = "response")
+
+  df_nota_plot <- nota_grid %>%
+    dplyr::select(NOTA_num, prob_lin, prob_q) %>%
+    pivot_longer(cols = c(prob_lin, prob_q),
+                 names_to = "model", values_to = "prob") %>%
+    mutate(model = ifelse(model == "prob_lin", "Lineal", "Lineal + Quadratic"))
+
+    ggplot(df_nota_plot, aes(x = NOTA_num, y = prob, color = model, linetype = model)) +
+      geom_line(linewidth = 1.1) +
+      scale_color_manual(values = c("Lineal" = "#4A90B8", "Lineal + Quadratic" = "#E07B54")) +
+      labs(title = "Efecte de NOTA_num sobre P(Regular)",
+           subtitle = "Medianes de la resta de predictors",
+           x = "Nota (numèric)", y = "P(Regular >= 80%)",
+           color = NULL, linetype = NULL) +
+      theme_minimal(base_size = 13) +
+      theme(legend.position = "top")
+
+  cat(sprintf("\nConclusió NOTA_num: component quadratic %s (p = %.4f)\n\n",
+              ifelse(p_Q_nota < 0.05,
+                     "SIGNIFICATIU -> considerar poly(2)",
+                     "no significatiu"),
+              p_Q_nota))
+} else {
+  cat("NOTA_num no es troba a formula_base — contrast omès.\n\n")
+}
+
+# tampoc és significatiu però veiem que les línies no són tan idèntiques com en el cas d'IA_SUBST_num, 
+
+# ----------- 1.3 Contrast linealitat MOT_DESMOTIVACIO -----------
+cat("\n========== 1.3 CONTRAST LINEALITAT MOT_DESMOTIVACIO ==========\n\n")
+
+if ("MOT_DESMOTIVACIO" %in% all.vars(formula_base)) {
+  formula_mot_q <- update(formula_base, . ~ . - MOT_DESMOTIVACIO + poly(MOT_DESMOTIVACIO, 2))
+  model_mot_q   <- glm(formula_mot_q, data = dades_train, family = binomial)
+
+  coef_mot <- coef(summary(model_mot_q))
+  p_L_mot  <- coef_mot["poly(MOT_DESMOTIVACIO, 2)1", "Pr(>|z|)"]
+  p_Q_mot  <- coef_mot["poly(MOT_DESMOTIVACIO, 2)2", "Pr(>|z|)"]
+
+  cat(sprintf("Component lineal   (L): z = %.3f | p = %.4f\n",
+              coef_mot["poly(MOT_DESMOTIVACIO, 2)1", "z value"], p_L_mot))
+  cat(sprintf("Component quadratic (Q): z = %.3f | p = %.4f\n",
+              coef_mot["poly(MOT_DESMOTIVACIO, 2)2", "z value"], p_Q_mot))
+
+  lrt_mot <- anova(model_seleccionat, model_mot_q, test = "LRT")
+  cat("\nLRT: model_seleccionat vs. model amb poly(MOT_DESMOTIVACIO, 2):\n")
+  print(lrt_mot)
+
+  mot_grid <- data.frame(
+    MOT_DESMOTIVACIO = seq(min(dades_train$MOT_DESMOTIVACIO, na.rm = TRUE),
+                           max(dades_train$MOT_DESMOTIVACIO, na.rm = TRUE),
+                           length.out = 100)
+  )
+  other_vars_mot <- setdiff(all.vars(formula_base)[-1], "MOT_DESMOTIVACIO")
+  for (v in other_vars_mot) {
+    col <- dades_train[[v]]
+    mot_grid[[v]] <- if (is.numeric(col)) median(col, na.rm = TRUE) else {
+      lvl <- names(sort(table(col), decreasing = TRUE))[1]
+      if (is.factor(col)) factor(lvl, levels = levels(col)) else lvl
+    }
+  }
+
+  mot_grid$prob_lin <- predict(model_seleccionat, newdata = mot_grid, type = "response")
+  mot_grid$prob_q   <- predict(model_mot_q,       newdata = mot_grid, type = "response")
+
+  df_mot_plot <- mot_grid %>%
+    dplyr::select(MOT_DESMOTIVACIO, prob_lin, prob_q) %>%
+    pivot_longer(cols = c(prob_lin, prob_q),
+                 names_to = "model", values_to = "prob") %>%
+    mutate(model = ifelse(model == "prob_lin", "Lineal", "Lineal + Quadratic"))
+
+    ggplot(df_mot_plot, aes(x = MOT_DESMOTIVACIO, y = prob, color = model, linetype = model)) +
+      geom_line(linewidth = 1.1) +
+      scale_color_manual(values = c("Lineal" = "#4A90B8", "Lineal + Quadratic" = "#E07B54")) +
+      labs(title = "Efecte de MOT_DESMOTIVACIO sobre P(Regular)",
+           subtitle = "Medianes de la resta de predictors",
+           x = "MOT_DESMOTIVACIO (score EFA)", y = "P(Regular >= 80%)",
+           color = NULL, linetype = NULL) +
+      theme_minimal(base_size = 13) +
+      theme(legend.position = "top")
+
+  cat(sprintf("\nConclusió MOT_DESMOTIVACIO: component quadratic %s (p = %.4f)\n\n",
+              ifelse(p_Q_mot < 0.05,
+                     "SIGNIFICATIU -> considerar poly(2)",
+                     "no significatiu"),
+              p_Q_mot))
+} else {
+  cat("MOT_DESMOTIVACIO no es troba a formula_base — contrast omès.\n\n")
+}
+
+# tampoc és significatiu
 
 #### ============================================================ ####
 ####          2. TEST D'INTERACCIONS (LRT)                        ####
 #### ============================================================ ####
 
+# mirarem interaccions amb test de LRT
+
+# ------ 2.1 Mirar interaccions significatives ------
 cat("\n========== 2. TESTS D'INTERACCIONS (LRT) ==========\n\n")
 
 formules_inter <- list(
@@ -136,14 +280,14 @@ resultats_inter <- lapply(names(formules_inter), function(nom) {
 })
 
 df_inter <- do.call(rbind, resultats_inter)
-df_inter$Significativa <- ifelse(!is.na(df_inter$p_LRT) & df_inter$p_LRT < 0.05, "SI", "no")
+df_inter$Significativa <- ifelse(!is.na(df_inter$p_LRT) & df_inter$p_LRT < 0.05, "Si", "No")
 
 cat("Taula de tests d'interaccio:\n\n")
 print(df_inter, row.names = FALSE)
 cat("\n")
 
-# --- 2b. Test anidat per interaccions amb CURS_1R ---
-cat("--- 2b. Test anidat: CURS_1R × MOT_DESMOTIVACIO vs. + IA_SUBST_num × CURS_1R ---\n\n")
+# ------ 2.2 Test niat per interaccions ------
+cat("--- Test niat: CURS_1R × MOT_DESMOTIVACIO vs. + IA_SUBST_num × CURS_1R ---\n\n")
 model_A_curs <- tryCatch(
   glm(update(formula_base, . ~ . + MOT_DESMOTIVACIO:CURS_1R),
       data = dades_train, family = binomial),
@@ -165,7 +309,9 @@ if (!is.null(model_A_curs) && !is.null(model_B_curs)) {
 }
 
 sig_inter_noms <- df_inter$Interaccio[!is.na(df_inter$p_LRT) & df_inter$p_LRT < 0.05]
+# p-valor
 
+# si hi ha interaccions significatives, mostrem els coeficients i estadistics dels termes d'interaccio
 if (length(sig_inter_noms) > 0) {
   cat("Interaccions significatives:\n")
   for (nom in sig_inter_noms) {
@@ -173,8 +319,9 @@ if (length(sig_inter_noms) > 0) {
     form_i  <- formules_inter[[nom]]
     model_i <- glm(form_i, data = dades_train, family = binomial)
     coef_i  <- coef(summary(model_i))
-    inter_term <- gsub(" x ", ":", nom)
-    inter_rows <- grep(inter_term, rownames(coef_i), fixed = TRUE)
+    inter_parts <- strsplit(gsub(" x ", ":", nom), ":")[[1]]
+    inter_rows  <- which(rowSums(sapply(inter_parts, function(p)
+      grepl(p, rownames(coef_i), fixed = TRUE))) == length(inter_parts))
     if (length(inter_rows) > 0) {
       for (rw in rownames(coef_i)[inter_rows]) {
         cat(sprintf("     %s: Coef = %.4f | SE = %.4f | z = %.3f | p = %.4f\n",
@@ -190,33 +337,38 @@ if (length(sig_inter_noms) > 0) {
   cat("Cap interaccio significativa (alfa = 0.05).\n\n")
 }
 
-# Grafic especific per IA_SUBST_num x NOTA_num si es significativa
-if ("IA_SUBST_num x NOTA_num" %in% sig_inter_noms) {
-  model_ia_nota <- glm(formules_inter[["IA_SUBST_num x NOTA_num"]],
+# Grafic especific per IA_SUBST_num x CURS_1R si es significativa
+if ("IA_SUBST_num x CURS_1R" %in% sig_inter_noms) {
+  model_ia_curs <- glm(formules_inter[["IA_SUBST_num x CURS_1R"]],
                        data = dades_train, family = binomial)
-  grid_ia_nota <- expand.grid(
-    IA_SUBST_num = c(1, 3, 5),
-    NOTA_num = seq(min(dades_train$NOTA_num, na.rm = TRUE),
-                   max(dades_train$NOTA_num, na.rm = TRUE), length.out = 50)
+  curs_vals_ia <- sort(unique(dades_train$CURS_1R))
+  grid_ia_curs <- expand.grid(
+    IA_SUBST_num = seq(1, 6, by = 0.1),
+    CURS_1R      = curs_vals_ia
   )
-  other_v2 <- setdiff(all.vars(formula_base)[-1], c("IA_SUBST_num", "NOTA_num"))
+  other_v2 <- setdiff(all.vars(formula_base)[-1], c("IA_SUBST_num", "CURS_1R"))
   for (v in other_v2) {
     col <- dades_train[[v]]
-    grid_ia_nota[[v]] <- if (is.numeric(col)) median(col, na.rm = TRUE) else {
+    grid_ia_curs[[v]] <- if (is.numeric(col)) median(col, na.rm = TRUE) else {
       lvl <- names(sort(table(col), decreasing = TRUE))[1]
       if (is.factor(col)) factor(lvl, levels = levels(col)) else lvl
     }
   }
-  grid_ia_nota$prob <- predict(model_ia_nota, newdata = grid_ia_nota, type = "response")
-  grid_ia_nota$IA_label <- factor(paste0("IA_SUBST=", grid_ia_nota$IA_SUBST_num))
+  grid_ia_curs$prob       <- predict(model_ia_curs, newdata = grid_ia_curs, type = "response")
+  grid_ia_curs$CURS_label <- factor(
+    ifelse(as.character(grid_ia_curs$CURS_1R) %in% c("1", "SI", "TRUE", "1r"),
+           "1r curs", "Altres cursos")
+  )
 
-  ggplot(grid_ia_nota, aes(x = NOTA_num, y = prob, color = IA_label)) +
-    geom_line(linewidth = 1.1) +
-    labs(title = "Interaccio IA_SUBST_num x NOTA_num",
-         subtitle = "Probabilitat predicta de Regular (>=80%)",
-         x = "NOTA_num", y = "P(Regular)", color = "IA_SUBST") +
-    theme_minimal(base_size = 13) +
-    theme(legend.position = "top")
+    ggplot(grid_ia_curs, aes(x = IA_SUBST_num, y = prob, color = CURS_label)) +
+      geom_line(linewidth = 1.2) +
+      scale_color_manual(values = c("1r curs" = "#E07B54", "Altres cursos" = "#4A90B8")) +
+      labs(title = "Interaccio IA_SUBST_num x CURS_1R",
+           subtitle = "Probabilitat predicta de Regular (>=80%) | resta de predictors a la mediana",
+           x = "IA_SUBST (1=Baix, 6=Alt)", y = "P(Regular >= 80%)",
+           color = NULL) +
+      theme_minimal(base_size = 13) +
+      theme(legend.position = "top")
 }
 
 # Grafic interaccio MOT_DESMOTIVACIO x CURS_1R
@@ -242,23 +394,28 @@ if ("CURS_1R x MOT_DESMOTIVACIO" %in% sig_inter_noms && !is.null(model_A_curs)) 
     ifelse(grid_desm_curs$CURS_1R == 1, "1r curs", "Altres cursos")
   )
 
-  ggplot(grid_desm_curs, aes(x = MOT_DESMOTIVACIO, y = prob, color = CURS_label)) +
-    geom_line(linewidth = 1.2) +
-    scale_color_manual(values = c("1r curs" = "#E07B54", "Altres cursos" = "#4A90B8")) +
-    labs(title = "Interaccio MOT_DESMOTIVACIO x CURS_1R",
-         subtitle = "Probabilitat predicta de Regular (>=80%) | resta de predictors a la mediana",
-         x = "MOT_DESMOTIVACIO (factor de desmotivacio)",
-         y = "P(Regular >= 80%)",
-         color = NULL) +
-    theme_minimal(base_size = 13) +
-    theme(legend.position = "top")
+  print(
+    ggplot(grid_desm_curs, aes(x = MOT_DESMOTIVACIO, y = prob, color = CURS_label)) +
+      geom_line(linewidth = 1.2) +
+      scale_color_manual(values = c("1r curs" = "#E07B54", "Altres cursos" = "#4A90B8")) +
+      labs(title = "Interaccio MOT_DESMOTIVACIO x CURS_1R",
+           subtitle = "Probabilitat predicta de Regular (>=80%) | resta de predictors a la mediana",
+           x = "MOT_DESMOTIVACIO (factor de desmotivacio)",
+           y = "P(Regular >= 80%)",
+           color = NULL) +
+      theme_minimal(base_size = 13) +
+      theme(legend.position = "top")
+  )
 }
 
+# no afegim interaccio IA:CURS_1r perquè el test niuat mostra 
+# que no aporta millora sobre afegir només DESM:CURS_1R
+
 #### ============================================================ ####
-####          3. MODEL MILLORAT                                   ####
+####                     3. MODEL MILLORAT                        ####
 #### ============================================================ ####
 
-cat("\n========== 3. CONSTRUCCIO DEL MODEL MILLORAT ==========\n\n")
+cat("\n========== 3. CONSTRUCCIÓ DEL MODEL MILLORAT ==========\n\n")
 
 formula_mil <- formula_base
 
@@ -269,16 +426,14 @@ if (p_Q < 0.05) {
 }
 
 # Afegir interaccions significatives
-# Per a les interaccions amb CURS_1R, el test anidat (seccio 2b) mostra que
-# model A (+ MOT_DESMOTIVACIO:CURS_1R) es preferible a model B (+ ambdues).
-# Per tant, s'exclou IA_SUBST_num:CURS_1R encara que sigui significativa per separat.
+# s'exclou IA_SUBST_num:CURS_1R encara que sigui significativa per separat.
 inter_excloses <- c("IA_SUBST_num:CURS_1R")
 
 if (length(sig_inter_noms) > 0) {
   for (nom in sig_inter_noms) {
     inter_term <- gsub(" x ", ":", nom)
     if (inter_term %in% inter_excloses) {
-      cat(sprintf("-> Exclosa interaccio %s (test anidat: no aporta sobre DESM:CURS_1R)\n",
+      cat(sprintf("-> Exclosa interaccio %s (test niuat: no aporta sobre DESM:CURS_1R)\n",
                   inter_term))
       next
     }
@@ -305,16 +460,19 @@ cat("\nLRT: model_seleccionat vs. model_millorat:\n")
 print(anova(model_seleccionat, model_millorat, test = "LRT"))
 
 #### ============================================================ ####
-####     4. REPEATED 5x10-FOLD CV (TOTES LES METRIQUES)          ####
+####                        4. REPEATED 5x10-fold CV                   ####
 #### ============================================================ ####
 
-cat("\n========== 4. Repeated 5x10-fold CV (totes les metriques) ==========\n\n")
+cat("\n========== 4. Mètriques (TRAIN) ==========\n")
+cat("       Repeated 5x10-fold CV \n\n")
+
 
 set.seed(1234)
 n_rep  <- 5
 n_fold <- 10
 cv_rows_mil <- vector("list", n_rep * n_fold)
 k <- 0
+oof_probs_thresh <- rep(NA_real_, nrow(dades_train))
 
 for (r in seq_len(n_rep)) {
   folds_r <- createFolds(dades_train$Y, k = n_fold, list = TRUE)
@@ -328,6 +486,7 @@ for (r in seq_len(n_rep)) {
     if (is.null(m_cv)) next
     prob_cv <- predict(m_cv, newdata = dades_train[test_idx, ], type = "response")
     Y_cv    <- dades_train$Y[test_idx]
+    if (r == 1) oof_probs_thresh[test_idx] <- prob_cv  # guardem laes prediciccions 
 
     auc_cv_i <- tryCatch(
       as.numeric(auc(roc(Y_cv, prob_cv, quiet = TRUE))),
@@ -377,45 +536,75 @@ cat(sprintf("Repeated %dx%d-fold CV — Model Millorat:\n\n", n_rep, n_fold))
 print(df_cv_mil_resum, row.names = FALSE)
 cat("\n")
 
+# Threshold en les prediccions OOF
+cc_oof <- !is.na(oof_probs_thresh)
+pr_oof_thresh <- seleccionar_llindar_pr(
+  oof_probs_thresh[cc_oof], dades_train$Y[cc_oof], MIN_RECALL
+)
+thresh_cv_oof <- pr_oof_thresh$threshold
+cat(sprintf("Threshold OOF (10-fold, 1a repeticio): %.4f | recall_ok (>= %.2f): %s\n\n",
+            thresh_cv_oof, MIN_RECALL,
+            ifelse(pr_oof_thresh$recall_ok, "SI", "NO (fallback Youden)")))
+
 #### ============================================================ ####
-####     5. LLINDAR PR (Recall >= 0.60) + METRIQUES TEST         ####
+####                     5. MÈTRIQUES (TEST)                      ####
 #### ============================================================ ####
 
-cat("\n========== 5. LLINDAR PR I METRIQUES SOBRE TEST ==========\n\n")
+cat("\n========== 5. METRIQUES SOBRE TEST ==========\n\n")
 
 prob_test_mil <- predict(model_millorat, newdata = dades_test, type = "response")
 
-pr_mil <- seleccionar_llindar_pr(prob_test_mil, dades_test$Y, MIN_RECALL)
-thresh_pr_mil <- pr_mil$threshold
+# Threshold seleccionat per OOF CV (no sobre test)
+thresh_pr_mil <- thresh_cv_oof
 
-cat(sprintf("AUPRC: %.4f\n", pr_mil$auprc))
-cat(sprintf("Llindar seleccionat: %.4f | recall_ok (>= %.2f): %s\n\n",
+# PR curve del test per visualitzacio (AUPRC es threshold-free)
+pr_test_vis <- seleccionar_llindar_pr(prob_test_mil, dades_test$Y, MIN_RECALL)
+
+# Precisio i recall al threshold OOF aplicat sobre test
+pred_test_at_oof <- as.integer(prob_test_mil >= thresh_pr_mil)
+TP_t <- sum(pred_test_at_oof == 1 & dades_test$Y == 1)
+FP_t <- sum(pred_test_at_oof == 1 & dades_test$Y == 0)
+FN_t <- sum(pred_test_at_oof == 0 & dades_test$Y == 1)
+prec_at_thresh <- if (TP_t + FP_t > 0) TP_t / (TP_t + FP_t) else NA_real_
+rec_at_thresh  <- if (TP_t + FN_t > 0) TP_t / (TP_t + FN_t) else NA_real_
+
+# pr_mil: contenidor per compatibilitat amb codi posterior
+pr_mil <- pr_test_vis
+pr_mil$threshold <- thresh_pr_mil
+pr_mil$precision <- prec_at_thresh
+pr_mil$recall <- rec_at_thresh
+
+cat(sprintf("AUPRC (test): %.4f\n", pr_test_vis$auprc))
+cat(sprintf("Llindar OOF: %.4f | recall_ok (>= %.2f): %s\n",
             thresh_pr_mil, MIN_RECALL,
-            ifelse(pr_mil$recall_ok, "SI", "NO (fallback Youden)")))
+            ifelse(pr_oof_thresh$recall_ok, "SI", "NO (fallback Youden)")))
+cat(sprintf("Precisio test al llindar OOF: %.4f | Recall test: %.4f\n\n",
+            prec_at_thresh, rec_at_thresh))
 
-ggplot(pr_mil$pr_curve, aes(x = recall, y = precision)) +
-  geom_path(color = "#4A90B8", linewidth = 1) +
-  geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
-             color = "red", linewidth = 0.8) +
-  geom_point(data = data.frame(recall = pr_mil$recall,
-                               precision = ifelse(is.na(pr_mil$precision),
-                                                  0, pr_mil$precision)),
-             color = "#E07B54", size = 3, shape = 17) +
-  annotate("text", x = MIN_RECALL + 0.04, y = 0.1,
-           label = sprintf("Recall min\n= %.2f", MIN_RECALL),
-           color = "red", size = 3.5) +
-  labs(title = "Corba Precisio-Recall — Logit Millorat (test)",
-       subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f",
-                          pr_mil$auprc, thresh_pr_mil),
-       x = "Recall", y = "Precisio (PPV)") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(pr_mil$pr_curve, aes(x = recall, y = precision)) +
+    geom_path(color = "#4A90B8", linewidth = 1) +
+    geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
+               color = "red", linewidth = 0.8) +
+    geom_point(data = data.frame(recall = pr_mil$recall,
+                                 precision = ifelse(is.na(pr_mil$precision),
+                                                    0, pr_mil$precision)),
+               color = "#E07B54", size = 3, shape = 17) +
+    annotate("text", x = MIN_RECALL + 0.04, y = 0.1,
+             label = sprintf("Recall min\n= %.2f", MIN_RECALL),
+             color = "red", size = 3.5) +
+    labs(title = "Corba Precisio-Recall — Logit Millorat (test)",
+         subtitle = sprintf("AUPRC = %.4f | Llindar OOF = %.4f",
+                            pr_test_vis$auprc, thresh_pr_mil),
+         x = "Recall", y = "Precisio (PPV)") +
+    theme_minimal(base_size = 13)
+)
 
 # Referencia: Precisio del CV (estimacio sense biaix de seleccio de llindar)
 prec_cv_r <- df_cv_mil_resum[df_cv_mil_resum$Metrica == "Precision", ]
 cat(sprintf("Precisio CV (5x10-fold): %.4f +/- %.4f [IC95%% %.4f, %.4f]\n",
             prec_cv_r$Mitjana, prec_cv_r$SD, prec_cv_r$IC_2.5, prec_cv_r$IC_97.5))
-cat("NOTA: la precisio sobre test pot estar inflada perque el llindar s'ha seleccionat\n")
-cat("sobre el MATEIX conjunt de test (biaix d'optimisme). La precisio CV es mes fiable.\n\n")
+cat("NOTA: el llindar s'ha seleccionat per OOF CV (no sobre test).\n")
 
 # Metriques sobre test
 cat("--- 5.1 Metriques sobre test ---\n")
@@ -455,12 +644,12 @@ if (!is.na(prec_test) && !is.na(prec_train) && prec_test > prec_train + 0.05) {
   cat(sprintf(
     "\nAVIS: precisio test (%.3f) > precisio train (%.3f): patro invers a l'overfitting classic.\n",
     prec_test, prec_train))
-  cat("Causa probable: llindar seleccionat per maximitzar precisio sobre el conjunt de test.\n")
-  cat(sprintf("Precisio CV (sense biaix): %.3f — usa aquest valor per a conclusions.\n", prec_cv_r$Mitjana))
+  cat("El llindar ve de OOF CV; comprova que el model no esta sobreajustant al train.\n")
+  cat(sprintf("Precisio CV (referencia): %.3f\n", prec_cv_r$Mitjana))
 }
 cat("\n")
 
-# Bootstrap CI per a Precisio
+# Bootstrap IC per la precisió
 cat("--- 5.3 IC Bootstrap Precisio (B = 1000, percentil) ---\n\n")
 set.seed(1234)
 B <- 1000
@@ -524,7 +713,7 @@ ggplot(df_roc_comp, aes(x = spec_inv, y = sens, color = model)) +
   theme(legend.position = "top")
 
 #### ============================================================ ####
-####          6. CALIBRATION PLOT                                 ####
+####                        6. CALIBRATION PLOT                   ####
 #### ============================================================ ####
 
 cat("\n========== 6. CALIBRATION PLOT ==========\n\n")
@@ -584,7 +773,7 @@ cat(sprintf("HL g=6: chi2=%.3f p=%.4f\n", hl_6$statistic, hl_6$p.value))
 cat(sprintf("HL g=8: chi2=%.3f p=%.4f\n", hl_8$statistic, hl_8$p.value))
 
 #### ============================================================ ####
-####     7. EFECTES MARGINALS PROMIG (AME) — marginaleffects     ####
+####                   7. EFECTES MARGINALS PROMIG                ####
 #### ============================================================ ####
 
 cat("\n========== 7. EFECTES MARGINALS PROMIG (AME) ==========\n\n")
@@ -613,8 +802,64 @@ ggplot(df_ame_plot, aes(x = reorder(term, estimate), y = estimate)) +
        x = "", y = "AME (canvi en probabilitat)") +
   theme_minimal(base_size = 13)
 
+
 #### ============================================================ ####
-####     8. GUARDAR MODEL, PROBABILITATS I BBDD ENCADENADA       ####
+####                      8. COMPARACIÓ MODELS                    ####
+#### ============================================================ ####
+
+cat("\n========== 8. COMPARACIÓ MODELS ==========\n\n")
+
+models_llista <- list()
+
+fitxers <- c(
+  Logit = "2. Dades/metriques_logit.rds",
+  `RF-A` = "2. Dades/metriques_rf_a.rds",
+  `RF-B` = "2. Dades/metriques_rf_b.rds",
+  XGBoost = "2. Dades/metriques_xgb.rds",
+  Logit_Millorat = "2. Dades/metriques_logit_millorat.rds"
+)
+
+for (nom in names(fitxers)) {
+  if (file.exists(fitxers[[nom]])) {
+    models_llista[[nom]] <- readRDS(fitxers[[nom]])
+  }
+}
+models_llista[["Logit_Millorat"]] <- metriques_mil
+
+df_comp <- do.call(rbind, lapply(models_llista, extreure_fila))
+rownames(df_comp) <- NULL
+
+cat("Taula comparativa de models (sobre conjunt test):\n\n")
+print(df_comp, row.names = FALSE)
+
+metriques_num <- c("AUC_test", "Balanced_Acc", "F1", "Accuracy", "Precision", "Recall")
+
+df_comp_long <- df_comp %>%
+  select(Model, all_of(metriques_num)) %>%
+  mutate(across(-Model, as.numeric)) %>%
+  pivot_longer(-Model, names_to = "metrica", values_to = "valor") %>%
+  mutate(metrica = factor(metrica, levels = metriques_num))
+
+colors_models <- c("#4A90B8", "#E07B54", "#8E6BBF", "#2ECC71",
+                   "#E74C3C", "#F39C12", "#1F3A93")[seq_len(n_distinct(df_comp_long$Model))]
+
+print(
+  ggplot(df_comp_long, aes(x = metrica, y = valor, fill = Model)) +
+    geom_col(position = "dodge", alpha = 0.85) +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = colors_models) +
+    scale_y_continuous(limits = c(0, 1)) +
+    labs(title = "Comparacio de models",
+         subtitle = "Metriques sobre conjunt test",
+         x = "", y = "Valor") +
+    theme_minimal(base_size = 13) +
+    theme(axis.text.x = element_text(angle = 25, hjust = 1),
+          legend.position = "bottom")
+)
+
+
+#### ============================================================ ####
+####               9. GUARDAR MODEL, PROBABILITATS I BBDD         ####
 #### ============================================================ ####
 
 saveRDS(metriques_mil, "2. Dades/metriques_logit_millorat.rds")
@@ -632,7 +877,6 @@ cat(sprintf("Llindar aplicat per pred_logit_mil: %.4f (PR recall>=%.2f)\n\n",
             thresh_pr_mil, MIN_RECALL))
 
 save(dades_def, file = "2. Dades/9. Dades Logit Millorat.RData")
-cat("-> dades_def amb prob_logit_mil guardades a: 2. Dades/9. Dades Logit Millorat.RData\n\n")
 
 sink()
 dev.off()

@@ -426,3 +426,111 @@ mostrar_metriques_cat <- function(met, titol = NULL) {
     theme(panel.grid = element_blank())
   print(p_cm)
 }
+
+# ------------------------------
+# Funcions de metriques SVM
+# ------------------------------
+
+calcular_metriques_svm <- function(prob, Y_vec, nom_model,
+ auc_cv_mean = NA, auc_cv_sd = NA,
+ thresh_override = NULL) {
+ roc_obj <- roc(Y_vec, prob, quiet = TRUE)
+ auc_val <- as.numeric(auc(roc_obj))
+
+ if (!is.null(thresh_override)) {
+ thresh <- thresh_override
+ } else {
+ coords_r <- coords(roc_obj, "best",
+ ret = c("threshold", "sensitivity", "specificity"),
+ best.method = "youden")
+ thresh <- coords_r$threshold[1]
+ }
+
+ pred <- as.integer(prob >= thresh)
+ TP <- sum(pred == 1 & Y_vec == 1); TN <- sum(pred == 0 & Y_vec == 0)
+ FP <- sum(pred == 1 & Y_vec == 0); FN <- sum(pred == 0 & Y_vec == 1)
+
+ accuracy <- (TP + TN) / (TP + TN + FP + FN)
+ precision <- ifelse(TP + FP > 0, TP / (TP + FP), NA)
+ recall <- ifelse(TP + FN > 0, TP / (TP + FN), NA)
+ specificity <- ifelse(TN + FP > 0, TN / (TN + FP), NA)
+ f1 <- ifelse(!is.na(precision) & !is.na(recall) & (precision + recall) > 0,
+ 2 * precision * recall / (precision + recall), NA)
+ balanced_acc <- (recall + specificity) / 2
+
+ list(
+ model = nom_model, n_test = length(Y_vec),
+ threshold = round(thresh, 3), AUC = round(auc_val, 4),
+ AUC_cv_mean = round(auc_cv_mean, 4), AUC_cv_sd = round(auc_cv_sd, 4),
+ accuracy = round(accuracy, 4), precision = round(precision, 4),
+ recall = round(recall, 4), specificity = round(specificity, 4),
+ F1 = round(f1, 4), balanced_accuracy = round(balanced_acc, 4),
+ TP = TP, TN = TN, FP = FP, FN = FN
+ )
+}
+
+mostrar_metriques_svm <- function(met, titol = NULL) {
+ if (is.null(titol)) titol <- met$model
+ cat(sprintf("\n--- Mètriques: %s ---\n", titol))
+ cat(sprintf("n = %d | Llindar PR = %.3f\n", met$n_test, met$threshold))
+ if (!is.na(met$AUC_cv_mean))
+ cat(sprintf("AUC (val set): %.4f\n", met$AUC_cv_mean))
+ cat(sprintf("AUC: %.4f\n", met$AUC))
+ cat(sprintf("Accuracy: %.4f\n", met$accuracy))
+ cat(sprintf("Precision (PPV): %.4f\n", met$precision))
+ cat(sprintf("Recall (Sensibilitat): %.4f\n", met$recall))
+ cat(sprintf("Especificitat: %.4f\n", met$specificity))
+ cat(sprintf("F1: %.4f\n", met$F1))
+ cat(sprintf("Balanced Accuracy: %.4f\n\n", met$balanced_accuracy))
+ cat("Matriu de confusió:\n")
+ cm <- matrix(c(met$TN, met$FN, met$FP, met$TP), nrow = 2,
+ dimnames = list(Observat = c("Irregular(0)", "Regular(1)"),
+ Predit = c("Irregular(0)", "Regular(1)")))
+ print(cm)
+ df_cm <- data.frame(
+ Observat = factor(c("Irregular","Irregular","Regular","Regular"),
+ levels = c("Regular","Irregular")),
+ Predit = factor(c("Irregular","Regular","Irregular","Regular"),
+ levels = c("Irregular","Regular")),
+ n = c(met$TN, met$FP, met$FN, met$TP),
+ etiq = c("TN","FP","FN","TP")
+ )
+ p_cm <- ggplot(df_cm, aes(x = Predit, y = Observat, fill = n)) +
+ geom_tile(color = "white", linewidth = 1) +
+ geom_text(aes(label = paste0(etiq, "\n", n)), size = 5, fontface = "bold") +
+ scale_fill_gradient(low = "#EBF5FB", high = "#2471A3", guide = "none") +
+ labs(title = sprintf("Matriu de confusió — %s", titol),
+ subtitle = sprintf("Llindar PR = %.3f", met$threshold),
+ x = "Valor Predit", y = "Valor Observat") +
+ theme_minimal(base_size = 13) + theme(panel.grid = element_blank())
+ print(p_cm)
+}
+
+# Codificació de variables categòriques 
+# Variables ordinals (Likert 1-6) -> numeric
+# Variables binàries -> 0/1
+# Variables categòriques (> 2 nivells) -> dummies
+preparar_matriu_svm <- function(df, vars) {
+ vars_ok <- vars[vars %in% names(df)]
+ col_list <- lapply(vars_ok, function(v) {
+ col <- df[[v]]
+ if (is.numeric(col) || is.integer(col)) {
+ matrix(as.numeric(col), ncol = 1, dimnames = list(NULL, v))
+ } else if (is.ordered(col)) {
+ matrix(as.numeric(col), ncol = 1, dimnames = list(NULL, v))
+ } else if (is.factor(col)) {
+ if (nlevels(col) == 2) {
+ matrix(as.integer(col) - 1L, ncol = 1, dimnames = list(NULL, v))
+ } else {
+ mm <- model.matrix(~ col - 1)[, -1, drop = FALSE]
+ colnames(mm) <- paste0(v, "_", levels(col)[-1])
+ mm
+ }
+ } else {
+ matrix(as.numeric(col), ncol = 1, dimnames = list(NULL, v))
+ }
+ })
+ mat <- do.call(cbind, col_list)
+ storage.mode(mat) <- "numeric"
+ mat
+}
