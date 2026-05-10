@@ -37,7 +37,7 @@ dades_sem <- dades_def %>%
     P_ASSIST = as.numeric(P_ASSIST)
   )
 
-# Declarar items com ordered (lavaan WLSMV)
+# Declarar items com ordered, perquè no calculi corr pearson sinó polychoric
 for (v in items_ord) {
   if (v %in% names(dades_sem))
     dades_sem[[v]] <- ordered(as.integer(dades_sem[[v]]))
@@ -113,6 +113,7 @@ if (!is.null(fit_cfa)) {
   print(fitMeasures(fit_cfa, c("cfi", "tli", "rmsea", "rmsea.ci.lower",
                                 "rmsea.ci.upper", "srmr", "wrmr")))
                                 # per veure si el model és adequat abans de passar al SEM
+                                # si el model
 
   cat("\nModindices CFA (top 15):\n")
   print(modindices(fit_cfa, sort. = TRUE, maximum.number = 15))
@@ -238,7 +239,17 @@ items_ord_final <- c(items_desg, items_fmaj, items_aval, items_ia_final)
 ####               2. MODEL ESTRUCTURAL COMPLET — Model B         ####
 #### ============================================================ ####
 
+# el CFA ens diu que els 4 constructes estan bé, però expliquen per què un alumne falta a classe?
+
 cat("\n========== 2. MODEL ESTRUCTURAL COMPLET (SEM) ==========\n\n")
+
+a1 = efecto directo de DESMOTIVACIO_PEDAG sobre P_ASSIST
+a2 = efecto de DESMOTIVACIO_PEDAG sobre AVALUACIO_AC (primera parte de la mediación)
+b_aval = efecto de AVALUACIO_AC sobre P_ASSIST (segunda parte de la mediación)
+
+#a1 = efecte total de DESMOTIVACIO_PEDAG sobre P_ASSIST (sense mediacio)
+# a2 = efecte de DESMOTIVACIO_PEDAG sobre AVALUACIO_AC
+# b_aval = efecte de AVALUACIO_AC sobre P_ASSIST
 
 model_sem_b <- paste(
   model_mesura,
@@ -254,6 +265,7 @@ model_sem_b <- paste(
 )
 cat("Model SEM-B:\n"); cat(model_sem_b); cat("\n\n")
 
+# estimació i resultats
 fit_sem_b <- tryCatch(
   sem(model_sem_b, data = dades_sem_net,
       estimator = "WLSMV", ordered = items_ord_final, std.lv = TRUE),
@@ -377,7 +389,7 @@ if (!is.null(fit_sem_b)) {
   fit_sem_c <- NULL
 }
 
-# Comparació models A vs B (test LRT per a models niats)
+# Comparació models A vs B (test LRT per a models niuats)
 cat("Comparació Models A i B:\n")
 comp_tab <- data.frame(
   Model = c("A (sense mediacio)", "B (complet)"),
