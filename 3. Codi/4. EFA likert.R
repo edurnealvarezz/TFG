@@ -426,26 +426,57 @@ fer_grafic_scores(res_ia_def, "FA_IA", df = dades_v2)
 
 ##### --------- 3.2. CORRELACIÓ SPEARMAN AMB GRUP_ASSIST ------ #####
 
-print(grafic_spearman_resum("FA_MOT", "Spearman rho factors Motius [definitiu] vs GRUP_ASSIST", df = dades_v2))
-print(grafic_spearman_resum("FA_EST", "Spearman rho factors Estratègies [definitiu] vs GRUP_ASSIST", df = dades_v2))
-print(grafic_spearman_resum("FA_IA", "Spearman rho factors IA [definitiu] vs GRUP_ASSIST", df = dades_v2))
-
 all_fa_def <- grep("^FA_", names(dades_v2), value = TRUE)
 grup_num_def <- as.integer(dades_v2$GRUP_ASSIST == "Regular (≥80%)")
 
 df_fa_def_corr <- lapply(all_fa_def, function(col) {
   x <- dades_v2[[col]]
+  mw <- wilcox.test(x ~ dades_v2$GRUP_ASSIST, exact = FALSE, na.action = na.omit)
   sp <- cor.test(x, grup_num_def, method = "spearman", exact = FALSE, use = "complete.obs")
+  bloc <- case_when(
+    grepl("^FA_MOT", col) ~ "Motius",
+    grepl("^FA_EST", col) ~ "Estrategies",
+    grepl("^FA_IA",  col) ~ "IA",
+    TRUE ~ "Altre"
+  )
   data.frame(factor = col,
              rho_spearman = round(sp$estimate, 3),
-             p_value = round(sp$p.value, 4),
+             p_mw = round(mw$p.value, 4),
+             bloc = bloc,
              stringsAsFactors = FALSE)
 }) %>%
   bind_rows() %>%
+  mutate(sig = case_when(p_mw < 0.001 ~ "***", p_mw < 0.01 ~ "**",
+                         p_mw < 0.05 ~ "*", TRUE ~ "ns")) %>%
   arrange(rho_spearman)
 
+cols_bloc <- c("Motius" = "#E07B54", "Estrategies" = "#4A90B8", "IA" = "#8E6BBF")
+
+print(
+  ggplot(df_fa_def_corr,
+         aes(x = reorder(factor, rho_spearman),
+             y = rho_spearman,
+             fill = bloc,
+             alpha = sig != "ns")) +
+    geom_col() +
+    geom_hline(yintercept = 0, linewidth = 0.5, color = "gray30") +
+    geom_text(aes(label = sprintf("rho=%.2f %s", rho_spearman, sig),
+                  hjust = ifelse(rho_spearman >= 0, -0.1, 1.1)),
+              size = 3.2) +
+    scale_fill_manual(values = cols_bloc, name = "Bloc") +
+    scale_alpha_manual(values = c("TRUE" = 0.9, "FALSE" = 0.35), guide = "none") +
+    coord_flip() +
+    expand_limits(y = c(min(df_fa_def_corr$rho_spearman) - 0.25,
+                        max(df_fa_def_corr$rho_spearman) + 0.25)) +
+    labs(title = "Spearman rho — Tots els factors EFA definitius vs GRUP_ASSIST",
+         subtitle = "Positiu = Regular > Irregular | Opac = significatiu (p < 0.05, MW)",
+         x = "", y = "Spearman rho") +
+    theme_minimal(base_size = 12) +
+    theme(legend.position = "bottom")
+)
+
 cat("Correlació Spearman puntuacions definitives amb GRUP_ASSIST:\n")
-print(df_fa_def_corr)
+print(df_fa_def_corr %>% select(factor, rho_spearman, p_mw, sig), row.names = FALSE)
 
 ##### --------- 3.3. GUARDAR NOMS VARIABLES ------ #####
 
