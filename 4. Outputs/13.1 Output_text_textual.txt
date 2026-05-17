@@ -1,193 +1,252 @@
-============= 0. PREPARACIÓ ================
+========== 0. PREPARACIÓ ==========
 
-  EXP_POS      | ca: 104 | es (traduits): 20
-  EXP_NEG      | ca: 94 | es (traduits): 23
-  PROP_MOT     | ca: 87 | es (traduits): 18
+Total stopwords carregades (cat+es): 981
+
+Diccionari de lemmatització: 78 variants normalitzades
+
 Resum de respostes obertes:
 
-EXP_POS      | N respostes: 134 | N missing: 208 | Mitjana paraules: 24.9
-EXP_NEG      | N respostes: 130 | N missing: 212 | Mitjana paraules: 27.5
-PROP_MOT     | N respostes: 115 | N missing: 227 | Mitjana paraules: 32.8
+EXP_POS      | N respostes: 134 | N missing: 208 | Mitjana paraules: 25.0
+EXP_NEG      | N respostes: 130 | N missing: 212 | Mitjana paraules: 27.6
+PROP_MOT     | N respostes: 115 | N missing: 227 | Mitjana paraules: 33.0
+
 
 ========== 1. EXP_POS — Experiències positives ==========
 
 Pregunta:  Experiència d'una assignatura que t'hagi interessat/agradat 
 
-Paraules úniques (sense stopwords): 686 
-Total ocurrències: 1466 
+Paraules úniques (sense stopwords, lemmatitzades): 809 
+Total ocurrències: 1477 
 
 Top 30 paraules més freqüents (EXP_POS):
-          word  n
-1       classe 55
-2    professor 52
-3     explicar 50
-4  assignatura 39
-5      agradar 20
-6   professora 14
-7    activitat 12
-8     exercici 12
-9       temari 12
-10    entendre 11
-11      manera 11
-12     dinàmic 10
-13      examen 10
-14     exemple 10
-15       final 10
-16        grup 10
-17      teoria 10
-18      alumne  9
-19         cas  9
-20       clase  9
-21 interessant  9
-22      proper  9
-23      seguir  9
-24     treball  9
-25        cosa  8
-26  explicació  8
-27       profe  8
-28      ajudar  7
-29        clar  7
-30   continuar  7
+# A tibble: 30 × 2
+   word              n
+   <chr>         <int>
+ 1 professor        76
+ 2 classe           64
+ 3 assignatura      40
+ 4 explica          16
+ 5 explicava        16
+ 6 feia             14
+ 7 dinamica         13
+ 8 activitat        12
+ 9 examen           11
+10 explicaba        11
+11 grup             11
+12 exercicis        10
+13 interessant      10
+14 teoria           10
+15 mes               9
+16 treball           9
+17 continua          8
+18 seguir            8
+19 alumnes           7
+20 explicar          7
+21 nota              7
+22 practica          7
+23 temari            7
+24 fent              6
+25 macroeconomia     6
+26 materia           6
+27 profe             6
+28 avaluacio         5
+29 cas               5
+30 contabilitat      5
 
 Top bigrams (EXP_POS):
 # A tibble: 15 × 2
-   bigram                    n
-   <chr>                 <int>
- 1 professor explicar       12
- 2 explicar cosa             4
- 3 explicar manera           4
- 4 professora explicar       4
- 5 assignatura professor     3
- 6 classe dinàmic            3
- 7 classe interessant        3
- 8 examen final              3
- 9 explicar assignatura      3
-10 història econòmic         3
-11 manera explicar           3
-12 manera ordenat            3
-13 professor classe          3
-14 professor proper          3
-15 resoldre dubte            3
+   bigram                  n
+   <chr>               <int>
+ 1 professor explica       6
+ 2 professor explicava     6
+ 3 professor explicaba     5
+ 4 power point             3
+ 5 professor feia          3
+ 6 avaluacio continua      2
+ 7 classe compensant       2
+ 8 classe fent             2
+ 9 direccio financera      2
+10 exercicis pràctics      2
+11 feia classe             2
+12 història econòmica      2
+13 professor ana           2
+14 ramon tremosa           2
+15 teoria sociológica      2
+
+Topics LDA (EXP_POS, k=3):
+  Distribució de respostes per tema LDA (k=3):
+
+            T1: Docència participativa T2: Qualitat explicativa del professor 
+                                    47                                     33 
+           T3: Metodologia i avaluació 
+                                    50 
+
+Comparativa per grup d'assistència (EXP_POS):
+  N respostes per 'GRUP_ASSIST':
+# A tibble: 2 × 2
+  subgrup              n
+  <chr>            <int>
+1 Irregular (<80%)    54
+2 Regular (≥80%)      76
+  Paraules amb freqüència total >= 3: 102 (de 809 úniques)
 
 ========== 2. EXP_NEG — Experiències negatives ==========
 
 Pregunta:  Experiència d'una assignatura que NO t'hagi interessat/agradat 
 
-Paraules úniques (sense stopwords): 739 
-Total ocurrències: 1543 
+Paraules úniques (sense stopwords, lemmatitzades): 891 
+Total ocurrències: 1523 
 
 Top 30 paraules més freqüents (EXP_NEG):
-            word  n
-1         classe 71
-2      professor 66
-3    assignatura 31
-4       explicar 31
-5         parlar 16
-6       entendre 15
-7         examen 15
-8            res 15
-9         llegir 14
-10         final 11
-11        manera 11
-12        alumne  9
-13           cap  9
-14 comptabilitat  9
-15        teoria  9
-16          casa  8
-17         clase  8
-18       majoria  8
-19          part  8
-20        temari  8
-21        compte  7
-22      economia  7
-23      estudiar  7
-24      exercici  7
-25          hora  7
-26         massa  7
-27          tema  7
-28         temps  7
-29        teòric  7
-30         apunt  6
+# A tibble: 30 × 2
+   word              n
+   <chr>         <int>
+ 1 classe           79
+ 2 professor        74
+ 3 assignatura      35
+ 4 examen           16
+ 5 explica          11
+ 6 mes              11
+ 7 res              10
+ 8 teoria           10
+ 9 cap               9
+10 casa              8
+11 economia          8
+12 practica          8
+13 alumnes           7
+14 comptabilitat     7
+15 explicava         7
+16 temari            7
+17 campus            6
+18 compte            6
+19 considero         6
+20 contingut         6
+21 estudiar          6
+22 majoria           6
+23 massa             6
+24 nota              6
+25 temps             6
+26 treball           6
+27 apunts            5
+28 assistir          5
+29 econometría       5
+30 explicar          5
 
 Top bigrams (EXP_NEG):
 # A tibble: 15 × 2
    bigram                      n
    <chr>                   <int>
- 1 professor explicar         12
- 2 professor parlar            5
- 3 classe professor            4
- 4 examen final                4
- 5 nota mínim                  4
- 6 agradar professor           3
- 7 assistir classe             3
- 8 classe avorrit              3
- 9 classe teoric               3
-10 costar seguir               3
-11 entendre professor          3
-12 estudiar compte             3
-13 llegir power                3
-14 llegir presentació          3
-15 macroeconomia professor     3
+ 1 nota mínima                 4
+ 2 power point                 4
+ 3 professor explicava         3
+ 4 agustí colom                2
+ 5 assistència obligatòria     2
+ 6 avaluacio continua          2
+ 7 classe practica             2
+ 8 dues hores                  2
+ 9 entendre res                2
+10 finances corporatives       2
+11 professor agustí            2
+12 professor parla             2
+13 professor parlava           2
+14 absurdament enorme          1
+15 aburrides llegint           1
+
+Topics LDA (EXP_NEG, k=3):
+  Distribució de respostes per tema LDA (k=3):
+
+T1: Manca de rellevancia percebuda T2: Passivitat i falta de practica 
+                                41                                 38 
+       T3: Mala comunicacio docent 
+                                47 
+
+Comparativa per grup d'assistència (EXP_NEG):
+  N respostes per 'GRUP_ASSIST':
+# A tibble: 2 × 2
+  subgrup              n
+  <chr>            <int>
+1 Irregular (<80%)    60
+2 Regular (≥80%)      66
+  Paraules amb freqüència total >= 3: 94 (de 891 úniques)
 
 ========== 3. PROP_MOT — Propostes de motivació ==========
 
 Pregunta:  Proposta que et motivaria a assistir a classe 
 
-Paraules úniques (sense stopwords): 712 
-Total ocurrències: 1581 
+Paraules úniques (sense stopwords, lemmatitzades): 902 
+Total ocurrències: 1605 
 
 Top 30 paraules més freqüents (PROP_MOT):
-          word  n
-1       classe 81
-2    professor 36
-3  assignatura 25
-4       examen 19
-5        final 18
-6       alumne 17
-7    activitat 16
-8     explicar 15
-9         grup 14
-10   avaluació 13
-11       clase 13
-12        gent 12
-13        nota 12
-14        part 11
-15       voler 11
-16     alumnat 10
-17      millor 10
-18         pes 10
-19         cap  9
-20        cosa  9
-21       menys  9
-22         res  9
-23         any  8
-24   continuat  8
-25    ensenyar  8
-26    entendre  8
-27        hora  8
-28       temps  8
-29     treball  8
-30     aprovar  7
+# A tibble: 30 × 2
+   word            n
+   <chr>       <int>
+ 1 classe         95
+ 2 professor      40
+ 3 assignatura    30
+ 4 examen         25
+ 5 mes            17
+ 6 activitat      16
+ 7 avaluacio      14
+ 8 grup           14
+ 9 nota           13
+10 gent           11
+11 alumnat        10
+12 continua       10
+13 part           10
+14 practica       10
+15 alumnes         9
+16 pes             9
+17 cap             8
+18 continuada      8
+19 menys           8
+20 res             8
+21 temps           8
+22 treball         8
+23 anys            6
+24 assistir        6
+25 campus          6
+26 coses           6
+27 dinamica        6
+28 estudiar        6
+29 explicar        6
+30 millor          6
 
 Top bigrams (PROP_MOT):
 # A tibble: 15 × 2
-   bigram                  n
-   <chr>               <int>
- 1 examen final            9
- 2 avaluació continu       4
- 3 avaluació continuat     4
- 4 classe hora             4
- 5 treball grup            4
- 6 alumne classe           3
- 7 assistir classe         3
- 8 classe activitat        3
- 9 classe dinàmic          3
-10 classe professor        3
-11 grup reduït             3
-12 nota mínim              3
-13 professor explicar      3
-14 tipus test              3
-15 activitat avaluatiu     2
+   bigram                   n
+   <chr>                <int>
+ 1 avaluacio continua       5
+ 2 avaluacio continuada     5
+ 3 classe mes               3
+ 4 tipo test                3
+ 5 avaluacio contínua       2
+ 6 classe magistrals        2
+ 7 classe siguin            2
+ 8 grup reduïts             2
+ 9 mes activitat            2
+10 mes asignatures          2
+11 mes dinamica             2
+12 nota mínima              2
+13 pla docent               2
+14 absolutament res         1
+15 acabarem fent            1
+
+Topics LDA (PROP_MOT, k=3):
+  Distribució de respostes per tema LDA (k=3):
+
+  T1: Avaluacio continua com a incentiu T2: Classes mes dinamiques i practiques 
+                                     40                                      46 
+       T3: Escepticisme i desvinculacio 
+                                     26 
+
+Comparativa per grup d'assistència (PROP_MOT):
+  N respostes per 'GRUP_ASSIST':
+# A tibble: 2 × 2
+  subgrup              n
+  <chr>            <int>
+1 Irregular (<80%)    51
+2 Regular (≥80%)      61
+  Paraules amb freqüència total >= 3: 95 (de 902 úniques)
 
 ========== 4. COMPARATIVA EXP_POS vs EXP_NEG ==========
 
@@ -197,163 +256,194 @@ Paraules més diferenciadores entre experiències positives i negatives:
 # A tibble: 15 × 4
    word        EXP_POS EXP_NEG log_ratio
    <chr>         <dbl>   <dbl>     <dbl>
- 1 dinàmic        6.82     0.1      6.09
- 2 atenció        4.09     0.1      5.36
- 3 problema       4.09     0.1      5.36
- 4 materia        3.41     0.1      5.09
- 5 econòmic       2.73     0.1      4.77
- 6 passió         2.73     0.1      4.77
- 7 seminari       2.73     0.1      4.77
- 8 comunicació    2.05     0.1      4.36
- 9 disseny        2.05     0.1      4.36
-10 encantar       2.05     0.1      4.36
-11 sector         2.05     0.1      4.36
-12 tarda          2.05     0.1      4.36
-13 transmetre     2.05     0.1      4.36
-14 valorar        2.05     0.1      4.36
-15 aconseguir     1.36     0.1      3.77
+ 1 fent           4.06     0.1      5.34
+ 2 materia        4.06     0.1      5.34
+ 3 estudiant      3.39     0.1      5.08
+ 4 ajuden         2.71     0.1      4.76
+ 5 atenció        2.71     0.1      4.76
+ 6 coses          2.71     0.1      4.76
+ 7 financera      2.71     0.1      4.76
+ 8 passió         2.71     0.1      4.76
+ 9 problemes      2.71     0.1      4.76
+10 agradat        2.03     0.1      4.34
+11 ana            2.03     0.1      4.34
+12 comunicació    2.03     0.1      4.34
+13 disseny        2.03     0.1      4.34
+14 econòmica      2.03     0.1      4.34
+15 entengues      2.03     0.1      4.34
 
 >> Més característiques d'EXP_NEG (log_ratio negatiu):
 # A tibble: 15 × 4
    word          EXP_POS EXP_NEG log_ratio
    <chr>           <dbl>   <dbl>     <dbl>
- 1 comptabilitat     0.1    5.83     -5.87
- 2 compte            0.1    4.54     -5.5 
- 3 massa             0.1    4.54     -5.5 
- 4 malament          0.1    3.89     -5.28
- 5 teoric            0.1    3.89     -5.28
- 6 avorrit           0.1    3.24     -5.02
- 7 dedicar           0.1    3.24     -5.02
- 8 colom             0.1    2.59     -4.7 
- 9 gana              0.1    2.59     -4.7 
-10 horari            0.1    2.59     -4.7 
-11 ràpid             0.1    2.59     -4.7 
-12 costar            0.1    1.94     -4.28
-13 demanar           0.1    1.94     -4.28
-14 gaire             0.1    1.94     -4.28
-15 obligar           0.1    1.94     -4.28
+ 1 comptabilitat     0.1    4.6      -5.52
+ 2 compte            0.1    3.94     -5.3 
+ 3 massa             0.1    3.94     -5.3 
+ 4 malament          0.1    3.28     -5.04
+ 5 curs              0.1    2.63     -4.72
+ 6 ganes             0.1    2.63     -4.72
+ 7 horari            0.1    2.63     -4.72
+ 8 practicar         0.1    2.63     -4.72
+ 9 veure             0.1    2.63     -4.72
+10 aprovar           0.1    1.97     -4.3 
+11 colom             0.1    1.97     -4.3 
+12 entenia           0.1    1.97     -4.3 
+13 gaire             0.1    1.97     -4.3 
+14 llegeix           0.1    1.97     -4.3 
+15 llegeixen         0.1    1.97     -4.3 
 
-========== 5. WORD CLOUD COMBINAT ==========
+========== 5. ANÀLISI DE SENTIMENT ==========
 
-Total paraules úniques (totes 3 variables): 1489 
+Mètode: NRC Emotion Lexicon (syuzhet, language='spanish')
+Nota: cobertura parcial del català; les paraules sense traducció al
+lexicó espanyol no puntuen. El biaix és consistent entre grups, per
+tant les comparacions relatives segueixen sent vàlides.
+
+
+Experiència positiva (EXP_POS):
+  N respostes puntuades: 134
+  Sentiment net M=0.51 (SD=1.49); rang [-2, 6]
+  Correlació sentiment_net ~ P_ASSIST: r = -0.215
+  Respostes sentiment positiu net (>0): 36 (27%)
+  Respostes sentiment negatiu net (<0): 12 (9%)
+  Mitjana d'emocions NRC:
+# A tibble: 8 × 2
+  emocio      mitjana
+  <chr>         <dbl>
+1 confiança    0.470 
+2 por          0.142 
+3 anticipació  0.112 
+4 alegria      0.112 
+5 sorpresa     0.0970
+6 tristesa     0.0896
+7 ira          0.0299
+8 fàstic       0.0149
+  Test Wilcoxon sentiment_net ~ GRUP_ASSIST: W=2561, p=0.0545
+
+Experiència negativa (EXP_NEG):
+  N respostes puntuades: 130
+  Sentiment net M=0.08 (SD=1.63); rang [-5, 6]
+  Correlació sentiment_net ~ P_ASSIST: r = -0.124
+  Respostes sentiment positiu net (>0): 33 (25%)
+  Respostes sentiment negatiu net (<0): 24 (18%)
+  Mitjana d'emocions NRC:
+# A tibble: 8 × 2
+  emocio      mitjana
+  <chr>         <dbl>
+1 confiança    0.423 
+2 tristesa     0.223 
+3 por          0.185 
+4 alegria      0.123 
+5 anticipació  0.115 
+6 ira          0.0923
+7 sorpresa     0.0923
+8 fàstic       0.0846
+  Test Wilcoxon sentiment_net ~ GRUP_ASSIST: W=2492, p=0.0486
+
+Propostes de motivació (PROP_MOT):
+  N respostes puntuades: 115
+  Sentiment net M=0.39 (SD=1.65); rang [-5, 9]
+  Correlació sentiment_net ~ P_ASSIST: r = -0.053
+  Respostes sentiment positiu net (>0): 36 (31%)
+  Respostes sentiment negatiu net (<0): 16 (14%)
+  Mitjana d'emocions NRC:
+# A tibble: 8 × 2
+  emocio      mitjana
+  <chr>         <dbl>
+1 confiança    0.504 
+2 alegria      0.252 
+3 por          0.243 
+4 anticipació  0.157 
+5 tristesa     0.157 
+6 sorpresa     0.157 
+7 ira          0.0870
+8 fàstic       0.0783
+  Test Wilcoxon sentiment_net ~ GRUP_ASSIST: W=1660, p=0.9412
+
+========== 6. ANÀLISI PER SUBGRUPS ==========
+
+Preguntes: parlen diferent els estudiants que treballen vs. els que no?
+Les propostes de primer curs difereixen de la resta?
+
+--- 6.1 PROP_MOT per situació laboral (TREB_INT) ---
+TREB_INTENS: 0=No treballa o treballa ocasionalment | 1=Treballa
+Distribució de respostes per TREB_INTENS:
+# A tibble: 2 × 3
+  TREB_INTENS     n etiqueta      
+        <int> <int> <chr>         
+1           0    66 0             
+2           1    46 Estudi complet
+
+Comparativa binària: No treballa (TREB_INTENS=1) vs. Treballa (TREB_INTENS=2,3,4)
+  N respostes per 'DEDIC_BIN':
+# A tibble: 2 × 2
+  subgrup         n
+  <chr>       <int>
+1 No treballa    46
+2 Treballa       66
+  Paraules amb freqüència total >= 3: 95 (de 902 úniques)
+
+--- 6.2 PROP_MOT per curs (CURS_1R: 1r curs vs. resta) ---
+  N respostes per 'CURS_1R':
+# A tibble: 2 × 2
+  subgrup     n
+  <chr>   <int>
+1 0          92
+2 1          20
+  Paraules amb freqüència total >= 3: 95 (de 902 úniques)
+
+--- 6.3 EXP_NEG per grup d'assistència (lectura narrativa) ---
+(Quin vocabulari diferencia els estudiants que falten dels que assisteixen?)
+  N respostes per 'GRUP_ASSIST':
+# A tibble: 2 × 2
+  subgrup              n
+  <chr>            <int>
+1 Irregular (<80%)    60
+2 Regular (≥80%)      66
+  Paraules amb freqüència total >= 3: 94 (de 891 úniques)
+
+--- 6.4 Distribució PROP_MOT per curs (freqüències) ---
+N de respostes obertes per curs:
+# A tibble: 6 × 2
+  CURS      n
+  <ord> <int>
+1 1r       20
+2 2n       30
+3 3r       26
+4 4t       24
+5 5è        9
+6 6è+       3
+
+========== 7. WORD CLOUD COMBINAT ==========
+
+Total paraules úniques (totes 3 variables): 1997 
 Top 30 paraules globals:
-          word   n
-1       classe 207
-2    professor 154
-3     explicar  96
-4  assignatura  95
-5       examen  44
-6        final  39
-7       alumne  35
-8     entendre  34
-9    activitat  32
-10       clase  30
-11     agradar  29
-12      manera  28
-13        grup  27
-14      temari  27
-15         res  25
-16      teoria  24
-17        nota  23
-18        part  23
-19     treball  23
-20   avaluació  22
-21    exercici  22
-22      llegir  22
-23      parlar  22
-24       voler  21
-25      millor  20
-26         cap  19
-27        cosa  19
-28        gent  19
-29  professora  19
-30      seguir  19
-
-========== 6. XARXA DE CO-OCURRÈNCIA ==========
-
-Xarxes de co-ocurrència:
-  EXP_POS: 245 parelles de co-ocurrència
-  EXP_NEG: 238 parelles de co-ocurrència
-  PROP_MOT: 363 parelles de co-ocurrència
-
-========== 7. TOPIC MODELLING (LDA) ==========
-
-LDA amb k=4 topics | alpha=0.1
-
-Top 12 termes per topic:
-# A tibble: 53 × 3
-   topic term          beta
-   <int> <chr>        <dbl>
- 1     1 assignatura 0.0769
- 2     1 mes         0.0356
- 3     1 final       0.0316
- 4     1 manera      0.0227
- 5     1 donar       0.0227
- 6     1 res         0.0202
- 7     1 nota        0.0186
- 8     1 llegir      0.0178
- 9     1 exercici    0.0178
-10     1 voler       0.0170
-11     1 professora  0.0154
-12     1 temps       0.0138
-13     1 continuar   0.0138
-14     2 explicar    0.0906
-15     2 estar       0.0387
-16     2 entendre    0.0321
-17     2 agradar     0.0274
-18     2 part        0.0217
-19     2 parlar      0.0208
-20     2 cap         0.0179
-21     2 explicació  0.0160
-22     2 campus      0.0132
-23     2 cas         0.0132
-24     2 docent      0.0132
-25     2 proper      0.0123
-26     2 aprovar     0.0123
-27     3 classe      0.168 
-28     3 alumne      0.0285
-29     3 temari      0.0220
-30     3 grup        0.0220
-31     3 treball     0.0187
-32     3 millor      0.0163
-33     3 gent        0.0154
-34     3 seguir      0.0154
-35     3 pràctic     0.0146
-36     3 parcial     0.0138
-37     3 teòric      0.0122
-38     3 ensenyar    0.0122
-39     3 menys       0.0122
-40     3 exemple     0.0122
-41     3 dinàmic     0.0122
-42     4 professor   0.130 
-43     4 examen      0.0370
-44     4 activitat   0.0269
-45     4 clase       0.0253
-46     4 teoria      0.0202
-47     4 avaluació   0.0185
-48     4 cosa        0.0160
-# ℹ 5 more rows
+# A tibble: 30 × 2
+   word            n
+   <chr>       <int>
+ 1 classe        238
+ 2 professor     190
+ 3 assignatura   105
+ 4 examen         52
+ 5 mes            37
+ 6 activitat      32
+ 7 explica        31
+ 8 grup           28
+ 9 nota           26
+10 practica       25
+# ℹ 20 more rows
 # ℹ Use `print(n = ...)` to see more rows
 
-========== 9. ANALISI DE SENTIMENTS ==========
+========== 8. XARXA DE CO-OCURRÈNCIA ==========
 
-Resum de sentiment net (positiu - negatiu) per variable:
-# A tibble: 3 × 6
-  variable     n mitjana_net mediana_net prop_positiu prop_negatiu
-  <chr>    <int>       <dbl>       <dbl>        <dbl>        <dbl>
-1 EXP_NEG    130       0               0        0.215        0.162
-2 EXP_POS    134       0.269           0        0.179        0.09 
-3 PROP_MOT   115       0.217           0        0.235        0.087
-
-Test Mann-Whitney sentiment net per GRUP_ASSIST:
-  EXP_POS      | W = 2505.0 | p = 0.0736
-  EXP_NEG      | W = 2485.0 | p = 0.0432
-  PROP_MOT     | W = 1625.5 | p = 0.8869
-
+Xarxes de co-ocurrència:
+  EXP_POS: 203 parelles de co-ocurrència
+  EXP_NEG: 168 parelles de co-ocurrència
+  PROP_MOT: 245 parelles de co-ocurrència
 
 ========== GUARDAT ==========
 
 -> 13.1 Output_text_textual.txt
 -> 13.2 Output_grafics_textual.pdf
-pdf 
-  2 
+null device 
+          1 
