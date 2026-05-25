@@ -374,6 +374,7 @@ df_motius %>%
   geom_hline(yintercept = 0, color = "gray30") +
   scale_fill_manual(values = c("FALSE" = "#E07B54","TRUE" = "#4A90B8"),
                     labels = c("Més alt en Irregulars", "Més alt en Regulars")) +
+  scale_y_continuous(limits = c(-1.5, 1.5)) +
   coord_flip() +
   labs(title = "Diferència en motius de NO assistència (Regular − Irregular)",
        x = "", y = "Diferència de mitjanes", fill = "") +
@@ -389,6 +390,7 @@ df_estrat %>%
   geom_hline(yintercept = 0, color = "gray30") +
   scale_fill_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "#E07B54"),
                     labels = c("Més alt en Irregulars", "Més alt en Regulars")) +
+  scale_y_continuous(limits = c(-1.5, 1.5)) +
   coord_flip() +
   labs(title = "Diferència en estratègies d'assistència (Regular − Irregular)",
        x = "", y = "Diferència de mitjanes", fill = "") +
@@ -406,6 +408,7 @@ df_ia %>%
   geom_hline(yintercept = 0, color = "gray30") +
   scale_fill_manual(values = c("TRUE" = "#4A90B8", "FALSE" = "#E07B54"),
                     labels = c("Més alt en Irregulars", "Més alt en Regulars")) +
+  scale_y_continuous(limits = c(-1.5, 1.5)) +
   coord_flip() +
   labs(title = "Diferència en l'ús de la IA (Regular − Irregular)",
        x = "", y = "Diferència de mitjanes", fill = "") +

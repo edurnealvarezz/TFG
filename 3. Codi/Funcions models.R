@@ -26,7 +26,7 @@ seleccionar_llindar_pr <- function(prob, Y_vec, min_recall = 0.40) {
       pr_curve  = pr_df
     )
   } else {
-    roc_fb <- roc(Y_vec, prob, quiet = TRUE)
+    roc_fb <- pROC::roc(Y_vec, prob, quiet = TRUE)
     youden  <- coords(roc_fb, "best",
                       ret = c("threshold", "sensitivity", "ppv"),
                       best.method = "youden")
@@ -47,7 +47,7 @@ calcular_metriques <- function(model_glm, dades_test_df, nom_model,
   Y_test <- dades_test_df$Y
   prob <- predict(model_glm, newdata = dades_test_df, type = "response")
 
-  roc_obj <- roc(Y_test, prob, quiet = TRUE)
+  roc_obj <- pROC::roc(Y_test, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
   if (!is.null(thresh_override)) {
@@ -141,7 +141,7 @@ mostrar_metriques <- function(met, titol = NULL) {
 # --------------------------
 calcular_metriques_rf <- function(prob, Y_vec, nom_model, oob_error = NA,
                                   thresh_override = NULL) {
-  roc_obj <- roc(Y_vec, prob, quiet = TRUE)
+  roc_obj <- pROC::roc(Y_vec, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
   if (!is.null(thresh_override)) {
@@ -230,7 +230,7 @@ grafic_cm <- function(met, titol = NULL) {
 calcular_metriques_xgb <- function(prob, Y_vec, nom_model,
                                    auc_cv_mean = NA, auc_cv_sd = NA,
                                    thresh_override = NULL) {
-  roc_obj <- roc(Y_vec, prob, quiet = TRUE)
+  roc_obj <- pROC::roc(Y_vec, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
   if (!is.null(thresh_override)) {
@@ -344,7 +344,7 @@ extreure_fila <- function(m) {
 
 calcular_metriques_cat <- function(prob, Y_vec, nom_model,
                                    thresh_override = NULL) {
-  roc_obj <- roc(Y_vec, prob, quiet = TRUE)
+  roc_obj <- pROC::roc(Y_vec, prob, quiet = TRUE)
   auc_val <- as.numeric(auc(roc_obj))
 
   if (!is.null(thresh_override)) {
@@ -533,4 +533,30 @@ preparar_matriu_svm <- function(df, vars) {
  mat <- do.call(cbind, col_list)
  storage.mode(mat) <- "numeric"
  mat
+}
+
+# -----------------------------------------------
+# Partició train/test compartida entre tots els models
+# -----------------------------------------------
+crear_o_carregar_particio <- function(Y_vec, p = 0.80, seed = 1234,
+                                      path = "2. Dades/particio_train_test.rds") {
+  n <- length(Y_vec)
+  path_n <- sub("\\.rds$", sprintf("_%d.rds", n), path)
+
+  for (p_try in c(path, path_n)) {
+    if (file.exists(p_try)) {
+      idx <- readRDS(p_try)
+      if (length(idx) > 0 && max(idx) <= n) {
+        message(sprintf("Particio carregada: %s (%d train / %d test)", p_try, length(idx), n - length(idx)))
+        return(idx)
+      }
+    }
+  }
+  # crea nova particio: usa el path base si no existeix, sino el path específic per n
+  save_path <- if (!file.exists(path)) path else path_n
+  set.seed(seed)
+  idx <- caret::createDataPartition(Y_vec, p = p, list = FALSE)
+  saveRDS(idx, save_path)
+  message(sprintf("Particio creada i guardada: %s (%d train / %d test)", save_path, length(idx), n - length(idx)))
+  idx
 }

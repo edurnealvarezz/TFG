@@ -1,13 +1,3 @@
-# =======================================================================
-# 14. Fuzzy Clustering + KNN Probabilístic
-# Objectiu: segmentar alumnes per perfils pre-experiència (pre-matrícula)
-# Estudi: Absentisme universitari i ús de la IA — FEE, UB
-# =======================================================================
-
-# -----------------------------------------------------------------------
-# 0. PAQUETS I CONFIGURACIÓ
-# -----------------------------------------------------------------------
-
 packages <- c(
   "e1071", "cluster", "class", "caret", "pROC",
   "ggplot2", "fmsb", "factoextra", "dplyr", "tidyr", "tibble", "scales"
@@ -432,7 +422,7 @@ print(
 )
 
 # =======================================================================
-# GUARDAR MODEL PARCIAL (Fases 1-3)
+# GUARDAR MODEL
 # =======================================================================
 
 save(
@@ -445,10 +435,8 @@ save(
   file = "2. Dades/fuzzy_clustering_model.RData"
 )
 
-cat("-> Model parcial (Fases 1-3) guardat a: 2. Dades/fuzzy_clustering_model.RData\n\n")
-cat("=======================================================\n")
-cat("FASES 4-7: pendent d'implementació\n")
-cat("=======================================================\n")
+
+
 
 dev.off()
 sink()

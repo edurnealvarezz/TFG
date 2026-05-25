@@ -3,412 +3,754 @@
 Irregular (<80%)   Regular (≥80%) 
              148              194 
 
-Proporció Regular (≥80%): 56.7%
+Proporció Regular (>=80%): 56.7% | n = 342
 
-Partició: Train = 274 obs | Test = 68 obs
-  Train — Regular: 55.8% | Irregular: 44.2%
-  Test  — Regular: 60.3% | Irregular: 39.7%
-
-============== 1. MODEL LOGÍSTIC COMPLET =============
-Variables incloses:
- · Factors de motius:      MOT_DESMOTIVACIO, MOT_AUTOGESTIO, MOT_FORCA_MAJOR 
- · Factors d'estratègies:  EST_QUALITAT_DOC, EST_AVALUACIO_AC, EST_TEMPS_CLASSE, EST_GRUPS_REDUITS 
- · Factors de IA:          IA_EINA_ESTUDI, IA_SUBSTITUCIO 
- · Variables categòriques: T_AVAL, CURS_1R, GENERE, DOBLE_GRAU_EST 
- · Variables numèriques:   EDAT, DESPL, NOTA_num 
+============== 1A. MODEL COMPLET AMB FACTORS EFA =============
 
 
 Call:
-glm(formula = formula_completa, family = binomial, data = dades_train)
+glm(formula = formula_completa_efa, family = binomial, data = dades_mod)
 
 Coefficients:
                                Estimate Std. Error z value Pr(>|z|)   
-(Intercept)                   -2.532105   0.951284  -2.662  0.00777 **
-MOT_DESMOTIVACIO              -0.509918   0.233185  -2.187  0.02876 * 
-MOT_AUTOGESTIO                -0.213928   0.245469  -0.872  0.38348   
-MOT_FORCA_MAJOR                0.370917   0.154642   2.399  0.01646 * 
-EST_QUALITAT_DOC              -0.067829   0.188526  -0.360  0.71901   
-EST_AVALUACIO_AC               0.605569   0.223556   2.709  0.00675 **
-EST_TEMPS_CLASSE              -0.061719   0.224523  -0.275  0.78340   
-EST_GRUPS_REDUITS              0.129013   0.246742   0.523  0.60107   
-IA_EINA_ESTUDI                -0.175286   0.246871  -0.710  0.47768   
-IA_SUBSTITUCIO                -0.305996   0.254329  -1.203  0.22892   
-T_AVALContinuada               1.757108   0.733266   2.396  0.01656 * 
-CURS_1R                        1.078203   0.390332   2.762  0.00574 **
-GENEREHome                     0.348663   0.308559   1.130  0.25849   
-GENERENo binari               -1.511987   1.323544  -1.142  0.25330   
-GENEREPrefereixo no respondre  0.179775   1.512318   0.119  0.90538   
-DOBLE_GRAU_EST                 0.532561   0.342670   1.554  0.12015   
-EDAT                          -0.040561   0.018011  -2.252  0.02432 * 
-DESPL                          0.001919   0.005540   0.346  0.72906   
-NOTA_num                       0.567788   0.185062   3.068  0.00215 **
+(Intercept)                   -2.767594   0.924452  -2.994  0.00276 **
+MOT_DESMOTIVACIO              -0.408884   0.197361  -2.072  0.03829 * 
+MOT_AUTOGESTIO                -0.519749   0.205813  -2.525  0.01156 * 
+MOT_FORCA_MAJOR                0.393883   0.141575   2.782  0.00540 **
+EST_QUALITAT_DOC               0.049845   0.169491   0.294  0.76869   
+EST_AVALUACIO_AC               0.393794   0.195002   2.019  0.04344 * 
+EST_TEMPS_CLASSE               0.031943   0.196489   0.163  0.87086   
+EST_GRUPS_REDUITS              0.080198   0.204506   0.392  0.69495   
+IA_EINA_ESTUDI                -0.162552   0.218830  -0.743  0.45759   
+IA_SUBSTITUCIO                -0.257877   0.217204  -1.187  0.23512   
+T_AVALContinuada               2.295767   0.753168   3.048  0.00230 **
+CURS_1R                        0.831384   0.355723   2.337  0.01943 * 
+GENEREHome                     0.319152   0.276507   1.154  0.24841   
+GENERENo binari               -1.847302   1.280830  -1.442  0.14923   
+GENEREPrefereixo no respondre  0.195083   1.518297   0.128  0.89776   
+DOBLE_GRAU_EST                 0.536399   0.303965   1.765  0.07762 . 
+EDAT                          -0.041167   0.017155  -2.400  0.01641 * 
+DESPL                          0.003395   0.004756   0.714  0.47532   
+NOTA_num                       0.496291   0.170541   2.910  0.00361 **
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 (Dispersion parameter for binomial family taken to be 1)
 
-    Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 280.82  on 255  degrees of freedom
-AIC: 318.82
+    Null deviance: 467.91  on 341  degrees of freedom
+Residual deviance: 345.69  on 323  degrees of freedom
+AIC: 383.69
 
 Number of Fisher Scoring iterations: 5
 
 
-Odds Ratios model complet (IC 95% Wald):
-                                 OR 2.5 % 97.5 %
-(Intercept)                   0.079 0.012  0.513
-MOT_DESMOTIVACIO              0.601 0.380  0.948
-MOT_AUTOGESTIO                0.807 0.499  1.306
-MOT_FORCA_MAJOR               1.449 1.070  1.962
-EST_QUALITAT_DOC              0.934 0.646  1.352
-EST_AVALUACIO_AC              1.832 1.182  2.840
-EST_TEMPS_CLASSE              0.940 0.605  1.460
-EST_GRUPS_REDUITS             1.138 0.701  1.845
-IA_EINA_ESTUDI                0.839 0.517  1.361
-IA_SUBSTITUCIO                0.736 0.447  1.212
-T_AVALContinuada              5.796 1.377 24.393
-CURS_1R                       2.939 1.368  6.317
-GENEREHome                    1.417 0.774  2.595
-GENERENo binari               0.220 0.016  2.951
-GENEREPrefereixo no respondre 1.197 0.062 23.193
-DOBLE_GRAU_EST                1.703 0.870  3.334
-EDAT                          0.960 0.927  0.995
-DESPL                         1.002 0.991  1.013
-NOTA_num                      1.764 1.228  2.536
+===== Backward step per BIC (model EFA) =====
 
-========= 2. LINEALITAT EN LOG-ODDS ========
+Start:  AIC=456.55
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
+    IA_EINA_ESTUDI + IA_SUBSTITUCIO + T_AVAL + CURS_1R + GENERE + 
+    DOBLE_GRAU_EST + EDAT + DESPL + NOTA_num
 
---- 2.1 Test de Box-Tidwell (EDAT, DESPL, NOTA_num) ---
+                    Df Deviance    AIC
+- GENERE             3   349.45 442.81
+- EST_TEMPS_CLASSE   1   345.71 450.74
+- EST_QUALITAT_DOC   1   345.77 450.80
+- EST_GRUPS_REDUITS  1   345.84 450.87
+- DESPL              1   346.20 451.22
+- IA_EINA_ESTUDI     1   346.24 451.27
+- IA_SUBSTITUCIO     1   347.10 452.13
+- DOBLE_GRAU_EST     1   348.86 453.88
+- EST_AVALUACIO_AC   1   349.83 454.86
+- MOT_DESMOTIVACIO   1   350.03 455.05
+- EDAT               1   351.05 456.08
+- CURS_1R            1   351.39 456.42
+<none>                   345.69 456.55
+- MOT_AUTOGESTIO     1   352.22 457.25
+- MOT_FORCA_MAJOR    1   353.61 458.63
+- NOTA_num           1   354.57 459.60
+- T_AVAL             1   358.36 463.39
 
-  variable      coef_BT         p sig          conclusio
-1     EDAT  0.052969474 0.6523948  ns lineal en log-odds
-2    DESPL -0.009175268 0.5918070  ns lineal en log-odds
-3 NOTA_num -0.135953084 0.8542006  ns lineal en log-odds
+Step:  AIC=442.81
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
+    IA_EINA_ESTUDI + IA_SUBSTITUCIO + T_AVAL + CURS_1R + DOBLE_GRAU_EST + 
+    EDAT + DESPL + NOTA_num
 
---- 2.2 Comparació AIC: DESPL original vs log(DESPL) ---
+                    Df Deviance    AIC
+- EST_TEMPS_CLASSE   1   349.46 436.98
+- EST_QUALITAT_DOC   1   349.46 436.98
+- IA_EINA_ESTUDI     1   349.80 437.33
+- DESPL              1   349.83 437.35
+- EST_GRUPS_REDUITS  1   349.87 437.39
+- IA_SUBSTITUCIO     1   350.89 438.41
+- DOBLE_GRAU_EST     1   352.05 439.57
+- EST_AVALUACIO_AC   1   353.73 441.25
+- CURS_1R            1   354.57 442.09
+- MOT_DESMOTIVACIO   1   354.75 442.28
+<none>                   349.45 442.81
+- MOT_AUTOGESTIO     1   355.62 443.14
+- EDAT               1   355.84 443.36
+- MOT_FORCA_MAJOR    1   356.93 444.45
+- NOTA_num           1   357.90 445.42
+- T_AVAL             1   362.06 449.58
 
-AIC model amb DESPL: 318.82
-AIC model amb log(DESPL): 318.37
-ΔAIC (orig - log): 0.45
+Step:  AIC=436.98
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_GRUPS_REDUITS + IA_EINA_ESTUDI + IA_SUBSTITUCIO + 
+    T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + DESPL + NOTA_num
 
-→ DESPL no millora amb transformació logarítmica (ΔAIC ≤ 2).
-  DESPL no és rellevant independentment de la forma funcional → s'elimina als models refinats.
+                    Df Deviance    AIC
+- EST_QUALITAT_DOC   1   349.46 431.15
+- IA_EINA_ESTUDI     1   349.81 431.50
+- DESPL              1   349.83 431.52
+- EST_GRUPS_REDUITS  1   349.89 431.58
+- IA_SUBSTITUCIO     1   350.93 432.62
+- DOBLE_GRAU_EST     1   352.06 433.75
+- EST_AVALUACIO_AC   1   353.74 435.43
+- CURS_1R            1   354.69 436.38
+- MOT_DESMOTIVACIO   1   354.82 436.50
+<none>                   349.46 436.98
+- MOT_AUTOGESTIO     1   355.62 437.30
+- EDAT               1   355.88 437.57
+- MOT_FORCA_MAJOR    1   357.24 438.92
+- NOTA_num           1   357.93 439.62
+- T_AVAL             1   362.10 443.79
 
---- 2.3 Gràfics de components parcials (crPlots) ---
+Step:  AIC=431.15
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    EST_GRUPS_REDUITS + IA_EINA_ESTUDI + IA_SUBSTITUCIO + T_AVAL + 
+    CURS_1R + DOBLE_GRAU_EST + EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- IA_EINA_ESTUDI     1   349.81 425.66
+- DESPL              1   349.84 425.69
+- EST_GRUPS_REDUITS  1   349.96 425.81
+- IA_SUBSTITUCIO     1   350.97 426.83
+- DOBLE_GRAU_EST     1   352.06 427.91
+- EST_AVALUACIO_AC   1   354.41 430.26
+- CURS_1R            1   354.70 430.55
+- MOT_DESMOTIVACIO   1   354.86 430.71
+<none>                   349.46 431.15
+- MOT_AUTOGESTIO     1   355.67 431.52
+- EDAT               1   355.90 431.75
+- MOT_FORCA_MAJOR    1   357.24 433.09
+- NOTA_num           1   357.93 433.79
+- T_AVAL             1   362.17 438.02
+
+Step:  AIC=425.66
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    EST_GRUPS_REDUITS + IA_SUBSTITUCIO + T_AVAL + CURS_1R + DOBLE_GRAU_EST + 
+    EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- DESPL              1   350.10 420.12
+- EST_GRUPS_REDUITS  1   350.32 420.34
+- DOBLE_GRAU_EST     1   352.30 422.32
+- EST_AVALUACIO_AC   1   354.60 424.62
+- IA_SUBSTITUCIO     1   355.04 425.06
+- CURS_1R            1   355.16 425.18
+- MOT_DESMOTIVACIO   1   355.24 425.26
+<none>                   349.81 425.66
+- EDAT               1   355.98 426.00
+- MOT_AUTOGESTIO     1   356.09 426.11
+- MOT_FORCA_MAJOR    1   357.81 427.83
+- NOTA_num           1   358.48 428.50
+- T_AVAL             1   362.78 432.79
+
+Step:  AIC=420.12
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    EST_GRUPS_REDUITS + IA_SUBSTITUCIO + T_AVAL + CURS_1R + DOBLE_GRAU_EST + 
+    EDAT + NOTA_num
+
+                    Df Deviance    AIC
+- EST_GRUPS_REDUITS  1   350.67 414.86
+- DOBLE_GRAU_EST     1   352.58 416.77
+- EST_AVALUACIO_AC   1   354.74 418.92
+- CURS_1R            1   355.26 419.45
+- MOT_DESMOTIVACIO   1   355.44 419.63
+- IA_SUBSTITUCIO     1   355.65 419.84
+<none>                   350.10 420.12
+- EDAT               1   356.61 420.80
+- MOT_AUTOGESTIO     1   356.69 420.88
+- MOT_FORCA_MAJOR    1   358.09 422.28
+- NOTA_num           1   358.97 423.15
+- T_AVAL             1   363.40 427.58
+
+Step:  AIC=414.86
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBSTITUCIO + T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + 
+    NOTA_num
+
+                   Df Deviance    AIC
+- DOBLE_GRAU_EST    1   353.27 411.61
+- CURS_1R           1   355.53 413.88
+- MOT_DESMOTIVACIO  1   355.59 413.93
+- IA_SUBSTITUCIO    1   356.41 414.76
+<none>                  350.67 414.86
+- EDAT              1   357.25 415.59
+- MOT_AUTOGESTIO    1   357.39 415.74
+- MOT_FORCA_MAJOR   1   359.14 417.49
+- EST_AVALUACIO_AC  1   359.96 418.31
+- NOTA_num          1   360.08 418.43
+- T_AVAL            1   363.94 422.29
+
+Step:  AIC=411.61
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBSTITUCIO + T_AVAL + CURS_1R + EDAT + NOTA_num
+
+                   Df Deviance    AIC
+- CURS_1R           1   358.22 410.74
+- MOT_AUTOGESTIO    1   358.88 411.39
+- IA_SUBSTITUCIO    1   358.90 411.41
+<none>                  353.27 411.61
+- MOT_DESMOTIVACIO  1   359.56 412.07
+- EDAT              1   360.37 412.88
+- MOT_FORCA_MAJOR   1   361.96 414.47
+- EST_AVALUACIO_AC  1   362.17 414.69
+- NOTA_num          1   363.54 416.06
+- T_AVAL            1   366.28 418.79
+
+Step:  AIC=410.74
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBSTITUCIO + T_AVAL + EDAT + NOTA_num
+
+                   Df Deviance    AIC
+- IA_SUBSTITUCIO    1   363.29 409.97
+<none>                  358.22 410.74
+- EST_AVALUACIO_AC  1   364.84 411.51
+- MOT_DESMOTIVACIO  1   365.14 411.82
+- MOT_AUTOGESTIO    1   365.32 412.00
+- EDAT              1   366.98 413.66
+- MOT_FORCA_MAJOR   1   368.03 414.71
+- NOTA_num          1   369.29 415.97
+- T_AVAL            1   370.92 417.59
+
+Step:  AIC=409.97
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    T_AVAL + EDAT + NOTA_num
+
+                   Df Deviance    AIC
+- EST_AVALUACIO_AC  1   368.75 409.60
+<none>                  363.29 409.97
+- EDAT              1   370.48 411.32
+- MOT_DESMOTIVACIO  1   372.77 413.61
+- MOT_AUTOGESTIO    1   373.40 414.25
+- MOT_FORCA_MAJOR   1   374.27 415.11
+- T_AVAL            1   375.34 416.18
+- NOTA_num          1   375.48 416.33
+
+Step:  AIC=409.6
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + T_AVAL + 
+    EDAT + NOTA_num
+
+                   Df Deviance    AIC
+<none>                  368.75 409.60
+- EDAT              1   375.31 410.32
+- MOT_DESMOTIVACIO  1   376.07 411.08
+- NOTA_num          1   378.17 413.18
+- MOT_FORCA_MAJOR   1   380.96 415.97
+- MOT_AUTOGESTIO    1   381.38 416.39
+- T_AVAL            1   382.76 417.77
 
 
-================== 3.1 MODEL 1.1: Likert numèrica (IA_SUBST + IA_ATENC) ================
+============== 1B. MODEL COMPLET AMB LIKERT IA NUMÈRICA =============
+
 
 Call:
-glm(formula = formula_11, family = binomial, data = dades_train)
+glm(formula = formula_completa_ia, family = binomial, data = dades_mod)
+
+Coefficients:
+                               Estimate Std. Error z value Pr(>|z|)   
+(Intercept)                   -1.974234   0.977837  -2.019  0.04349 * 
+MOT_DESMOTIVACIO              -0.391608   0.200312  -1.955  0.05058 . 
+MOT_AUTOGESTIO                -0.400520   0.210965  -1.899  0.05763 . 
+MOT_FORCA_MAJOR                0.401968   0.143999   2.791  0.00525 **
+EST_QUALITAT_DOC               0.049109   0.171682   0.286  0.77484   
+EST_AVALUACIO_AC               0.391397   0.197643   1.980  0.04767 * 
+EST_TEMPS_CLASSE               0.011556   0.200553   0.058  0.95405   
+EST_GRUPS_REDUITS              0.085034   0.207638   0.410  0.68215   
+IA_SUBST_num                  -0.355806   0.108679  -3.274  0.00106 **
+IA_ATENC_num                   0.021665   0.112563   0.192  0.84738   
+T_AVALContinuada               2.354023   0.761484   3.091  0.00199 **
+CURS_1R                        0.850543   0.359225   2.368  0.01790 * 
+GENEREHome                     0.311035   0.280302   1.110  0.26715   
+GENERENo binari               -1.438624   1.313492  -1.095  0.27340   
+GENEREPrefereixo no respondre  0.644299   1.606445   0.401  0.68837   
+DOBLE_GRAU_EST                 0.585388   0.310499   1.885  0.05939 . 
+EDAT                          -0.038763   0.017063  -2.272  0.02310 * 
+DESPL                          0.004305   0.004938   0.872  0.38338   
+NOTA_num                       0.494599   0.172858   2.861  0.00422 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 467.91  on 341  degrees of freedom
+Residual deviance: 336.99  on 323  degrees of freedom
+AIC: 374.99
+
+Number of Fisher Scoring iterations: 5
+
+
+===== Backward step per BIC (model Likert IA) =====
+
+Start:  AIC=447.86
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
+    IA_SUBST_num + IA_ATENC_num + T_AVAL + CURS_1R + GENERE + 
+    DOBLE_GRAU_EST + EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- GENERE             3   339.75 433.11
+- EST_TEMPS_CLASSE   1   337.00 442.02
+- IA_ATENC_num       1   337.03 442.06
+- EST_QUALITAT_DOC   1   337.08 442.10
+- EST_GRUPS_REDUITS  1   337.16 442.19
+- DESPL              1   337.76 442.79
+- DOBLE_GRAU_EST     1   340.63 445.66
+- MOT_AUTOGESTIO     1   340.64 445.67
+- MOT_DESMOTIVACIO   1   340.86 445.89
+- EST_AVALUACIO_AC   1   340.96 445.98
+- EDAT               1   341.80 446.83
+<none>                   336.99 447.86
+- CURS_1R            1   342.86 447.88
+- MOT_FORCA_MAJOR    1   344.99 450.02
+- NOTA_num           1   345.59 450.62
+- IA_SUBST_num       1   348.19 453.21
+- T_AVAL             1   350.13 455.16
+
+Step:  AIC=433.11
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
+    IA_SUBST_num + IA_ATENC_num + T_AVAL + CURS_1R + DOBLE_GRAU_EST + 
+    EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- EST_QUALITAT_DOC   1   339.78 427.30
+- EST_TEMPS_CLASSE   1   339.78 427.30
+- IA_ATENC_num       1   339.84 427.36
+- EST_GRUPS_REDUITS  1   340.15 427.67
+- DESPL              1   340.41 427.93
+- MOT_AUTOGESTIO     1   343.07 430.59
+- DOBLE_GRAU_EST     1   343.16 430.68
+- EST_AVALUACIO_AC   1   343.65 431.17
+- MOT_DESMOTIVACIO   1   344.20 431.72
+- CURS_1R            1   345.23 432.75
+- EDAT               1   345.53 433.05
+<none>                   339.75 433.11
+- MOT_FORCA_MAJOR    1   347.18 434.71
+- NOTA_num           1   347.90 435.42
+- IA_SUBST_num       1   351.57 439.09
+- T_AVAL             1   352.97 440.49
+
+Step:  AIC=427.3
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + IA_SUBST_num + IA_ATENC_num + 
+    T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- EST_TEMPS_CLASSE   1   339.80 421.48
+- IA_ATENC_num       1   339.85 421.54
+- EST_GRUPS_REDUITS  1   340.21 421.90
+- DESPL              1   340.43 422.12
+- MOT_AUTOGESTIO     1   343.07 424.76
+- DOBLE_GRAU_EST     1   343.16 424.85
+- MOT_DESMOTIVACIO   1   344.30 425.99
+- EST_AVALUACIO_AC   1   344.44 426.13
+- CURS_1R            1   345.23 426.92
+- EDAT               1   345.55 427.23
+<none>                   339.78 427.30
+- MOT_FORCA_MAJOR    1   347.20 428.89
+- NOTA_num           1   347.90 429.59
+- IA_SUBST_num       1   351.57 433.26
+- T_AVAL             1   353.00 434.69
+
+Step:  AIC=421.48
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    EST_GRUPS_REDUITS + IA_SUBST_num + IA_ATENC_num + T_AVAL + 
+    CURS_1R + DOBLE_GRAU_EST + EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- IA_ATENC_num       1   339.86 415.71
+- EST_GRUPS_REDUITS  1   340.23 416.08
+- DESPL              1   340.43 416.29
+- MOT_AUTOGESTIO     1   343.10 418.95
+- DOBLE_GRAU_EST     1   343.16 419.02
+- MOT_DESMOTIVACIO   1   344.36 420.21
+- EST_AVALUACIO_AC   1   344.45 420.30
+- CURS_1R            1   345.32 421.17
+- EDAT               1   345.57 421.42
+<none>                   339.80 421.48
+- MOT_FORCA_MAJOR    1   347.38 423.23
+- NOTA_num           1   348.00 423.85
+- IA_SUBST_num       1   351.60 427.45
+- T_AVAL             1   353.04 428.89
+
+Step:  AIC=415.71
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    EST_GRUPS_REDUITS + IA_SUBST_num + T_AVAL + CURS_1R + DOBLE_GRAU_EST + 
+    EDAT + DESPL + NOTA_num
+
+                    Df Deviance    AIC
+- EST_GRUPS_REDUITS  1   340.28 410.30
+- DESPL              1   340.45 410.47
+- MOT_AUTOGESTIO     1   343.15 413.17
+- DOBLE_GRAU_EST     1   343.20 413.22
+- MOT_DESMOTIVACIO   1   344.36 414.37
+- EST_AVALUACIO_AC   1   344.63 414.65
+- CURS_1R            1   345.43 415.45
+<none>                   339.86 415.71
+- EDAT               1   345.74 415.76
+- MOT_FORCA_MAJOR    1   347.39 417.40
+- NOTA_num           1   348.03 418.05
+- T_AVAL             1   353.19 423.20
+- IA_SUBST_num       1   355.04 425.06
+
+Step:  AIC=410.3
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBST_num + T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + 
+    DESPL + NOTA_num
+
+                   Df Deviance    AIC
+- DESPL             1   340.97 405.15
+- MOT_AUTOGESTIO    1   343.60 407.78
+- DOBLE_GRAU_EST    1   343.76 407.94
+- MOT_DESMOTIVACIO  1   344.47 408.65
+- CURS_1R           1   345.61 409.79
+<none>                  340.28 410.30
+- EDAT              1   346.17 410.35
+- MOT_FORCA_MAJOR   1   348.16 412.34
+- NOTA_num          1   348.90 413.08
+- EST_AVALUACIO_AC  1   349.61 413.80
+- T_AVAL            1   353.59 417.78
+- IA_SUBST_num      1   355.66 419.85
+
+Step:  AIC=405.15
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBST_num + T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + 
+    NOTA_num
+
+                   Df Deviance    AIC
+- DOBLE_GRAU_EST    1   344.41 402.76
+- MOT_AUTOGESTIO    1   344.66 403.01
+- MOT_DESMOTIVACIO  1   345.03 403.38
+- CURS_1R           1   345.94 404.29
+<none>                  340.97 405.15
+- EDAT              1   347.33 405.68
+- MOT_FORCA_MAJOR   1   348.91 407.25
+- NOTA_num          1   349.92 408.27
+- EST_AVALUACIO_AC  1   350.07 408.41
+- T_AVAL            1   354.63 412.98
+- IA_SUBST_num      1   356.41 414.76
+
+Step:  AIC=402.76
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBST_num + T_AVAL + CURS_1R + EDAT + NOTA_num
+
+                   Df Deviance    AIC
+- MOT_AUTOGESTIO    1   347.23 399.75
+- CURS_1R           1   349.43 401.94
+- MOT_DESMOTIVACIO  1   349.92 402.43
+<none>                  344.41 402.76
+- EDAT              1   351.40 403.91
+- MOT_FORCA_MAJOR   1   352.60 405.11
+- EST_AVALUACIO_AC  1   352.94 405.45
+- NOTA_num          1   354.37 406.89
+- T_AVAL            1   357.75 410.27
+- IA_SUBST_num      1   358.90 411.41
+
+Step:  AIC=399.75
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + EDAT + NOTA_num
+
+                   Df Deviance    AIC
+- EDAT              1   353.01 399.69
+<none>                  347.23 399.75
+- CURS_1R           1   353.21 399.89
+- MOT_FORCA_MAJOR   1   355.03 401.71
+- NOTA_num          1   356.45 403.13
+- EST_AVALUACIO_AC  1   357.80 404.48
+- T_AVAL            1   361.45 408.13
+- MOT_DESMOTIVACIO  1   361.93 408.60
+- IA_SUBST_num      1   367.48 414.16
+
+Step:  AIC=399.69
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num
+
+                   Df Deviance    AIC
+<none>                  353.01 399.69
+- CURS_1R           1   360.48 401.32
+- MOT_FORCA_MAJOR   1   360.67 401.51
+- NOTA_num          1   361.55 402.40
+- EST_AVALUACIO_AC  1   362.64 403.48
+- MOT_DESMOTIVACIO  1   364.66 405.50
+- T_AVAL            1   366.65 407.50
+- IA_SUBST_num      1   371.06 411.90
+
+
+===== Comparacio dels dos models BIC =====
+
+                                    model n_param    AIC    BIC
+      BIC EFA (IA_EINA + IA_SUBST factor)       7 382.75 409.60
+ BIC Likert (IA_SUBST_num + IA_ATENC_num)       8 369.01 399.69
+
+-> Seleccionat: model Likert IA (menor BIC)
+
+--- Resum model BIC seleccionat ---
+
+Call:
+glm(formula = Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+    IA_SUBST_num + T_AVAL + CURS_1R + NOTA_num, family = binomial, 
+    data = dades_mod)
 
 Coefficients:
                  Estimate Std. Error z value Pr(>|z|)    
-(Intercept)      -1.03828    0.92121  -1.127 0.259706    
-MOT_DESMOTIVACIO -0.48306    0.22622  -2.135 0.032734 *  
-MOT_AUTOGESTIO   -0.13582    0.23618  -0.575 0.565231    
-MOT_FORCA_MAJOR   0.31614    0.14872   2.126 0.033518 *  
-EST_AVALUACIO_AC  0.60255    0.17258   3.491 0.000481 ***
-IA_SUBST_num     -0.31944    0.12156  -2.628 0.008595 ** 
-IA_ATENC_num     -0.04378    0.12277  -0.357 0.721372    
-T_AVALContinuada  1.70198    0.72234   2.356 0.018463 *  
-CURS_1R           0.96208    0.37104   2.593 0.009516 ** 
-EDAT             -0.04400    0.01660  -2.650 0.008048 ** 
-NOTA_num          0.60542    0.18360   3.297 0.000975 ***
+(Intercept)      -2.16579    0.80748  -2.682 0.007315 ** 
+MOT_DESMOTIVACIO -0.52480    0.15631  -3.357 0.000787 ***
+MOT_FORCA_MAJOR   0.36812    0.13445   2.738 0.006182 ** 
+EST_AVALUACIO_AC  0.44979    0.14729   3.054 0.002260 ** 
+IA_SUBST_num     -0.34800    0.08401  -4.143 3.44e-05 ***
+T_AVALContinuada  2.26730    0.71341   3.178 0.001482 ** 
+CURS_1R           0.89363    0.33665   2.654 0.007943 ** 
+NOTA_num          0.47115    0.16544   2.848 0.004401 ** 
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 (Dispersion parameter for binomial family taken to be 1)
 
-    Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 281.44  on 263  degrees of freedom
-AIC: 303.44
+    Null deviance: 467.91  on 341  degrees of freedom
+Residual deviance: 353.01  on 334  degrees of freedom
+AIC: 369.01
 
 Number of Fisher Scoring iterations: 5
 
 
-================== 3.2 MODEL 1.2: Likert numèrica (IA_SUBST) ================
-
-Call:
-glm(formula = formula_12, family = binomial, data = dades_train)
-
-Coefficients:
-                 Estimate Std. Error z value Pr(>|z|)    
-(Intercept)      -1.08069    0.91325  -1.183 0.236675    
-MOT_DESMOTIVACIO -0.48230    0.22640  -2.130 0.033151 *  
-MOT_AUTOGESTIO   -0.14591    0.23474  -0.622 0.534204    
-MOT_FORCA_MAJOR   0.31866    0.14864   2.144 0.032046 *  
-EST_AVALUACIO_AC  0.59658    0.17177   3.473 0.000514 ***
-IA_SUBST_num     -0.34300    0.10244  -3.348 0.000813 ***
-T_AVALContinuada  1.69359    0.72111   2.349 0.018844 *  
-CURS_1R           0.95429    0.37033   2.577 0.009970 ** 
-EDAT             -0.04389    0.01660  -2.645 0.008180 ** 
-NOTA_num          0.60885    0.18343   3.319 0.000903 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 281.57  on 264  degrees of freedom
-AIC: 301.57
-
-Number of Fisher Scoring iterations: 5
-
-
-================== 3.3 MODEL 2.1: Dummies Likert (IA_SUBST + IA_ATENC) ================
-
-Call:
-glm(formula = formula_21, family = binomial, data = dades_train)
-
-Coefficients:
-                  Estimate Std. Error z value Pr(>|z|)    
-(Intercept)      -1.335290   0.951241  -1.404 0.160398    
-MOT_DESMOTIVACIO -0.535556   0.234834  -2.281 0.022574 *  
-MOT_AUTOGESTIO   -0.042391   0.250668  -0.169 0.865708    
-MOT_FORCA_MAJOR   0.326329   0.154914   2.107 0.035159 *  
-EST_AVALUACIO_AC  0.695333   0.184518   3.768 0.000164 ***
-IA_SUBST_dum2    -0.927907   0.493938  -1.879 0.060301 .  
-IA_SUBST_dum3    -0.973905   0.563837  -1.727 0.084117 .  
-IA_SUBST_dum4    -0.939787   0.628451  -1.495 0.134809    
-IA_SUBST_dum5    -1.362745   0.691037  -1.972 0.048607 *  
-IA_SUBST_dum6    -2.253962   0.760291  -2.965 0.003031 ** 
-IA_ATENC_dum2     0.449192   0.465550   0.965 0.334613    
-IA_ATENC_dum3    -0.896451   0.499209  -1.796 0.072536 .  
-IA_ATENC_dum4    -0.210098   0.583013  -0.360 0.718574    
-IA_ATENC_dum5     0.002193   0.666511   0.003 0.997374    
-IA_ATENC_dum6     0.112567   0.831217   0.135 0.892277    
-T_AVALContinuada  1.835552   0.746257   2.460 0.013906 *  
-CURS_1R           1.152075   0.394473   2.921 0.003494 ** 
-EDAT             -0.048665   0.017967  -2.709 0.006758 ** 
-NOTA_num          0.669761   0.192658   3.476 0.000508 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 271.96  on 255  degrees of freedom
-AIC: 309.96
-
-Number of Fisher Scoring iterations: 5
-
-
-================== 3.4 MODEL 2.2: Dummies Likert (IA_SUBST) ================
-
-Call:
-glm(formula = formula_22, family = binomial, data = dades_train)
-
-Coefficients:
-                 Estimate Std. Error z value Pr(>|z|)    
-(Intercept)      -1.24653    0.93191  -1.338 0.181021    
-MOT_DESMOTIVACIO -0.49082    0.22933  -2.140 0.032337 *  
-MOT_AUTOGESTIO   -0.09555    0.24071  -0.397 0.691401    
-MOT_FORCA_MAJOR   0.31640    0.15080   2.098 0.035895 *  
-EST_AVALUACIO_AC  0.62334    0.17574   3.547 0.000390 ***
-IA_SUBST_dum2    -0.81811    0.46703  -1.752 0.079822 .  
-IA_SUBST_dum3    -1.16261    0.52837  -2.200 0.027780 *  
-IA_SUBST_dum4    -0.90527    0.53934  -1.678 0.093255 .  
-IA_SUBST_dum5    -1.53968    0.61431  -2.506 0.012198 *  
-IA_SUBST_dum6    -2.17517    0.64302  -3.383 0.000718 ***
-T_AVALContinuada  1.82797    0.73456   2.489 0.012828 *  
-CURS_1R           1.03731    0.38158   2.718 0.006559 ** 
-EDAT             -0.04725    0.01741  -2.713 0.006658 ** 
-NOTA_num          0.60457    0.18407   3.284 0.001022 ** 
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 278.97  on 260  degrees of freedom
-AIC: 306.97
-
-Number of Fisher Scoring iterations: 5
-
-
-================== 3.5 MODEL 3: Likert numèrica (sense MOT_AUTOGESTIO) ================
-
-Call:
-glm(formula = formula_3, family = binomial, data = dades_train)
-
-Coefficients:
-                 Estimate Std. Error z value Pr(>|z|)    
-(Intercept)      -1.09522    0.91130  -1.202 0.229433    
-MOT_DESMOTIVACIO -0.56581    0.18284  -3.095 0.001971 ** 
-MOT_FORCA_MAJOR   0.31750    0.14864   2.136 0.032679 *  
-EST_AVALUACIO_AC  0.60419    0.17096   3.534 0.000409 ***
-IA_SUBST_num     -0.35520    0.10066  -3.529 0.000418 ***
-T_AVALContinuada  1.69876    0.71859   2.364 0.018078 *  
-CURS_1R           0.98457    0.36750   2.679 0.007382 ** 
-EDAT             -0.04160    0.01614  -2.578 0.009944 ** 
-NOTA_num          0.59965    0.18202   3.294 0.000986 ***
----
-Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-
-(Dispersion parameter for binomial family taken to be 1)
-
-    Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 281.96  on 265  degrees of freedom
-AIC: 299.96
-
-Number of Fisher Scoring iterations: 5
-
-
-===== 3.6 TAULA-RESUM COMPARATIVA DE MODELS (train) =====
-
-                                model n_param    AIC    BIC
-                          1.0 Complet      19 318.82 387.47
- 1.1 Likert num (IA_SUBST + IA_ATENC)      11 303.44 343.19
-            1.2 Likert num (IA_SUBST)      10 301.57 337.70
-    2.1 Dummies (IA_SUBST + IA_ATENC)      19 309.96 378.61
-               2.2 Dummies (IA_SUBST)      14 306.97 357.56
-  3.0 Likert num sense MOT_AUTOGESTIO       9 299.96 332.47
-
-→ Model seleccionat: 3 (Likert numèrica, sense MOT_AUTOGESTIO)
-
-
-Odds Ratios model seleccionat (IC 95% Wald):
+Odds Ratios model BIC (IC 95% Wald):
                     OR 2.5 % 97.5 %
-(Intercept)      0.334 0.056  1.996
-MOT_DESMOTIVACIO 0.568 0.397  0.813
-MOT_FORCA_MAJOR  1.374 1.027  1.838
-EST_AVALUACIO_AC 1.830 1.309  2.558
-IA_SUBST_num     0.701 0.576  0.854
-T_AVALContinuada 5.467 1.337 22.358
-CURS_1R          2.677 1.302  5.501
-EDAT             0.959 0.929  0.990
-NOTA_num         1.821 1.275  2.602
+(Intercept)      0.115 0.024  0.558
+MOT_DESMOTIVACIO 0.592 0.436  0.804
+MOT_FORCA_MAJOR  1.445 1.110  1.881
+EST_AVALUACIO_AC 1.568 1.175  2.093
+IA_SUBST_num     0.706 0.599  0.832
+T_AVALContinuada 9.653 2.385 39.078
+CURS_1R          2.444 1.263  4.728
+NOTA_num         1.602 1.158  2.215
 
-=================== 4. FIV ===================
+========= 2. LINEALITAT EN LOG-ODDS (Box-Tidwell) ========
 
-MOT_DESMOTIVACIO  MOT_FORCA_MAJOR EST_AVALUACIO_AC     IA_SUBST_num 
-           1.337            1.048            1.314            1.290 
-          T_AVAL          CURS_1R             EDAT         NOTA_num 
-           1.020            1.106            1.202            1.169 
+      variable    coef_BT         p sig          conclusio
+1     NOTA_num -0.4484230 0.4900927  ns lineal en log-odds
+2 IA_SUBST_num -0.3270338 0.3122299  ns lineal en log-odds
 
-⚠ Variables amb VIF > 5: Cap
+========== 3. CONTRAST LINEALITAT VARIABLES CLAU ==========
 
-====== 5. OBSERVACIONS INFLUENTS ======
+--- IA_SUBST_num ---
+  Lineal (L):    z=-4.080 | p=0.0000
+  Quadratic (Q): z=-1.138 | p=0.2551
+  LRT: Chi2=1.310 | gl=1 | p=0.2524
+  Conclusio: no significatiu
 
-n train = 274 | k predictors = 8
-Llindar Cook's D: 4/n = 0.0146
-Llindar leverage: 2(k+1)/n = 0.0657
-Llindar |residu Pearson std|: 2.5
+--- NOTA_num ---
+  Lineal (L):    z=2.813 | p=0.0049
+  Quadratic (Q): z=-0.501 | p=0.6164
+  LRT: Chi2=0.248 | gl=1 | p=0.6182
+  Conclusio: no significatiu
 
-Observacions amb Cook's D > 0.0146:¡ 21
-Observacions amb leverage > 0.0657:¡ 22
-Observacions amb |residu Pearson| > 2.5: 4
-
-Detall observacions amb |residu Pearson std| > 2.5:
-    index_orig res_pearson_std cook_D leverage Y_obs             GRUP
-2            2          -2.927 0.0365   0.0369     0 Irregular (<80%)
-197        197           2.669 0.0170   0.0210     1   Regular (≥80%)
-223        223          -4.340 0.0480   0.0224     0 Irregular (<80%)
-252        252          -4.437 0.0228   0.0103     0 Irregular (<80%)
-
-Detall observacions amb Cook's D > 4/n:
-    index_orig cook_D leverage res_pearson_std Y_obs             GRUP
-2            2 0.0365   0.0369          -2.927     0 Irregular (<80%)
-6            6 0.0543   0.2409          -1.241     0 Irregular (<80%)
-38          38 0.0191   0.0583          -1.669     0 Irregular (<80%)
-87          87 0.0185   0.1230           1.091     1   Regular (≥80%)
-88          88 0.0225   0.1141          -1.254     0 Irregular (<80%)
-93          93 0.0167   0.0437           1.816     1   Regular (≥80%)
-126        126 0.0672   0.1037           2.287     1   Regular (≥80%)
-128        128 0.0191   0.0535          -1.742     0 Irregular (<80%)
-129        129 0.0370   0.1657           1.294     1   Regular (≥80%)
-134        134 0.0349   0.1558          -1.304     0 Irregular (<80%)
-157        157 0.0324   0.0904          -1.712     0 Irregular (<80%)
-161        161 0.0602   0.0831           2.444     1   Regular (≥80%)
-182        182 0.0318   0.1357           1.351     1   Regular (≥80%)
-197        197 0.0170   0.0210           2.669     1   Regular (≥80%)
-202        202 0.0165   0.0248          -2.419     0 Irregular (<80%)
-220        220 0.0148   0.1644          -0.822     0 Irregular (<80%)
-223        223 0.0480   0.0224          -4.340     0 Irregular (<80%)
-228        228 0.0167   0.0635           1.487     1   Regular (≥80%)
-237        237 0.0165   0.1271           1.011     1   Regular (≥80%)
-252        252 0.0228   0.0103          -4.437     0 Irregular (<80%)
-256        256 0.0254   0.0722          -1.716     0 Irregular (<80%)
-
-========== 6. AVALUACIÓ DEL MODEL FINAL ==========
-
---- 6.1 Repeated 5x10-fold Cross-Validation (totes les metriques) ---
-
-Repeated 5x10-fold CV sobre train:
-
-      Metrica Mitjana     SD IC_2.5 IC_97.5
-          AUC  0.7924 0.0837 0.6276  0.9444
-        AUPRC  0.8202 0.0998 0.6145  0.9737
-    Precision  0.9097 0.0947 0.7543  1.0000
-       Recall  0.5805 0.1310 0.4026  0.8710
-           F1  0.6996 0.1027 0.5591  0.8969
- Balanced_Acc  0.7523 0.0719 0.6561  0.8943
-
---- 6.2 Pseudo-R² (train) ---
-
-McFadden R²:   0.2503
-Nagelkerke R² (especial per logit): 0.3895
-
---- 6.3 Llindar per corba Precisio-Recall (PRROC) ---
-
-AUPRC: 0.9019
-Llindar seleccionat: 0.6513 | recall_ok (>= 0.40): SI
-
---- 6.3b Metriques sobre conjunt test ---
-
---- Mètriques: Logit 3 ---
-n test = 68 | Llindar PR = 0.651
-AUC (10-fold CV train): 0.7924 ± 0.0837
-AUC (test):             0.8428
-Accuracy:               0.7500
-Precision (PPV):        0.9615
-Recall (Sensibilitat):  0.6098
-Especificitat:          0.9630
-F1:                     0.7463
-Balanced Accuracy:      0.7864
-
-Matriu de confusió:
-              Predit
-Observat       Irregular(0) Regular(1)
-  Irregular(0)           26          1
-  Regular(1)             16         25
---- 6.3c Metriques sobre conjunt train ---
-
---- Mètriques: Logit 3 (train) ---
-n test = 274 | Llindar PR = 0.651
-AUC (test):             0.8174
-Accuracy:               0.7190
-Precision (PPV):        0.8333
-Recall (Sensibilitat):  0.6209
-Especificitat:          0.8430
-F1:                     0.7116
-Balanced Accuracy:      0.7319
-
-Matriu de confusió:
-              Predit
-Observat       Irregular(0) Regular(1)
-  Irregular(0)          102         19
-  Regular(1)             58         95
-
---- Resum overfitting: train vs test ---
-
- Conjunt    AUC Accuracy Precision Recall     F1 Balanced_Acc
-   Train 0.8174    0.719    0.8333 0.6209 0.7116       0.7319
-    Test 0.8428    0.750    0.9615 0.6098 0.7463       0.7864
-
---- 6.3d IC Bootstrap Precisio (B = 1000, percentil) ---
-
-Precisio (PPV) puntual:  0.9615
-IC Bootstrap 95%:        [0.8750, 1.0000]
-Amplada IC:              0.1250
+--- MOT_DESMOTIVACIO ---
+  Lineal (L):    z=-3.206 | p=0.0013
+  Quadratic (Q): z=-1.383 | p=0.1667
+  LRT: Chi2=1.922 | gl=1 | p=0.1656
+  Conclusio: no significatiu
 
 
---- 6.4 Test de Hosmer-Lemeshow (test) ---
+========== 4. TESTS D'INTERACCIONS (LRT) ==========
 
-chi² = 10.8988 | gl = 8 | p = 0.2075
-→ No es rebutja H0: el model s'ajusta bé (p > 0.05)
-Llindar aplicat per pred_logit: 0.6513 (PR, no 0.5)
+               Interaccio  Chi2 gl  p_LRT  dBIC Significativa
+  MOT_DESMOTIVACIO:T_AVAL 2.663  1 0.1027  3.17            No
+    IA_SUBST_num:NOTA_num 1.163  1 0.2809  4.67            No
+ MOT_DESMOTIVACIO:CURS_1R 8.794  1 0.0030 -2.96            Si
+     IA_SUBST_num:CURS_1R 3.284  1 0.0700  2.55            No
 
--> dades_def amb prob_logit guardades a: 2. Dades/5. Dades Logit.RData
+--- Test niat: base -> +DESM:CURS_1R -> +IA_SUBST_num:CURS_1R ---
+
+Analysis of Deviance Table
+
+Model 1: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num
+Model 2: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+Model 3: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num + MOT_DESMOTIVACIO:CURS_1R + 
+    IA_SUBST_num:CURS_1R
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
+1       334     353.01                        
+2       333     344.22  1   8.7944 0.003022 **
+3       332     344.11  1   0.1120 0.737910   
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+BIC base:               399.69
+BIC +DESM:CURS_1R:      396.73
+BIC +DESM:CURS+IA:CURS: 402.46
+
+
+-> Interaccio MOT_DESMOTIVACIO:CURS_1R:
+  MOT_DESMOTIVACIO:CURS_1R: Coef=1.0267 | p=0.0033
+
+========== 5. MODEL FINAL EXPLICATIU ==========
+
+-> Afegida interaccio: MOT_DESMOTIVACIO:CURS_1R
+
+Formula model final:
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+
+
+Call:
+glm(formula = formula_final, family = binomial, data = dades_mod)
+
+Coefficients:
+                         Estimate Std. Error z value Pr(>|z|)    
+(Intercept)              -1.92519    0.79517  -2.421  0.01547 *  
+MOT_DESMOTIVACIO         -0.75057    0.18149  -4.136 3.54e-05 ***
+MOT_FORCA_MAJOR           0.35662    0.13697   2.604  0.00923 ** 
+EST_AVALUACIO_AC          0.43277    0.14476   2.989  0.00279 ** 
+IA_SUBST_num             -0.37591    0.08645  -4.348 1.37e-05 ***
+T_AVALContinuada          2.10801    0.68792   3.064  0.00218 ** 
+CURS_1R                   0.98562    0.34020   2.897  0.00377 ** 
+NOTA_num                  0.48480    0.16757   2.893  0.00382 ** 
+MOT_DESMOTIVACIO:CURS_1R  1.02674    0.34960   2.937  0.00331 ** 
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 467.91  on 341  degrees of freedom
+Residual deviance: 344.22  on 333  degrees of freedom
+AIC: 362.22
+
+Number of Fisher Scoring iterations: 5
+
+
+LRT model BIC vs model final:
+Analysis of Deviance Table
+
+Model 1: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num
+Model 2: Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + IA_SUBST_num + 
+    T_AVAL + CURS_1R + NOTA_num + MOT_DESMOTIVACIO:CURS_1R
+  Resid. Df Resid. Dev Df Deviance Pr(>Chi)   
+1       334     353.01                        
+2       333     344.22  1   8.7944 0.003022 **
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Odds Ratios model final (IC 95% Wald):
+                            OR 2.5 % 97.5 %
+(Intercept)              0.146 0.031  0.693
+MOT_DESMOTIVACIO         0.472 0.331  0.674
+MOT_FORCA_MAJOR          1.428 1.092  1.868
+EST_AVALUACIO_AC         1.542 1.161  2.047
+IA_SUBST_num             0.687 0.580  0.813
+T_AVALContinuada         8.232 2.138 31.700
+CURS_1R                  2.679 1.376  5.220
+NOTA_num                 1.624 1.169  2.255
+MOT_DESMOTIVACIO:CURS_1R 2.792 1.407  5.540
+
+=================== 6. FIV ===================
+
+        MOT_DESMOTIVACIO          MOT_FORCA_MAJOR         EST_AVALUACIO_AC 
+                   1.515                    1.029                    1.202 
+            IA_SUBST_num                   T_AVAL                  CURS_1R 
+                   1.162                    1.033                    1.160 
+                NOTA_num MOT_DESMOTIVACIO:CURS_1R 
+                   1.099                    1.508 
+
+GVIF equivalent a VIF:
+        MOT_DESMOTIVACIO          MOT_FORCA_MAJOR         EST_AVALUACIO_AC 
+                   1.515                    1.029                    1.202 
+            IA_SUBST_num                   T_AVAL                  CURS_1R 
+                   1.162                    1.033                    1.160 
+                NOTA_num MOT_DESMOTIVACIO:CURS_1R 
+                   1.099                    1.508 
+Variables amb VIF > 5: Cap 
+
+====== 7. OBSERVACIONS INFLUENTS ======
+
+n=342 | k=8 | thresh Cook=0.0117 | thresh lev=0.0526
+Cook's D > 0.0117: 23 obs
+|Residu Pearson| > 2.5: 6 obs
+
+Observacions amb |residu Pearson std| > 2.5:
+    index_orig res_pearson_std cook_D leverage
+9            9          -2.828 0.0182   0.0201
+196        196          -4.632 0.0217   0.0090
+201        201           2.560 0.0524   0.0671
+247        247           3.397 0.0180   0.0138
+278        278          -3.264 0.0424   0.0345
+316        316          -4.706 0.0197   0.0080
+
+--- 7b. Analisi de sensibilitat (sense obs amb |Pearson std| > 2.5) ---
+
+Obs excloses: 6 (index original: 9, 196, 201, 247, 278, 316)
+
+                 variable OR_complet OR_sensit canvi_pct      estable
+              (Intercept)      0.146     0.065     -55.6 NO - revisar
+         MOT_DESMOTIVACIO      0.472     0.391     -17.1           Si
+          MOT_FORCA_MAJOR      1.428     1.531       7.1           Si
+         EST_AVALUACIO_AC      1.542     1.779      15.4           Si
+             IA_SUBST_num      0.687     0.654      -4.7           Si
+         T_AVALContinuada      8.232    15.098      83.4 NO - revisar
+                  CURS_1R      2.679     2.844       6.1           Si
+                 NOTA_num      1.624     1.927      18.7           Si
+ MOT_DESMOTIVACIO:CURS_1R      2.792     2.768      -0.9           Si
+
+-> n complet=342 | n sensibilitat=336
+-> ATENCIO: alguns ORs canvien materialment (canvi >= 20%). Reportar al text.
+
+
+========== 8. HOSMER-LEMESHOW ==========
+
+HL g= 6: chi2=2.1894 | gl=4 | p=0.7010
+HL g= 8: chi2=4.7922 | gl=6 | p=0.5707
+HL g=10: chi2=4.1523 | gl=8 | p=0.8431
+
+-> Bon ajust (p > 0.05)
+
+# A tibble: 10 × 6
+   decil prob_mitj prop_obs     n residu flag 
+   <int>     <dbl>    <dbl> <int>  <dbl> <lgl>
+ 1     1    0.0766   0.0857    35  0.009 FALSE
+ 2     2    0.211    0.171     35 -0.04  FALSE
+ 3     3    0.332    0.382     34  0.051 FALSE
+ 4     4    0.466    0.471     34  0.005 FALSE
+ 5     5    0.565    0.618     34  0.052 FALSE
+ 6     6    0.659    0.588     34 -0.071 FALSE
+ 7     7    0.753    0.706     34 -0.047 FALSE
+ 8     8    0.823    0.824     34  0.001 FALSE
+ 9     9    0.880    0.941     34  0.061 FALSE
+10    10    0.932    0.912     34 -0.021 FALSE
+
+========== 9. EFECTES MARGINALS PROMIG (AME) ==========
+
+
+             Term           Contrast Estimate Std. Error     z Pr(>|z|)    S
+ CURS_1R          1 - 0                0.1866     0.0546  3.42  < 0.001 10.6
+ EST_AVALUACIO_AC dY/dX                0.0721     0.0231  3.13  0.00176  9.2
+ IA_SUBST_num     dY/dX               -0.0627     0.0129 -4.86  < 0.001 19.7
+ MOT_DESMOTIVACIO dY/dX               -0.0861     0.0250 -3.45  < 0.001 10.8
+ MOT_FORCA_MAJOR  dY/dX                0.0594     0.0221  2.69  0.00714  7.1
+ NOTA_num         dY/dX                0.0808     0.0268  3.01  0.00257  8.6
+ T_AVAL           Continuada - Única   0.3549     0.0978  3.63  < 0.001 11.8
+   2.5 %  97.5 %
+  0.0795  0.2937
+  0.0269  0.1173
+ -0.0879 -0.0374
+ -0.1351 -0.0372
+  0.0161  0.1027
+  0.0283  0.1333
+  0.1632  0.5465
+
+Type: response
 
