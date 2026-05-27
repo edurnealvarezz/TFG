@@ -1,0 +1,108 @@
+=======================================================
+FASE 1 — PREPROCESSAMENT
+=======================================================
+
+Observacions originals: 342
+Observacions completes: 342 (eliminats 0 per NAs)
+
+Paràmetres d'escala guardats (mean i sd per variable):
+       EDAT  DESPL N_ASSIG NOTA_num T_AVAL_num CURS_1R GENERE_Home
+mean 22.143 48.865   9.924    2.509      0.930   0.234       0.459
+sd    8.154 29.841   2.701    0.872      0.256   0.424       0.499
+     DOBLE_GRAU_EST DEDIC_num IA_HABIT IA_COMPR IA_REND IA_PDFS IA_SUBST
+mean          0.322     2.058    4.702    5.091   4.175   4.623    2.898
+sd            0.468     0.973    1.443    1.279   1.522   1.726    1.749
+     IA_ATENC IA_CONF
+mean    2.550   2.298
+sd      1.632   1.317
+
+Partició: Train = 275 obs | Test = 67 obs
+  Train — Regular: 56.7% | Irregular: 43.3%
+  Test  — Regular: 56.7% | Irregular: 43.3%
+
+=======================================================
+FASE 2 — SELECCIÓ DEL NOMBRE ÒPTIM DE CLUSTERS
+=======================================================
+
+Calculant criteris per c=2...
+Calculant criteris per c=3...
+Calculant criteris per c=4...
+Calculant criteris per c=5...
+
+--- Taula de criteris ---
+# A tibble: 4 × 5
+      c    PC    PE Silhouette        XB
+  <dbl> <dbl> <dbl>      <dbl>     <dbl>
+1     2 0.5   0.693      0.144   324928.
+2     3 0.333 1.10       0.144  3013774.
+3     4 0.25  1.39       0.144  2757694.
+4     5 0.2   1.61       0.144 84563634.
+
+PC màxim         → c=2
+PE mínim         → c=2
+Silhouette màxim → c=2
+Xie-Beni mínim   → c=2
+
+>>> c òptim seleccionat: c=2 (per majoria de criteris)
+
+=======================================================
+FASE 3 — FUZZY C-MEANS FINAL
+=======================================================
+
+--- 3.1 Selecció de m (fuzziness exponent) ---
+m=1.5 | PC=0.6037 | PE=0.5819 | XB=2.1933
+m=2.0 | PC=0.5000 | PE=0.6931 | XB=324173.4992
+m=2.5 | PC=0.5000 | PE=0.6931 | XB=1424156.8989
+
+>>> m òptim seleccionat: m=1.5 (màxim PC)
+
+--- 3.2 Model FCM final ---
+c = 2 | m = 1.5 | nstart = 25
+
+PC final  = 0.6037
+PE final  = 0.5819
+XB final  = 2.1933
+
+Distribució d'alumnes per cluster (hard assignment — train):
+Cluster
+  1   2 
+132 143 
+
+Proporcions: 48% / 52
+
+Estadística de nitidesa — max(u_ik):
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.5003  0.6058  0.7106  0.6988  0.7921  0.9080 
+Obs amb max(u) > 0.60: 208 (75.6%)
+Obs amb max(u) > 0.80: 65 (23.6%)
+
+Centroides FCM (escala original):
+               Cluster_1 Cluster_2
+EDAT               23.17     21.60
+DESPL              49.69     45.53
+N_ASSIG             9.85     10.13
+NOTA_num            2.62      2.41
+T_AVAL_num          0.93      0.92
+CURS_1R             0.25      0.18
+GENERE_Home         0.46      0.48
+DOBLE_GRAU_EST      0.34      0.33
+DEDIC_num           2.05      2.06
+IA_HABIT            3.99      5.34
+IA_COMPR            4.56      5.59
+IA_REND             3.47      4.78
+IA_PDFS             3.96      5.25
+IA_SUBST            2.06      3.62
+IA_ATENC            1.78      3.28
+IA_CONF             1.81      2.79
+
+Distribució per cluster (test — projecció sobre centroides train):
+Cluster
+ 1  2 
+35 32 
+
+Estadística nitidesa test — max(u_ik):
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+ 0.5001  0.5783  0.6702  0.6732  0.7724  0.8842 
+
+null device 
+          1 

@@ -4,12 +4,16 @@ packages <- c(
 )
 
 install_if_missing <- function(pkg) {
-  if (!requireNamespace(pkg, quietly = TRUE)) install.packages(pkg)
+ if (!require(pkg, character.only = TRUE)) {
+ install.packages(pkg); library(pkg, character.only = TRUE)
+ }
 }
-invisible(lapply(packages, install_if_missing))
-invisible(lapply(packages, library, character.only = TRUE))
 
-setwd("C:/Users/Edurne/Downloads/TFG")
+lapply(packages, install_if_missing)
+rm(packages)
+
+setwd("C:/Users/edurn/Downloads/TFG")
+#setwd("C:/Users/Edurne/Downloads/TFG")
 load("2. Dades/5. Dades Logit.RData")
 
 sink("4. Outputs/14.1 Output_text_fuzzy.txt", split = TRUE)
@@ -19,16 +23,18 @@ pdf("4. Outputs/14.2 Output_grafics_fuzzy.pdf", width = 10, height = 7)
 # FUNCIONS AUXILIARS
 # -----------------------------------------------------------------------
 
-# Partition Coefficient (volem màxim; = 1 per hard, = 1/c per pur solapament)
+# Partition Coefficient: mesura la nitidesa dels clusters (quant més proper a 1 millor)
 calc_pc <- function(U) mean(rowSums(U^2))
 
-# Partition Entropy (volem mínim; = 0 per hard, = log(c) per pur solapament)
+# Partition Entropy: mesura la incertesa de les assignacions (quant més petit millor)
 calc_pe <- function(U) {
   U_safe <- pmax(U, .Machine$double.eps)
   -mean(rowSums(U_safe * log(U_safe)))
 }
 
-# Xie-Beni index (volem mínim; compacitat intra / separació inter)
+# Xie-Beni index (quant més petit millor):
+# XB = homogeneitat intra-cluster / heterogeneitat inter-cluster
+
 calc_xb <- function(X, U, centers, m) {
   n <- nrow(X)
   c_num <- nrow(centers)
@@ -42,7 +48,8 @@ calc_xb <- function(X, U, centers, m) {
   num / (n * min(dists_cent))
 }
 
-# FCM amb nstart inicialitzacions; retorna el model amb el PC més alt
+# FCM amb 25 diferents inicialitzacions. retorna el model amb el PC més alt
+# ens diu quin grau de pertinença té cada individu a cada cluster
 fcm_best <- function(X, c_num, m, nstart = 25) {
   best_pc <- -Inf
   best_fit <- NULL
@@ -84,21 +91,20 @@ proj_test <- function(X_test, centers, m) {
   U
 }
 
-# Normalitzar [0,1] (opcional inversió per criteris on volem mínim)
+# Normalitzar
 norm01 <- function(x, invert = FALSE) {
   r <- (x - min(x, na.rm = TRUE)) / (max(x, na.rm = TRUE) - min(x, na.rm = TRUE))
   if (invert) 1 - r else r
 }
 
-# =======================================================================
-# FASE 1 — PREPROCESSAMENT
-# =======================================================================
+# ================================================================= #
+#                       1. PREPROCESSAMENT
+# ================================================================= #
 
-cat("=======================================================\n")
-cat("FASE 1 — PREPROCESSAMENT\n")
-cat("=======================================================\n\n")
+cat("================ 1. PREPROCESSAMENT ================\n")
 
-# 1.1 Construcció del data frame — només variables pre-experiència
+# agafem només les dades que podem observar ABANS de l'inici de curs
+
 df_raw <- dades_def %>%
   transmute(
     # Grup A: sociodemogràfiques i acadèmiques
@@ -111,7 +117,7 @@ df_raw <- dades_def %>%
     GENERE_Home    = as.integer(GENERE == "Home"),
     DOBLE_GRAU_EST = as.integer(DOBLE_GRAU_EST),
     DEDIC_num      = as.integer(DEDIC),         # ordered factor E.Complet…T.Complet → 1-4
-    # Grup B: ús i actituds cap a la IA (Likert 1-6)
+    # Grup B: ús de la IA (Likert 1-6)
     IA_HABIT       = as.integer(IA_HABIT),
     IA_COMPR       = as.integer(IA_COMPR),
     IA_REND        = as.integer(IA_REND),
@@ -137,7 +143,7 @@ vars_clust <- c(
 
 X_raw <- as.matrix(df_raw[, vars_clust])
 
-# 1.2 Z-score (guardem paràmetres per escalar nous alumnes a la Fase 7)
+# funció paràmetres per escalar
 scale_params <- list(
   mean = colMeans(X_raw),
   sd   = apply(X_raw, 2, sd)
@@ -149,7 +155,7 @@ print(round(rbind(mean = scale_params$mean, sd = scale_params$sd), 3))
 cat("\n")
 
 # 1.3 Partició estratificada train (80%) / test (20%)
-set.seed(2024)
+set.seed(1234)
 idx_train <- caret::createDataPartition(df_raw$GRUP_ASSIST, p = 0.80, list = FALSE)
 X_train <- X_sc[idx_train, ]
 X_test  <- X_sc[-idx_train, ]
@@ -167,7 +173,7 @@ cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
             mean(y_valid_test == "Regular (≥80%)") * 100,
             mean(y_valid_test != "Regular (≥80%)") * 100))
 
-# Gràfic 1: Heatmap de correlació (Gràfic 8 del document)
+# Heatmap de correlació de Pearson
 cor_mat <- cor(X_train, method = "pearson")
 cor_df <- as.data.frame(as.table(cor_mat)) %>%
   rename(Var1 = Var1, Var2 = Var2, corr = Freq)
@@ -193,13 +199,11 @@ print(
     )
 )
 
-# =======================================================================
-# FASE 2 — DETERMINACIÓ DEL NOMBRE ÒPTIM DE CLUSTERS (c)
-# =======================================================================
+# ========================================================== #
+#           2. DETERMINACIÓ DEL NOMBRE ÒPTIM DE CLUSTERS (c)
+# ========================================================== #
 
-cat("=======================================================\n")
-cat("FASE 2 — SELECCIÓ DEL NOMBRE ÒPTIM DE CLUSTERS\n")
-cat("=======================================================\n\n")
+cat(" =========== 2. SELECCIÓ NOMBRE DE CLUSTERS ===========\n")
 
 c_vals <- 2:5
 resultats_c <- tibble(
@@ -210,7 +214,7 @@ resultats_c <- tibble(
   XB         = numeric()
 )
 
-set.seed(2024)
+set.seed(1234)
 for (c_i in c_vals) {
   cat(sprintf("Calculant criteris per c=%d...\n", c_i))
   fit_i   <- fcm_best(X_train, c_num = c_i, m = 2, nstart = 25)
@@ -233,21 +237,21 @@ cat("\n--- Taula de criteris ---\n")
 print(resultats_c %>% mutate(across(where(is.numeric), ~ round(.x, 4))))
 cat("\n")
 
-c_opt_PC  <- resultats_c$c[which.max(resultats_c$PC)]
-c_opt_PE  <- resultats_c$c[which.min(resultats_c$PE)]
+c_opt_PC <- resultats_c$c[which.max(resultats_c$PC)]
+c_opt_PE <- resultats_c$c[which.min(resultats_c$PE)]
 c_opt_Sil <- resultats_c$c[which.max(resultats_c$Silhouette)]
-c_opt_XB  <- resultats_c$c[which.min(resultats_c$XB)]
+c_opt_XB <- resultats_c$c[which.min(resultats_c$XB)]
 
-cat(sprintf("PC màxim         → c=%d\n", c_opt_PC))
-cat(sprintf("PE mínim         → c=%d\n", c_opt_PE))
+cat(sprintf("PC màxim → c=%d\n", c_opt_PC))
+cat(sprintf("PE mínim → c=%d\n", c_opt_PE))
 cat(sprintf("Silhouette màxim → c=%d\n", c_opt_Sil))
-cat(sprintf("Xie-Beni mínim   → c=%d\n\n", c_opt_XB))
+cat(sprintf("Xie-Beni mínim → c=%d\n\n", c_opt_XB))
 
-vots <- table(c(c_opt_PC, c_opt_PE, c_opt_Sil, c_opt_XB))
-c_final <- as.integer(names(vots)[which.max(vots)])
+vots <- table(c(c_opt_PC, c_opt_PE, c_opt_Sil, c_opt_XB)) # posem els resultats a un vector
+c_final <- as.integer(names(vots)[which.max(vots)]) # mirem el que més ha sortit
 cat(sprintf(">>> c òptim seleccionat: c=%d (per majoria de criteris)\n\n", c_final))
 
-# Gràfic 2: Criteris normalitzats vs c
+# Criteris normalitzats vs c
 plot_df_c <- tibble(
   c       = rep(c_vals, 4),
   valor   = c(
@@ -262,6 +266,7 @@ plot_df_c <- tibble(
   )
 )
 
+# resultats dels criteris per cada num de cluster
 print(
   ggplot(plot_df_c, aes(x = c, y = valor, color = criteri, group = criteri)) +
     geom_line(linewidth = 1.1) +
@@ -286,20 +291,21 @@ print(
     )
 )
 
-# =======================================================================
-# FASE 3 — FUZZY C-MEANS FINAL
-# =======================================================================
+# ============================================================== #
+#                    3. FUZZY C-MEANS FINAL
+# ============================================================== #
 
-cat("=======================================================\n")
-cat("FASE 3 — FUZZY C-MEANS FINAL\n")
-cat("=======================================================\n\n")
+cat(" ============= 3. FUZZY C-MEANS FINAL ============= \n")
 
 # 3.1 Sensibilitat al fuzziness exponent m
+# mesura quant de difús pot ser un cluster, conforme més gran sigui els individus 
+# poden pertànyer a més clusters
+
 cat("--- 3.1 Selecció de m (fuzziness exponent) ---\n")
-m_vals <- c(1.5, 2.0, 2.5)
+m_vals <- c(1.5, 2.0, 2.5, 3)
 resultats_m <- tibble(m = numeric(), PC = numeric(), PE = numeric(), XB = numeric())
 
-set.seed(2024)
+set.seed(1234)
 for (m_i in m_vals) {
   fit_i <- fcm_best(X_train, c_num = c_final, m = m_i, nstart = 25)
   pc_i  <- calc_pc(fit_i$membership)
@@ -314,11 +320,11 @@ cat(sprintf("\n>>> m òptim seleccionat: m=%.1f (màxim PC)\n\n", m_final))
 
 # 3.2 Model FCM final (millor de 25 arrencades)
 cat("--- 3.2 Model FCM final ---\n")
-set.seed(2024)
+set.seed(1234)
 fcm_final <- fcm_best(X_train, c_num = c_final, m = m_final, nstart = 25)
 
 U_train    <- fcm_final$membership
-hard_train <- apply(U_train, 1, which.max)
+hard_train <- apply(U_train, 1, which.max) # assignació dura
 max_u_train <- apply(U_train, 1, max)
 
 cat(sprintf("c = %d | m = %.1f | nstart = 25\n\n", c_final, m_final))
@@ -326,6 +332,7 @@ cat(sprintf("PC final  = %.4f\n", calc_pc(U_train)))
 cat(sprintf("PE final  = %.4f\n", calc_pe(U_train)))
 cat(sprintf("XB final  = %.4f\n\n", calc_xb(X_train, U_train, fcm_final$centers, m_final)))
 
+# distribució d'alumnes si fos amb m=1 (clustering normal)
 cat("Distribució d'alumnes per cluster (hard assignment — train):\n")
 print(table(Cluster = hard_train))
 cat(sprintf("\nProporcions: %s\n\n",
@@ -338,7 +345,7 @@ cat(sprintf("Obs amb max(u) > 0.60: %d (%.1f%%)\n",
 cat(sprintf("Obs amb max(u) > 0.80: %d (%.1f%%)\n\n",
             sum(max_u_train > 0.8), mean(max_u_train > 0.8) * 100))
 
-# Centroides en escala original
+# Centroides en escala original per a poder interpretar-los
 cat("Centroides FCM (escala original):\n")
 centers_orig <- sweep(
   sweep(fcm_final$centers, 2, scale_params$sd, "*"),
@@ -348,7 +355,7 @@ rownames(centers_orig) <- paste0("Cluster_", seq_len(c_final))
 print(round(t(centers_orig), 2))
 cat("\n")
 
-# 3.3 Projecció del test sobre centroides del train
+# Projecció del test sobre centroides del train
 U_test     <- proj_test(X_test, fcm_final$centers, m_final)
 hard_test  <- apply(U_test, 1, which.max)
 max_u_test <- apply(U_test, 1, max)
@@ -359,7 +366,9 @@ cat(sprintf("\nEstadística nitidesa test — max(u_ik):\n"))
 print(summary(max_u_test))
 cat("\n")
 
-# Gràfic 3: Distribució de probabilitats de pertinença per cluster (train)
+# distribució de probabilitats de pertinença per cluster (train)
+# cal veure que els que estan més a prop del seu cluster assignat (hard)
+# tinguin u_ik més altes, i els que estan més difusos tinguin u_ik més baixes
 u_df <- as.data.frame(U_train) %>%
   setNames(paste0("Cluster_", seq_len(c_final))) %>%
   mutate(cluster_hard = factor(paste0("Hard: ", hard_train))) %>%
@@ -389,7 +398,7 @@ print(
     )
 )
 
-# Gràfic 4: PCA 2D colorejat per cluster hard (transparència = nitidesa)
+# PCA 2D colorejat per cluster hard (transparència = nitidesa)
 pca_res <- prcomp(X_train, center = FALSE, scale. = FALSE)
 pca_df  <- data.frame(
   PC1     = pca_res$x[, 1],
@@ -399,6 +408,8 @@ pca_df  <- data.frame(
 )
 var_exp <- round(summary(pca_res)$importance[2, 1:2] * 100, 1)
 
+# color = a quin cluster s'assigna durament cada individu
+# transparència = nitidesa de l'assignació
 print(
   ggplot(pca_df, aes(x = PC1, y = PC2, color = cluster, alpha = max_u)) +
     geom_point(size = 2.5) +
@@ -421,9 +432,10 @@ print(
     )
 )
 
-# =======================================================================
-# GUARDAR MODEL
-# =======================================================================
+# ========================================================= #
+#                           GUARDAR MODEL
+# ========================================================= #
+
 
 save(
   fcm_final, scale_params, c_final, m_final,
@@ -432,6 +444,7 @@ save(
   y_valid_train, y_valid_test,
   p_assist_train, p_assist_test,
   vars_clust, resultats_c, resultats_m,
+  centers_orig,
   file = "2. Dades/fuzzy_clustering_model.RData"
 )
 
