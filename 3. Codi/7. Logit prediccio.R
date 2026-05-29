@@ -211,10 +211,20 @@ df_comp_long <- df_comp %>%
 
 print(
   ggplot(df_comp_long, aes(x = Metrica, y = Valor, fill = Conjunt)) +
-    geom_col(position = "dodge", alpha = 0.85, width = 0.65) +
+    geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+    
+    geom_text(
+      aes(label = round(Valor, 2)),                     # Redondeamos a 2 decimales (ajusta según necesites)
+      position = position_dodge(width = 0.65),          # Obliga al texto a separarse igual que las barras
+      vjust = -0.4,                                     # Ajuste vertical para ponerlo justo ENCIMA de la barra
+      size = 3.5,                                       # Tamaño de la fuente del número
+      fontface = "bold"                                 # Opcional: poner el texto en negrita
+    ) +
+    
     geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
     scale_fill_manual(values = c("Train_CV" = "#4A90B8", "Test" = "#E07B54")) +
-    scale_y_continuous(limits = c(0, 1)) +
+    
+    scale_y_continuous(limits = c(0, 1.05)) + 
     labs(
       title    = "Logit Predictiu — Train (CV) vs Test",
       subtitle = sprintf("Threshold OOF: %.3f | MIN_RECALL >= %.2f", thresh_oof, MIN_RECALL),
