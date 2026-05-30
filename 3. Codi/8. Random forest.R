@@ -619,7 +619,7 @@ save(dades_def, file = "2. Dades/6. Dades RF.RData")
 
 
 
-save(dades_def, file = "2. Dades/9. Dades XGBoost.RData")
+save(dades_def, file = "2. Dades/8. Dades Random Forest.RData")
 
 sink()
 dev.off()
