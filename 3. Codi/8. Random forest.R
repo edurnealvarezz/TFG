@@ -226,14 +226,16 @@ print(grafic_cm(met_rfa_test, "RF-A"))
 # corba ROC
 roc_a <- pROC::roc(test_a$Y, prob_test_a, quiet = TRUE)
 roc_df_a <- data.frame(spec_inv = 1 - roc_a$specificities, sens = roc_a$sensitivities)
-ggplot(roc_df_a, aes(x = spec_inv, y = sens)) +
-  geom_path(color = "#4A90B8", linewidth = 1.2) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-  annotate("text", x = 0.65, y = 0.25,
-           label = sprintf("AUC = %.3f", met_rfa_test$AUC),
-           size = 5, color = "#4A90B8") +
-  labs(title = "Corba ROC — RF-A", x = "1 - Especificitat", y = "Sensibilitat") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(roc_df_a, aes(x = spec_inv, y = sens)) +
+    geom_path(color = "#4A90B8", linewidth = 1.2) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    annotate("text", x = 0.65, y = 0.25,
+             label = sprintf("AUC = %.3f", met_rfa_test$AUC),
+             size = 5, color = "#4A90B8") +
+    labs(title = "Corba ROC — RF-A", x = "1 - Especificitat", y = "Sensibilitat") +
+    theme_minimal(base_size = 13)
+)
 
 #### ============================================================ ####
 ####                   2. RANDOM FOREST B                         ####
@@ -354,25 +356,29 @@ print(imp_a %>% slice_head(n = 15))
 cat("\nTop 15 RF-B:\n")
 print(imp_b %>% slice_head(n = 15))
 
-ggplot(imp_a %>% slice_head(n = 15),
-       aes(x = reorder(variable, importancia), y = importancia, fill = importancia)) +
-  geom_col(alpha = 0.9) +
-  coord_flip() +
-  scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
-  labs(title = "Importancia variables — RF-A (factors EFA)",
-       subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
-       x = "", y = "Importancia (permutacio)") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(imp_a %>% slice_head(n = 15),
+         aes(x = reorder(variable, importancia), y = importancia, fill = importancia)) +
+    geom_col(alpha = 0.9) +
+    coord_flip() +
+    scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    labs(title = "Importancia variables — RF-A (factors EFA)",
+         subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
+         x = "", y = "Importancia (permutacio)") +
+    theme_minimal(base_size = 13)
+)
 
-ggplot(imp_b %>% slice_head(n = 15),
-       aes(x = reorder(variable, importancia), y = importancia, fill = importancia)) +
-  geom_col(alpha = 0.9) +
-  coord_flip() +
-  scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
-  labs(title = "Importancia variables — RF-B (Likert originals)",
-       subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
-       x = "", y = "Importancia (permutacio)") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(imp_b %>% slice_head(n = 15),
+         aes(x = reorder(variable, importancia), y = importancia, fill = importancia)) +
+    geom_col(alpha = 0.9) +
+    coord_flip() +
+    scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    labs(title = "Importancia variables — RF-B (Likert originals)",
+         subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
+         x = "", y = "Importancia (permutacio)") +
+    theme_minimal(base_size = 13)
+)
 
 #### ============================================================ ####
 ####                     4. SHAP VALUES                           ####
@@ -432,94 +438,102 @@ cat("\nTop 15 SHAP RF-B:\n")
 print(shap_imp_b %>% slice_head(n = 15))
 
 # Grafic importancia SHAP RF-A
-ggplot(shap_imp_a %>% slice_head(n = 15),
-       aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
-           fill = mean_abs_shap)) +
-  geom_col(alpha = 0.9) +
-  coord_flip() +
-  scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
-  labs(title = "Importancia SHAP — RF-A (factors EFA)",
-       subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
-       x = "", y = "Importancia SHAP") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(shap_imp_a %>% slice_head(n = 15),
+         aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
+             fill = mean_abs_shap)) +
+    geom_col(alpha = 0.9) +
+    coord_flip() +
+    scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    labs(title = "Importancia SHAP — RF-A (factors EFA)",
+         subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
+         x = "", y = "Importancia SHAP") +
+    theme_minimal(base_size = 13)
+)
 
 # Grafic importancia SHAP RF-B
-ggplot(shap_imp_b %>% slice_head(n = 15),
-       aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
-           fill = mean_abs_shap)) +
-  geom_col(alpha = 0.9) +
-  coord_flip() +
-  scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
-  labs(title = "Importancia SHAP — RF-B (Likert originals)",
-       subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
-       x = "", y = "Importancia SHAP") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(shap_imp_b %>% slice_head(n = 15),
+         aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
+             fill = mean_abs_shap)) +
+    geom_col(alpha = 0.9) +
+    coord_flip() +
+    scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    labs(title = "Importancia SHAP — RF-B (Likert originals)",
+         subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
+         x = "", y = "Importancia SHAP") +
+    theme_minimal(base_size = 13)
+)
 
 # --------------- 4.3. SHAP Beeswarm ---------------
 # transforma els dades per poder pintar un punt per cada 
 # combinació observació × variable, i pintar segons el valor 
 # real de la variable.
 
-top12_a <- shap_imp_a$variable[1:min(12, nrow(shap_imp_a))]
+top8_a <- shap_imp_a$variable[1:min(8, nrow(shap_imp_a))]
 
 shap_long_a <- shap_df_a %>%
-  dplyr::select(all_of(top12_a)) %>%
+  dplyr::select(all_of(top8_a)) %>%
   mutate(obs = row_number()) %>%
   pivot_longer(-obs, names_to = "variable", values_to = "shap") %>%
   left_join(
     as.data.frame(test_a[, -1]) %>%
-      dplyr::select(all_of(top12_a)) %>%
+      dplyr::select(all_of(top8_a)) %>%
       mutate(obs = row_number()) %>%
       pivot_longer(-obs, names_to = "variable", values_to = "valor"),
     by = c("obs", "variable")
   ) %>%
-  mutate(variable = factor(variable, levels = rev(top12_a)))
+  mutate(variable = factor(variable, levels = rev(top8_a)))
 
-ggplot(shap_long_a, aes(x = shap, y = variable, color = valor)) +
-  geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
-  geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
-  scale_color_gradient(low = "#2471A3", high = "#E74C3C",
-                       name = "Valor variable") +
-  labs(title = "SHAP Beeswarm — RF-A (factors EFA)",
-       subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
-       x = "Valor SHAP", y = "") +
-  theme_minimal(base_size = 12)
+print(
+  ggplot(shap_long_a, aes(x = shap, y = variable, color = valor)) +
+    geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
+    geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
+    scale_color_gradient(low = "#2471A3", high = "#E74C3C",
+                         name = "Valor variable") +
+    labs(title = "SHAP Beeswarm — RF-A (factors EFA)",
+         subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
+         x = "Valor SHAP", y = "") +
+    theme_minimal(base_size = 12)
+)
 
-# SHAP Beeswarm RF-B top 12
-top12_b <- shap_imp_b$variable[1:min(12, nrow(shap_imp_b))]
+# SHAP Beeswarm RF-B top 8
+top8_b <- shap_imp_b$variable[1:min(8, nrow(shap_imp_b))]
 
 shap_long_b <- shap_df_b %>%
-  dplyr::select(all_of(top12_b)) %>%
+  dplyr::select(all_of(top8_b)) %>%
   mutate(obs = row_number()) %>%
   pivot_longer(-obs, names_to = "variable", values_to = "shap") %>%
   left_join(
     as.data.frame(test_b[, -1]) %>%
-      dplyr::select(all_of(top12_b)) %>%
+      dplyr::select(all_of(top8_b)) %>%
       mutate(obs = row_number()) %>%
       pivot_longer(-obs, names_to = "variable", values_to = "valor"),
     by = c("obs", "variable")
   ) %>%
-  mutate(variable = factor(variable, levels = rev(top12_b)))
+  mutate(variable = factor(variable, levels = rev(top8_b)))
 
-ggplot(shap_long_b, aes(x = shap, y = variable, color = valor)) +
-  geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
-  geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
-  scale_color_gradient(low = "#2471A3", high = "#E74C3C",
-                       name = "Valor variable") +
-  labs(title = "SHAP Beeswarm — RF-B (Likert originals)",
-       subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
-       x = "Valor SHAP", y = "") +
-  theme_minimal(base_size = 12)
+print(
+  ggplot(shap_long_b, aes(x = shap, y = variable, color = valor)) +
+    geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
+    geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
+    scale_color_gradient(low = "#2471A3", high = "#E74C3C",
+                         name = "Valor variable") +
+    labs(title = "SHAP Beeswarm — RF-B (Likert originals)",
+         subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
+         x = "Valor SHAP", y = "") +
+    theme_minimal(base_size = 12)
+)
 
 # --------------- 4.4. SHAP gràfics dependència ---------------
 
-# per cadascuna de les 4 variables més importants
+# per cadascuna de les 5 variables més importants
 # fa un scatter plot de valor real de la variable (eix X) 
 # vs valor SHAP (eix Y), amb una corba LOESS a sobre.
 
-top4_a <- shap_imp_a$variable[1:4]
+top5_a <- shap_imp_a$variable[1:5]
 
-for (v in top4_a) {
+for (v in top5_a) {
   df_dep <- data.frame(
     valor = as.data.frame(test_a[, -1])[[v]],
     shap = shap_df_a[[v]]
@@ -569,17 +583,19 @@ if (file.exists("2. Dades/metriques_logit.rds")) {
                             levels = c("AUC_test", "Balanced_Acc", "F1",
                                        "Accuracy", "Precision", "Recall")))
 
-  ggplot(df_comp_long, aes(x = metrica, y = valor, fill = Model)) +
-    geom_col(position = "dodge", alpha = 0.85) +
-    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
-    scale_fill_manual(values = c("#4A90B8", "#E07B54", "#8E6BBF")) +
-    scale_y_continuous(limits = c(0, 1)) +
-    labs(title = "Comparacio de models: Logit vs RF-A vs RF-B",
-         subtitle = "Metriques sobre conjunt test",
-         x = "", y = "Valor") +
-    theme_minimal(base_size = 13) +
-    theme(axis.text.x = element_text(angle = 25, hjust = 1),
-          legend.position = "bottom")
+  print(
+    ggplot(df_comp_long, aes(x = metrica, y = valor, fill = Model)) +
+      geom_col(position = "dodge", alpha = 0.85) +
+      geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+      scale_fill_manual(values = c("#4A90B8", "#E07B54", "#8E6BBF")) +
+      scale_y_continuous(limits = c(0, 1)) +
+      labs(title = "Comparacio de models: Logit vs RF-A vs RF-B",
+           subtitle = "Metriques sobre conjunt test",
+           x = "", y = "Valor") +
+      theme_minimal(base_size = 13) +
+      theme(axis.text.x = element_text(angle = 25, hjust = 1),
+            legend.position = "bottom")
+  )
 }
 
 # sembla que el millor és el logit
