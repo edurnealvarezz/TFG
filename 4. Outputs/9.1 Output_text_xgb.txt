@@ -1,0 +1,34 @@
+ ============= 0. PREPARACIÓ DE DADES ============= 
+Predictors inclosos: 51
+ ================= GRID SEARCH ================= 
+Combinacions a avaluar: 243
+Params fixos: eta = 0.01 | subsample = 0.6 | colsample_bytree = 0.6
+Seleccio per 5-fold CV AUC sobre train
+
+
+Top 10 combinacions per AUC CV:
+NULL
+ ================== MODEL FINAL ==================== 
+ ===================== IMPORTÀNCIA DE VARIABLES ===================== 
+Top 20 variables per importància (Gain):
+ =============== SHAP VALUES ===============
+Top 20 variables per importància SHAP:
+ =================== MÈTRIQUES DE CLASSIFICACIÓ =================== 
+ Mètriques sobre conjunt test 
+Mètriques sobre train (in-sample) 
+
+
+--- Resum overfitting: train vs test ---
+
+
+ =================== COMPARACIÓ GLOBAL DE MODELS =================== 
+Taula comparativa de models (sobre conjunt test):
+
+           Model           AUC_CV AUC_test Accuracy Precision Recall     F1
+ Logit Predictiu  0.8013 ± 0.0878   0.8564   0.6765    0.9524 0.4878 0.6452
+     RF-A (test) OOB err = 0.1835   0.7550   0.7313    0.8846 0.6053 0.7188
+     RF-B (test) OOB err = 0.1869   0.7704   0.7164    0.7879 0.6842 0.7324
+ Balanced_Acc
+       0.7254
+       0.7509
+       0.7214

@@ -11,7 +11,7 @@ lapply(packages, install_if_missing)
 rm(packages)
 
 setwd("C:/Users/edurn/Downloads/TFG")
-load("2. Dades/8. Dades RF.RData")
+load("2. Dades/8. Dades Random Forest.RData")
 
 source("3. Codi/Funcions models.R")
 
