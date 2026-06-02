@@ -1,5 +1,5 @@
  =============== 0. PREPARACIÓ DE DADES ===============
-Observacions totals: 342 | Predictors originals: 17 | Columnes codificades: 17
+Observacions totals: 342 | Predictors originals: 16 | Columnes codificades: 16
 Particio: Train = 274 | Test = 68
  Train — Regular: 55.8% | Irregular: 44.2%
  Test  — Regular: 60.3% | Irregular: 39.7%
@@ -12,62 +12,62 @@ Variables amb sd=0 (substituida per 1): 0
 Rang X_train_sc: [-5.847, 6.689]
 
  =================== 2. GRID SEARCH MANUAL (5-fold CV, AUC) =================== 
-  cost=0.100 | gamma=0.0010 | AUC_CV=0.7576 (SD=0.0688)
-  cost=1.000 | gamma=0.0010 | AUC_CV=0.7555 (SD=0.0737)
-  cost=5.000 | gamma=0.0010 | AUC_CV=0.7735 (SD=0.0646)
-  cost=10.000 | gamma=0.0010 | AUC_CV=0.7691 (SD=0.0505)
-  cost=50.000 | gamma=0.0010 | AUC_CV=0.7686 (SD=0.0346)
-  cost=0.100 | gamma=0.0100 | AUC_CV=0.7609 (SD=0.0730)
-  cost=1.000 | gamma=0.0100 | AUC_CV=0.7748 (SD=0.0605)
-  cost=5.000 | gamma=0.0100 | AUC_CV=0.7717 (SD=0.0546)
-  cost=10.000 | gamma=0.0100 | AUC_CV=0.7604 (SD=0.0680)
-  cost=50.000 | gamma=0.0100 | AUC_CV=0.7087 (SD=0.0961)
-  cost=0.100 | gamma=0.1000 | AUC_CV=0.7521 (SD=0.0754)
-  cost=1.000 | gamma=0.1000 | AUC_CV=0.7333 (SD=0.1019)
-  cost=5.000 | gamma=0.1000 | AUC_CV=0.6922 (SD=0.1014)
-  cost=10.000 | gamma=0.1000 | AUC_CV=0.6793 (SD=0.0902)
-  cost=50.000 | gamma=0.1000 | AUC_CV=0.6799 (SD=0.0912)
-  cost=0.100 | gamma=0.5000 | AUC_CV=0.6968 (SD=0.0706)
-  cost=1.000 | gamma=0.5000 | AUC_CV=0.6953 (SD=0.0743)
-  cost=5.000 | gamma=0.5000 | AUC_CV=0.6909 (SD=0.0753)
-  cost=10.000 | gamma=0.5000 | AUC_CV=0.6909 (SD=0.0753)
-  cost=50.000 | gamma=0.5000 | AUC_CV=0.6909 (SD=0.0753)
-  cost=0.100 | gamma=1.0000 | AUC_CV=0.6472 (SD=0.0869)
-  cost=1.000 | gamma=1.0000 | AUC_CV=0.6551 (SD=0.0751)
-  cost=5.000 | gamma=1.0000 | AUC_CV=0.6534 (SD=0.0758)
-  cost=10.000 | gamma=1.0000 | AUC_CV=0.6534 (SD=0.0758)
-  cost=50.000 | gamma=1.0000 | AUC_CV=0.6534 (SD=0.0758)
+  cost=0.100 | gamma=0.0010 | AUC_CV=0.7617 (SD=0.0689)
+  cost=1.000 | gamma=0.0010 | AUC_CV=0.7601 (SD=0.0714)
+  cost=5.000 | gamma=0.0010 | AUC_CV=0.7710 (SD=0.0684)
+  cost=10.000 | gamma=0.0010 | AUC_CV=0.7715 (SD=0.0616)
+  cost=50.000 | gamma=0.0010 | AUC_CV=0.7645 (SD=0.0489)
+  cost=0.100 | gamma=0.0100 | AUC_CV=0.7683 (SD=0.0731)
+  cost=1.000 | gamma=0.0100 | AUC_CV=0.7779 (SD=0.0640)
+  cost=5.000 | gamma=0.0100 | AUC_CV=0.7798 (SD=0.0580)
+  cost=10.000 | gamma=0.0100 | AUC_CV=0.7684 (SD=0.0692)
+  cost=50.000 | gamma=0.0100 | AUC_CV=0.7186 (SD=0.1021)
+  cost=0.100 | gamma=0.1000 | AUC_CV=0.7516 (SD=0.0760)
+  cost=1.000 | gamma=0.1000 | AUC_CV=0.7518 (SD=0.0962)
+  cost=5.000 | gamma=0.1000 | AUC_CV=0.7001 (SD=0.1075)
+  cost=10.000 | gamma=0.1000 | AUC_CV=0.6930 (SD=0.1005)
+  cost=50.000 | gamma=0.1000 | AUC_CV=0.6913 (SD=0.0995)
+  cost=0.100 | gamma=0.5000 | AUC_CV=0.6939 (SD=0.0819)
+  cost=1.000 | gamma=0.5000 | AUC_CV=0.6963 (SD=0.0835)
+  cost=5.000 | gamma=0.5000 | AUC_CV=0.6894 (SD=0.0809)
+  cost=10.000 | gamma=0.5000 | AUC_CV=0.6894 (SD=0.0809)
+  cost=50.000 | gamma=0.5000 | AUC_CV=0.6894 (SD=0.0809)
+  cost=0.100 | gamma=1.0000 | AUC_CV=0.6534 (SD=0.0957)
+  cost=1.000 | gamma=1.0000 | AUC_CV=0.6567 (SD=0.0965)
+  cost=5.000 | gamma=1.0000 | AUC_CV=0.6551 (SD=0.0939)
+  cost=10.000 | gamma=1.0000 | AUC_CV=0.6551 (SD=0.0939)
+  cost=50.000 | gamma=1.0000 | AUC_CV=0.6551 (SD=0.0939)
 
-Millors hiperparametres: cost = 1.000 | gamma = 0.0100
-AUC CV (5-fold, millor combinacio): 0.7748
+Millors hiperparametres: cost = 5.000 | gamma = 0.0100
+AUC CV (5-fold, millor combinacio): 0.7798
 
 Grid complet (ordenat per AUC CV):
  cost gamma AUC_CV_mean AUC_CV_sd
-  1.0 0.010      0.7748    0.0605
-  5.0 0.001      0.7735    0.0646
-  5.0 0.010      0.7717    0.0546
- 10.0 0.001      0.7691    0.0505
- 50.0 0.001      0.7686    0.0346
-  0.1 0.010      0.7609    0.0730
- 10.0 0.010      0.7604    0.0680
-  0.1 0.001      0.7576    0.0688
-  1.0 0.001      0.7555    0.0737
-  0.1 0.100      0.7521    0.0754
-  1.0 0.100      0.7333    0.1019
- 50.0 0.010      0.7087    0.0961
-  0.1 0.500      0.6968    0.0706
-  1.0 0.500      0.6953    0.0743
-  5.0 0.100      0.6922    0.1014
-  5.0 0.500      0.6909    0.0753
- 10.0 0.500      0.6909    0.0753
- 50.0 0.500      0.6909    0.0753
- 50.0 0.100      0.6799    0.0912
- 10.0 0.100      0.6793    0.0902
-  1.0 1.000      0.6551    0.0751
-  5.0 1.000      0.6534    0.0758
- 10.0 1.000      0.6534    0.0758
- 50.0 1.000      0.6534    0.0758
-  0.1 1.000      0.6472    0.0869
+  5.0 0.010      0.7798    0.0580
+  1.0 0.010      0.7779    0.0640
+ 10.0 0.001      0.7715    0.0616
+  5.0 0.001      0.7710    0.0684
+ 10.0 0.010      0.7684    0.0692
+  0.1 0.010      0.7683    0.0731
+ 50.0 0.001      0.7645    0.0489
+  0.1 0.001      0.7617    0.0689
+  1.0 0.001      0.7601    0.0714
+  1.0 0.100      0.7518    0.0962
+  0.1 0.100      0.7516    0.0760
+ 50.0 0.010      0.7186    0.1021
+  5.0 0.100      0.7001    0.1075
+  1.0 0.500      0.6963    0.0835
+  0.1 0.500      0.6939    0.0819
+ 10.0 0.100      0.6930    0.1005
+ 50.0 0.100      0.6913    0.0995
+  5.0 0.500      0.6894    0.0809
+ 10.0 0.500      0.6894    0.0809
+ 50.0 0.500      0.6894    0.0809
+  1.0 1.000      0.6567    0.0965
+  5.0 1.000      0.6551    0.0939
+ 10.0 1.000      0.6551    0.0939
+ 50.0 1.000      0.6551    0.0939
+  0.1 1.000      0.6534    0.0957
 
  =================== 3. MODEL SVM FINAL AMB PLATT SCALING ===================
 =================================================================
@@ -90,82 +90,82 @@ svm.default(x = X_train_sc, y = factor(Y_train, levels = c(0, 1)),
 Parameters:
    SVM-Type:  C-classification 
  SVM-Kernel:  radial 
-       cost:  1 
+       cost:  5 
 
-Number of Support Vectors:  203
+Number of Support Vectors:  183
 
 
-Vectors de suport: 203 (74.1% del train)
+Vectors de suport: 183 (66.8% del train)
 
-AUC train (in-sample): 0.8415 | AUC test: 0.8555
+AUC train (in-sample): 0.8711 | AUC test: 0.8491
 
  =============== 4. LLINDAR PR =============== 
-AUPRC (OOF CV): 0.7886
-Llindar seleccionat: 0.6250 | recall_ok (>= 0.60): SI
+AUPRC (OOF CV): 0.7879
+Llindar seleccionat: 0.6236 | recall_ok (>= 0.60): SI
 
 =============== 5. SHAP VALUES =============== 
 Top 15 SHAP SVM-RBF:
 # A tibble: 15 × 2
    variable          mean_abs_shap
    <chr>                     <dbl>
- 1 IA_SUBST                0.0720 
- 2 MOT_DESMOTIVACIO        0.0626 
- 3 EST_AVALUACIO_AC        0.0528 
- 4 NOTA_num                0.0448 
- 5 CURS_1R_num             0.0438 
- 6 MOT_AUTOGESTIO          0.0428 
- 7 MOT_FORCA_MAJOR         0.0343 
- 8 IA_EINA_ESTUDI          0.0285 
- 9 EST_GRUPS_REDUITS       0.0244 
-10 IA_ATENC                0.0241 
-11 IA_CONF                 0.0232 
-12 T_AVAL_num              0.0201 
-13 EST_QUALITAT_DOC        0.0108 
-14 N_ASSIG                 0.0107 
-15 EDAT                    0.00511
+ 1 IA_SUBST_num            0.0615 
+ 2 EST_AVALUACIO_AC        0.0578 
+ 3 MOT_DESMOTIVACIO        0.0558 
+ 4 CURS_1R_num             0.0504 
+ 5 NOTA_num                0.0474 
+ 6 IA_ATENC_num            0.0364 
+ 7 EST_QUALITAT_DOC        0.0349 
+ 8 MOT_AUTOGESTIO          0.0319 
+ 9 MOT_FORCA_MAJOR         0.0287 
+10 T_AVAL_num              0.0273 
+11 EST_GRUPS_REDUITS       0.0270 
+12 N_ASSIG                 0.0240 
+13 IA_EINA_ESTUDI          0.0107 
+14 EDAT                    0.00766
+15 DESPL                   0.00524
 =============== 6. MÈTRIQUES DE CLASSIFICACIÓ =============== 
 --- 6a Metriques sobre conjunt test ---
 
 --- Mètriques: SVM-RBF ---
-n = 68 | Llindar PR = 0.625
-AUC: 0.8555
-Accuracy: 0.7353
-Precision (PPV): 0.8966
-Recall (Sensibilitat): 0.6341
+n = 68 | Llindar PR = 0.624
+AUC: 0.8491
+Accuracy: 0.7206
+Precision (PPV): 0.8929
+Recall (Sensibilitat): 0.6098
 Especificitat: 0.8889
-F1: 0.7429
-Balanced Accuracy: 0.7615
+F1: 0.7246
+Balanced Accuracy: 0.7493
 
 Matriu de confusió:
               Predit
 Observat       Irregular(0) Regular(1)
   Irregular(0)           24          3
-  Regular(1)             15         26
+  Regular(1)             16         25
 
 --- 6b Metriques sobre train (in-sample) ---
 
 
 --- Mètriques: SVM-RBF (train in-sample) ---
-n = 274 | Llindar PR = 0.625
-AUC: 0.8415
-Accuracy: 0.7555
-Precision (PPV): 0.8258
-Recall (Sensibilitat): 0.7124
-Especificitat: 0.8099
-F1: 0.7649
-Balanced Accuracy: 0.7612
+n = 274 | Llindar PR = 0.624
+AUC: 0.8711
+Accuracy: 0.7883
+Precision (PPV): 0.8571
+Recall (Sensibilitat): 0.7451
+Especificitat: 0.8430
+F1: 0.7972
+Balanced Accuracy: 0.7940
 
 Matriu de confusió:
               Predit
 Observat       Irregular(0) Regular(1)
-  Irregular(0)           98         23
-  Regular(1)             44        109
+  Irregular(0)          102         19
+  Regular(1)             39        114
 
 --- Resum overfitting: train vs test ---
 
            Conjunt    AUC Accuracy Precision Recall     F1 Balanced_Acc
- Train (in-sample) 0.8415   0.7555    0.8258 0.7124 0.7649       0.7612
-              Test 0.8555   0.7353    0.8966 0.6341 0.7429       0.7615
+ Train (in-sample) 0.8711   0.7883    0.8571 0.7451 0.7972       0.7940
+              Test 0.8491   0.7206    0.8929 0.6098 0.7246       0.7493
 
 =============== 7. COMPARACIÓ GLOBAL DE MODELS =============== 
 Taula comparativa de models (sobre conjunt test):
@@ -177,7 +177,7 @@ Taula comparativa de models (sobre conjunt test):
      RF-B (test) OOB err = 0.1862   0.8076   0.6324    0.8333 0.4878 0.6154
          XGBoost                —   0.8546   0.7353    0.8966 0.6341 0.7429
         CatBoost                —   0.8546   0.7647    0.8378 0.7561 0.7949
-         SVM-RBF                —   0.8555   0.7353    0.8966 0.6341 0.7429
+         SVM-RBF                —   0.8491   0.7206    0.8929 0.6098 0.7246
  Balanced_Acc
        0.7254
        0.7254
@@ -185,7 +185,7 @@ Taula comparativa de models (sobre conjunt test):
        0.6698
        0.7615
        0.7669
-       0.7615
+       0.7493
 
 Millor model per metrica:
  AUC_test      : RF-A (test) (0.8916)
@@ -197,5 +197,5 @@ Millor model per metrica:
 
 -> Metriques guardades a: 2. Dades/metriques_svm.rds
 
-Llindar aplicat per pred_svm: 0.6250
+Llindar aplicat per pred_svm: 0.6236
 

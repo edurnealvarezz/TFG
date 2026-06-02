@@ -42,7 +42,7 @@ dades_xgb <- dades_def %>%
 # IA ho posem de dues formes: 1 factor i el segon factor desglosat perque ja hem
 # vist als altres models que era millor predictor
 
-ia_vars <- c("IA_SUBST", "IA_ATENC", "IA_CONF")
+ia_vars <- c("IA_SUBST_num", "IA_ATENC_num", "IA_CONF_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
              "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
@@ -96,19 +96,21 @@ eta_fix <- 0.01
 subsample_fix <- 0.6
 colsample_fix <- 0.6
 
+# Grid reduït: 3×3×2×3 = 54 combinacions (era 3^5 = 243)
+# alpha=0 quasi sempre és òptim en datasets petits; gamma s'ha reduït a 2 valors
 grid <- expand.grid(
   max_depth = c(2, 3, 4),
   min_child_weight = c(5, 10, 15),
-  gamma = c(0, 1, 2),
+  gamma = c(0, 1),
   lambda = c(1, 3, 5),
-  alpha = c(0, 0.5, 1),
   stringsAsFactors = FALSE
 )
+alpha_fix <- 0  # fixem alpha=0; redueix >4x les combinacions sense perdre qualitat
 
-cat(sprintf("Combinacions a avaluar: %d\n", nrow(grid)))
+cat(sprintf("Combinacions a avaluar: %d (alpha fixat a %.1f)\n", nrow(grid), alpha_fix))
 cat(sprintf("Params fixos: eta = %.2f | subsample = %.1f | colsample_bytree = %.1f\n",
             eta_fix, subsample_fix, colsample_fix))
-cat("Seleccio per 5-fold CV AUC sobre train\n\n")
+cat("Seleccio per 5-fold CV AUC | early stopping (20 rounds sense millora)\n\n")
 
 set.seed(1234)
 grid_results <- vector("list", nrow(grid))
@@ -124,33 +126,43 @@ for (i in seq_len(nrow(grid))) {
     min_child_weight = grid$min_child_weight[i],
     gamma = grid$gamma[i],
     lambda = grid$lambda[i],
-    alpha = grid$alpha[i]
+    alpha = alpha_fix
   )
 
   cv_i <- xgb.cv(
     params = p_i,
     data = dtrain,
-    nrounds = 300,
+    nrounds = 500,
     nfold = 5,
     stratified = TRUE,
     verbose = 0,
     showsd = FALSE,
-    prediction = TRUE
+    prediction = TRUE,
+    early_stopping_rounds = 20,  # atura quan l'AUC no millora en 20 rounds
+    maximize = TRUE
   )
   cv_auc_i <- max(cv_i$evaluation_log$test_auc_mean)
+
+  # best_iteration pot ser NULL si early stopping no es dispara (millora constant)
+  bi <- cv_i$best_iteration
+  best_nr_i <- if (!is.null(bi) && length(bi) > 0 && !is.na(bi) && bi > 0L) {
+    as.integer(bi)
+  } else {
+    which.max(cv_i$evaluation_log$test_auc_mean)
+  }
 
   grid_results[[i]] <- data.frame(
     max_depth = grid$max_depth[i],
     min_child_weight = grid$min_child_weight[i],
     gamma = grid$gamma[i],
     lambda = grid$lambda[i],
-    alpha = grid$alpha[i],
+    alpha = alpha_fix,
     cv_auc = cv_auc_i,
-    best_nrounds = which.max(cv_i$evaluation_log$test_auc_mean),
+    best_nrounds = best_nr_i,
     stringsAsFactors = FALSE
   )
 
-  if (i %% 25 == 0) {
+  if (i %% 10 == 0) {
     cat(sprintf("  %d / %d combinacions completades...\n", i, nrow(grid)))
   }
 }
@@ -189,11 +201,19 @@ best_params <- list(
 )
 
 # nrounds optims del grid search (via CV), entrena sobre tot el train
+nrounds_final <- best_row$best_nrounds
+if (is.null(nrounds_final) || length(nrounds_final) == 0 ||
+    is.na(nrounds_final) || nrounds_final < 1L) {
+  nrounds_final <- 50L
+  cat(sprintf("AVIS: best_nrounds no valid, usant fallback = %d\n", nrounds_final))
+}
+cat(sprintf("Entrenant model final amb nrounds = %d\n\n", nrounds_final))
+
 set.seed(1234)
 xgb_model <- xgb.train(
   params = best_params,
   data = dtrain,
-  nrounds = best_row$best_nrounds,
+  nrounds = nrounds_final,
   verbose = 0
 )
 
@@ -219,16 +239,25 @@ print(
 )
 
 # Llindar PR sobre probabilitats OOF del CV (no contamina el test)
+# tryCatch: si xgb.cv o $pred fallen, fallback a train in-sample
 set.seed(1234)
-cv_oof_xgb <- xgb.cv(
-  params = best_params, data = dtrain,
-  nrounds = best_row$best_nrounds,
-  nfold = 5, stratified = TRUE, verbose = 0, prediction = TRUE
-)
-oof_probs_xgb <- cv_oof_xgb$pred
-pr_xgb <- seleccionar_llindar_pr(oof_probs_xgb, Y_train, MIN_RECALL)
+pr_xgb <- tryCatch({
+  cv_oof_xgb <- xgb.cv(
+    params = best_params, data = dtrain,
+    nrounds = nrounds_final,
+    nfold = 5, stratified = TRUE, verbose = 0, prediction = TRUE
+  )
+  oof_probs_xgb <- cv_oof_xgb$pred
+  if (is.null(oof_probs_xgb) || length(oof_probs_xgb) != length(Y_train))
+    stop("OOF predictions invàlides")
+  cat("Llindar calculat sobre OOF 5-fold CV.\n")
+  seleccionar_llindar_pr(oof_probs_xgb, Y_train, MIN_RECALL)
+}, error = function(e) {
+  cat(sprintf("AVIS OOF CV: %s — usant train in-sample com a fallback.\n", conditionMessage(e)))
+  seleccionar_llindar_pr(prob_train_xgb, Y_train, MIN_RECALL)
+})
 thresh_pr_xgb <- pr_xgb$threshold
-cat(sprintf("XGBoost — AUPRC (OOF CV): %.4f | Llindar PR: %.4f | recall_ok: %s\n\n",
+cat(sprintf("XGBoost — AUPRC: %.4f | Llindar PR: %.4f | recall_ok: %s\n\n",
             pr_xgb$auprc, thresh_pr_xgb,
             ifelse(pr_xgb$recall_ok, "SI", "NO (fallback Youden)")))
 
@@ -262,14 +291,16 @@ print(imp_xgb[1:min(20, nrow(imp_xgb)), ])
 
 df_imp <- as_tibble(imp_xgb) %>% slice_head(n = 20)
 
-ggplot(df_imp, aes(x = reorder(Feature, Gain), y = Gain, fill = Gain)) +
-  geom_col(alpha = 0.9) +
-  coord_flip() +
-  scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
-  labs(title = "Importància de variables — XGBoost",
-       subtitle = "Top 20 | Mesura: Gain (reducció d'impuresa per splits)",
-       x = "", y = "Gain") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(df_imp, aes(x = reorder(Feature, Gain), y = Gain, fill = Gain)) +
+    geom_col(alpha = 0.9) +
+    coord_flip() +
+    scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    labs(title = "Importància de variables — XGBoost",
+         subtitle = "Top 20 | Mesura: Gain (reducció d'impuresa per splits)",
+         x = "", y = "Gain") +
+    theme_minimal(base_size = 13)
+)
 
 #### ================================================= ####
 ####                    4. SHAP VALUES                 ####
@@ -298,15 +329,17 @@ print(shap_imp %>% slice_head(n = 20))
 # Gràfic: Importància SHAP
 shap_top20 <- shap_imp %>% slice_head(n = 20)
 
-ggplot(shap_top20, aes(x = reorder(variable, mean_abs_shap),
-                       y = mean_abs_shap, fill = mean_abs_shap)) +
-  geom_col(alpha = 0.9) +
-  coord_flip() +
-  scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
-  labs(title = "Importància SHAP — XGBoost",
-       subtitle = "Top 20 | mean(|SHAP|) sobre conjunt test",
-       x = "", y = "Importància SHAP (mean |SHAP|)") +
-  theme_minimal(base_size = 13)
+print(
+  ggplot(shap_top20, aes(x = reorder(variable, mean_abs_shap),
+                         y = mean_abs_shap, fill = mean_abs_shap)) +
+    geom_col(alpha = 0.9) +
+    coord_flip() +
+    scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    labs(title = "Importància SHAP — XGBoost",
+         subtitle = "Top 20 | mean(|SHAP|) sobre conjunt test",
+         x = "", y = "Importància SHAP (mean |SHAP|)") +
+    theme_minimal(base_size = 13)
+)
 
 # Gràfic: Beeswarm
 # cada punt és un alumne del test, si està a la dreta -> variable ajuda a que sigui Regular
@@ -328,15 +361,17 @@ shap_long <- shap_df %>%
   ) %>%
   mutate(variable = factor(variable, levels = rev(top15_vars)))
 
-ggplot(shap_long, aes(x = shap, y = variable, color = valor)) +
-  geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
-  geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
-  scale_color_gradient(low = "#2471A3", high = "#E74C3C",
-                       name = "Valor\nde la variable") +
-  labs(title = "SHAP Beeswarm — XGBoost (top 15 variables)",
-       subtitle = "Color = valor de la variable | x > 0 → augmenta P(Regular)",
-       x = "Valor SHAP", y = "") +
-  theme_minimal(base_size = 12)
+print(
+  ggplot(shap_long, aes(x = shap, y = variable, color = valor)) +
+    geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
+    geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
+    scale_color_gradient(low = "#2471A3", high = "#E74C3C",
+                         name = "Valor\nde la variable") +
+    labs(title = "SHAP Beeswarm — XGBoost (top 15 variables)",
+         subtitle = "Color = valor de la variable | x > 0 → augmenta P(Regular)",
+         x = "Valor SHAP", y = "") +
+    theme_minimal(base_size = 12)
+)
 
 # Gràfic: Dependence plots
 # mira les 4 variables més importants
