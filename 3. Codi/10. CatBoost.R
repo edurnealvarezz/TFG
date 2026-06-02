@@ -1,5 +1,5 @@
 install.packages(
-  "C:/Users/edurn/Downloads/TFG/catboost-R-windows-x86_64-1.2.10.tgz",
+  "C:/Users/Edurne/Downloads/TFG/catboost-R-windows-x86_64-1.2.10.tgz",
   repos = NULL,
   type = "source"
 )

@@ -39,10 +39,13 @@ dades_xgb <- dades_def %>%
   ) %>%
   filter(!is.na(Y))
 
-ia_vars <- c("IA_SUBST_num", "IA_ATENC_num")
+# IA ho posem de dues formes: 1 factor i el segon factor desglosat perque ja hem
+# vist als altres models que era millor predictor
+
+ia_vars <- c("IA_SUBST", "IA_ATENC", "IA_CONF")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
-             "EST_GRUPS_REDUITS")
+             "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG")
 vars_pers <- c("EDAT", "DESPL")
 
