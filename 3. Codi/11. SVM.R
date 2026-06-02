@@ -131,20 +131,22 @@ print(perf_sorted, row.names = FALSE)
 cat("\n")
 
 # Heatmap del grid search: posa l'error per cada combinacio de cost i gamma
-ggplot(tune_svm$performances,
- aes(x = factor(cost), y = factor(gamma), fill = error)) +
- geom_tile(color = "white") +
- geom_text(aes(label = round(error, 3)), size = 3.5, color = "white") +
- scale_fill_gradient(low = "#1A5276", high = "#AED6F1",
- name = "Error CV") +
- geom_tile(data = data.frame(cost = factor(best_cost), gamma = factor(best_gamma)),
- aes(x = cost, y = gamma), fill = NA,
- color = "#E07B54", linewidth = 1.5) +
- labs(title = "Heatmap Grid Search SVM-RBF (10-fold CV)",
- subtitle = sprintf("Millors params: cost=%.1f | gamma=%.3f | error=%.4f",
- best_cost, best_gamma, best_error),
- x = "Cost (C)", y = "Gamma (γ)") +
- theme_minimal(base_size = 13)
+print(
+  ggplot(tune_svm$performances,
+         aes(x = factor(cost), y = factor(gamma), fill = error)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = round(error, 3)), size = 3.5, color = "white") +
+    scale_fill_gradient(low = "#1A5276", high = "#AED6F1",
+                        name = "Error CV") +
+    geom_tile(data = data.frame(cost = factor(best_cost), gamma = factor(best_gamma)),
+              aes(x = cost, y = gamma), fill = NA,
+              color = "#E07B54", linewidth = 1.5) +
+    labs(title = "Heatmap Grid Search SVM-RBF (10-fold CV)",
+         subtitle = sprintf("Millors params: cost=%.1f | gamma=%.3f | error=%.4f",
+                            best_cost, best_gamma, best_error),
+         x = "Cost (C)", y = "Gamma (γ)") +
+    theme_minimal(base_size = 13)
+)
 
 #### ============================================================ ####
 ####                    3. MODEL SVM FINAL                        ####
@@ -201,16 +203,18 @@ df_platt_plot <- data.frame(
  prob = prob_test_svm,
  Y = factor(Y_test, labels = c("Irregular", "Regular"))
 )
-ggplot(df_platt_plot, aes(x = dv, y = prob, color = Y)) +
- geom_point(size = 1.8, alpha = 0.65) +
- geom_smooth(method = "glm", method.args = list(family = "binomial"),
- se = FALSE, color = "grey30", linewidth = 1, linetype = "dashed") +
- scale_color_manual(values = c("Irregular" = "#E07B54", "Regular" = "#4A90B8")) +
- labs(title = "Platt Scaling — SVM-RBF (test)",
- subtitle = "Eix x = valor de decisio SVM | Eix y = P(Regular) Platt",
- x = "Valor de decisio (distancia al hiperplan)",
- y = "P(Regular ≥ 80%)", color = NULL) +
- theme_minimal(base_size = 13) + theme(legend.position = "top")
+print(
+  ggplot(df_platt_plot, aes(x = dv, y = prob, color = Y)) +
+    geom_point(size = 1.8, alpha = 0.65) +
+    geom_smooth(method = "glm", method.args = list(family = "binomial"),
+                se = FALSE, color = "grey30", linewidth = 1, linetype = "dashed") +
+    scale_color_manual(values = c("Irregular" = "#E07B54", "Regular" = "#4A90B8")) +
+    labs(title = "Platt Scaling — SVM-RBF (test)",
+         subtitle = "Eix x = valor de decisio SVM | Eix y = P(Regular) Platt",
+         x = "Valor de decisio (distancia al hiperplan)",
+         y = "P(Regular ≥ 80%)", color = NULL) +
+    theme_minimal(base_size = 13) + theme(legend.position = "top")
+)
 
 #### ============================================================ ####
 ####                        4. LLINDAR PR                         ####
@@ -292,15 +296,17 @@ cat("Top 15 SHAP SVM-RBF:\n")
 print(shap_imp_svm %>% slice_head(n = 15))
 
 # Grafic importancia SHAP
-ggplot(shap_imp_svm %>% slice_head(n = 15),
- aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
- fill = mean_abs_shap)) +
- geom_col(alpha = 0.9) + coord_flip() +
- scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
- labs(title = "Importancia SHAP — SVM-RBF",
- subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
- x = "", y = "Importancia SHAP") +
- theme_minimal(base_size = 13)
+print(
+  ggplot(shap_imp_svm %>% slice_head(n = 15),
+         aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
+             fill = mean_abs_shap)) +
+    geom_col(alpha = 0.9) + coord_flip() +
+    scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    labs(title = "Importancia SHAP — SVM-RBF",
+         subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
+         x = "", y = "Importancia SHAP") +
+    theme_minimal(base_size = 13)
+)
 
 # SHAP Beeswarm (top 12)
 top12_svm <- shap_imp_svm$variable[1:min(12, nrow(shap_imp_svm))]
@@ -319,14 +325,16 @@ shap_long_svm <- shap_svm %>%
  ) %>%
  mutate(variable = factor(variable, levels = rev(top12_svm)))
 
-ggplot(shap_long_svm, aes(x = shap, y = variable, color = valor)) +
- geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
- geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
- scale_color_gradient(low = "#2471A3", high = "#E74C3C", name = "Valor variable") +
- labs(title = "SHAP Beeswarm — SVM-RBF (top 12)",
- subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
- x = "Valor SHAP", y = "") +
- theme_minimal(base_size = 12)
+print(
+  ggplot(shap_long_svm, aes(x = shap, y = variable, color = valor)) +
+    geom_jitter(height = 0.25, size = 1.2, alpha = 0.6) +
+    geom_vline(xintercept = 0, color = "grey40", linewidth = 0.8) +
+    scale_color_gradient(low = "#2471A3", high = "#E74C3C", name = "Valor variable") +
+    labs(title = "SHAP Beeswarm — SVM-RBF (top 12)",
+         subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
+         x = "Valor SHAP", y = "") +
+    theme_minimal(base_size = 12)
+)
 
 # SHAP Dependence plots (top 4)
 top4_svm <- shap_imp_svm$variable[1:4]
@@ -391,16 +399,18 @@ cat("\n")
 # Corba ROC test
 roc_svm_test <- roc(Y_test, prob_test_svm, quiet = TRUE)
 roc_df_test <- data.frame(spec_inv = 1 - roc_svm_test$specificities,
- sens = roc_svm_test$sensitivities)
-ggplot(roc_df_test, aes(x = spec_inv, y = sens)) +
- geom_path(color = "#4A90B8", linewidth = 1.2) +
- geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
- annotate("text", x = 0.65, y = 0.25,
- label = sprintf("AUC = %.3f", metriques_svm$AUC),
- size = 5, color = "#4A90B8") +
- labs(title = "Corba ROC — SVM-RBF (test)",
- x = "1 - Especificitat", y = "Sensibilitat") +
- theme_minimal(base_size = 13)
+                          sens = roc_svm_test$sensitivities)
+print(
+  ggplot(roc_df_test, aes(x = spec_inv, y = sens)) +
+    geom_path(color = "#4A90B8", linewidth = 1.2) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    annotate("text", x = 0.65, y = 0.25,
+             label = sprintf("AUC = %.3f", metriques_svm$AUC),
+             size = 5, color = "#4A90B8") +
+    labs(title = "Corba ROC — SVM-RBF (test)",
+         x = "1 - Especificitat", y = "Sensibilitat") +
+    theme_minimal(base_size = 13)
+)
 
 #### ============================================================ ####
 ####                    7. COMPARACIÓ GLOBAL DE MODELS            ####
@@ -473,20 +483,22 @@ df_lollipop <- df_comp %>%
  es_svm = Model == "SVM-RBF") %>%
  pivot_longer(c(AUC_test, Balanced_Acc), names_to = "metrica", values_to = "valor")
 
-ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) +
- geom_segment(data = df_lollipop %>%
- tidyr::pivot_wider(names_from = metrica, values_from = valor),
- aes(x = AUC_test, xend = Balanced_Acc, y = Model, yend = Model),
- color = "grey70", linewidth = 0.8, inherit.aes = FALSE) +
- geom_point(size = 3.5, alpha = 0.9) +
- scale_color_manual(values = c("AUC_test" = "#4A90B8", "Balanced_Acc" = "#E07B54"),
- labels = c("AUC test", "Balanced Accuracy")) +
- scale_shape_manual(values = c("FALSE" = 16, "TRUE" = 18), guide = "none") +
- geom_vline(xintercept = 0.5, linetype = "dashed", color = "grey50") +
- labs(title = "AUC i Balanced Accuracy — tots els models",
- subtitle = "Rombe = SVM-RBF",
- x = "Valor", y = "", color = NULL) +
- theme_minimal(base_size = 13) + theme(legend.position = "top")
+print(
+  ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) +
+    geom_segment(data = df_lollipop %>%
+                   tidyr::pivot_wider(names_from = metrica, values_from = valor),
+                 aes(x = AUC_test, xend = Balanced_Acc, y = Model, yend = Model),
+                 color = "grey70", linewidth = 0.8, inherit.aes = FALSE) +
+    geom_point(size = 3.5, alpha = 0.9) +
+    scale_color_manual(values = c("AUC_test" = "#4A90B8", "Balanced_Acc" = "#E07B54"),
+                       labels = c("AUC test", "Balanced Accuracy")) +
+    scale_shape_manual(values = c("FALSE" = 16, "TRUE" = 18), guide = "none") +
+    geom_vline(xintercept = 0.5, linetype = "dashed", color = "grey50") +
+    labs(title = "AUC i Balanced Accuracy — tots els models",
+         subtitle = "Rombe = SVM-RBF",
+         x = "Valor", y = "", color = NULL) +
+    theme_minimal(base_size = 13) + theme(legend.position = "top")
+)
 
 #### ============================================================ ####
 ####                   8. GUARDAR MÈTRIQUES I BBDD                ####
