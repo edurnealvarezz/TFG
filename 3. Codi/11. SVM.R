@@ -42,13 +42,16 @@ dades_svm <- dades_def %>%
  ) %>%
  filter(!is.na(Y))
 
+
+ia_vars <- c("IA_SUBST", "IA_ATENC", "IA_CONF")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
- "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
- "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
+             "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
+             "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG")
 vars_pers <- c("EDAT", "DESPL")
 
-predictors <- c(motius_vars, estrategies_vars, ia_vars, vars_fa, vars_acad, vars_pers)
+
+predictors <- c(ia_vars, vars_fa, vars_acad, vars_pers)
 predictors <- predictors[predictors %in% names(dades_svm)]
 
 dades_svm_net <- dades_svm %>%
@@ -97,54 +100,77 @@ cat(sprintf("Rang X_train_sc: [%.3f, %.3f]\n\n",
  min(X_train_sc), max(X_train_sc)))
 
 #### ============================================================ ####
-####                  2. GRID SEARCH (10-fold CV)                 ####
+####           2. GRID SEARCH MANUAL (5-fold CV, AUC)            ####
 #### ============================================================ ####
 
-cat(" =================== 2. GRID SEARCH =================== \n")
+cat(" =================== 2. GRID SEARCH MANUAL (5-fold CV, AUC) =================== \n")
 
-# Mesura d'error: taxa de classificacio incorrecta
-# c -> penalització per errors de classificació
+cost_vals <- c(0.1, 1, 5, 10, 50)
+gamma_vals <- c(0.001, 0.01, 0.1, 0.5, 1)
+grid_svm  <- expand.grid(cost = cost_vals, gamma = gamma_vals)
+grid_svm$AUC_CV_mean <- NA_real_
+grid_svm$AUC_CV_sd   <- NA_real_
 
 set.seed(1234)
-tune_svm <- tune(
- svm,
- train.x = X_train_sc,
- train.y = factor(Y_train),
- kernel = "radial",
- ranges = list(
- cost = c(0.1, 1, 5, 10, 50),
- gamma = c(0.001, 0.01, 0.1, 0.5, 1)
- ),
- tunecontrol = tune.control(sampling = "cross", cross = 10)
-)
+folds_gs <- caret::createFolds(Y_train, k = 5, list = TRUE)
 
-best_cost <- tune_svm$best.parameters$cost
-best_gamma <- tune_svm$best.parameters$gamma
-best_error <- tune_svm$best.performance
+for (i in seq_len(nrow(grid_svm))) {
+  auc_folds <- sapply(folds_gs, function(val_idx) {
+    tr_idx <- setdiff(seq_len(length(Y_train)), val_idx)
+    X_tr_f <- X_train_sc[tr_idx, , drop = FALSE]
+    X_va_f <- X_train_sc[val_idx, , drop = FALSE]
+    Y_tr_f <- Y_train[tr_idx]
+    Y_va_f <- Y_train[val_idx]
+    n_i <- sum(Y_tr_f == 0); n_r <- sum(Y_tr_f == 1)
+    w_i <- (n_i + n_r) / (2 * n_i); w_r <- (n_i + n_r) / (2 * n_r)
+    m_f <- tryCatch(
+      svm(x = X_tr_f, y = factor(Y_tr_f, levels = c(0, 1)),
+          kernel = "radial",
+          cost   = grid_svm$cost[i],
+          gamma  = grid_svm$gamma[i],
+          class.weights = c("0" = w_i, "1" = w_r),
+          probability = TRUE),
+      error = function(e) NULL
+    )
+    if (is.null(m_f)) return(NA_real_)
+    probs_va <- attr(predict(m_f, X_va_f, probability = TRUE), "probabilities")[, "1"]
+    if (length(unique(Y_va_f)) < 2) return(NA_real_)
+    as.numeric(pROC::auc(pROC::roc(Y_va_f, probs_va, quiet = TRUE)))
+  })
+  grid_svm$AUC_CV_mean[i] <- round(mean(auc_folds, na.rm = TRUE), 4)
+  grid_svm$AUC_CV_sd[i]   <- round(sd(auc_folds,   na.rm = TRUE), 4)
+  cat(sprintf("  cost=%.3f | gamma=%.4f | AUC_CV=%.4f (SD=%.4f)\n",
+              grid_svm$cost[i], grid_svm$gamma[i],
+              grid_svm$AUC_CV_mean[i], grid_svm$AUC_CV_sd[i]))
+}
 
-cat(sprintf("Millors hiperparametres: cost = %.3f | gamma = %.4f\n", best_cost, best_gamma))
-cat(sprintf("Error CV (tasa classif.): %.4f\n\n", best_error))
+grid_svm_ord <- grid_svm[order(-grid_svm$AUC_CV_mean), ]
+best_cost  <- grid_svm_ord$cost[1]
+best_gamma <- grid_svm_ord$gamma[1]
+best_auc   <- grid_svm_ord$AUC_CV_mean[1]
 
-cat("Grid complet (ordenat per error CV):\n")
-perf_sorted <- tune_svm$performances[order(tune_svm$performances$error), ]
-print(perf_sorted, row.names = FALSE)
+cat(sprintf("\nMillors hiperparametres: cost = %.3f | gamma = %.4f\n", best_cost, best_gamma))
+cat(sprintf("AUC CV (5-fold, millor combinacio): %.4f\n\n", best_auc))
+
+cat("Grid complet (ordenat per AUC CV):\n")
+print(grid_svm_ord, row.names = FALSE)
 cat("\n")
 
-# Heatmap del grid search: posa l'error per cada combinacio de cost i gamma
-ggplot(tune_svm$performances,
- aes(x = factor(cost), y = factor(gamma), fill = error)) +
- geom_tile(color = "white") +
- geom_text(aes(label = round(error, 3)), size = 3.5, color = "white") +
- scale_fill_gradient(low = "#1A5276", high = "#AED6F1",
- name = "Error CV") +
- geom_tile(data = data.frame(cost = factor(best_cost), gamma = factor(best_gamma)),
- aes(x = cost, y = gamma), fill = NA,
- color = "#E07B54", linewidth = 1.5) +
- labs(title = "Heatmap Grid Search SVM-RBF (10-fold CV)",
- subtitle = sprintf("Millors params: cost=%.1f | gamma=%.3f | error=%.4f",
- best_cost, best_gamma, best_error),
- x = "Cost (C)", y = "Gamma (γ)") +
- theme_minimal(base_size = 13)
+# Heatmap del grid search
+print(
+  ggplot(grid_svm, aes(x = factor(cost), y = factor(gamma), fill = AUC_CV_mean)) +
+    geom_tile(color = "white") +
+    geom_text(aes(label = round(AUC_CV_mean, 3)), size = 3.5, color = "white") +
+    scale_fill_gradient(low = "#AED6F1", high = "#1A5276", name = "AUC CV") +
+    geom_tile(data = data.frame(cost = factor(best_cost), gamma = factor(best_gamma)),
+              aes(x = cost, y = gamma), fill = NA,
+              color = "#E07B54", linewidth = 1.5) +
+    labs(title = "Heatmap Grid Search SVM-RBF (5-fold CV, AUC)",
+         subtitle = sprintf("Millors params: cost=%.1f | gamma=%.3f | AUC_CV=%.4f",
+                            best_cost, best_gamma, best_auc),
+         x = "Cost (C)", y = "Gamma (γ)") +
+    theme_minimal(base_size = 13)
+)
 
 #### ============================================================ ####
 ####                    3. MODEL SVM FINAL                        ####
@@ -389,7 +415,7 @@ print(df_ov_svm, row.names = FALSE)
 cat("\n")
 
 # Corba ROC test
-roc_svm_test <- roc(Y_test, prob_test_svm, quiet = TRUE)
+roc_svm_test <- pROC::roc(Y_test, prob_test_svm, quiet = TRUE)
 roc_df_test <- data.frame(spec_inv = 1 - roc_svm_test$specificities,
  sens = roc_svm_test$sensitivities)
 ggplot(roc_df_test, aes(x = spec_inv, y = sens)) +
