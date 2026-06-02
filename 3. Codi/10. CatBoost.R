@@ -24,6 +24,8 @@ if (!require("catboost", character.only = TRUE)) {
   ))
 }
 
+setwd("C:/Users/edurn/Downloads/TFG")
+
 load("2. Dades/9. Dades XGBoost.RData")
 
 source("3. Codi/Funcions models.R")

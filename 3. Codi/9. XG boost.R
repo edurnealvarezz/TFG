@@ -39,13 +39,14 @@ dades_xgb <- dades_def %>%
   ) %>%
   filter(!is.na(Y))
 
+ia_vars <- c("IA_SUBST_num", "IA_ATENC_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
-             "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
+             "EST_GRUPS_REDUITS")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG")
 vars_pers <- c("EDAT", "DESPL")
 
-predictors <- c(motius_vars, estrategies_vars, ia_vars,
+predictors <- c(ia_vars,
                 vars_fa, vars_acad, vars_pers)
 predictors <- predictors[predictors %in% names(dades_xgb)]
 
