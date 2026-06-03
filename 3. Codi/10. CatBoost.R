@@ -52,14 +52,14 @@ dades_cat <- dades_def %>%
   ) %>%
   filter(!is.na(Y))
 
+ia_vars <- c("IA_SUBST_num", "IA_ATENC_num", "IA_CONF_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
              "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG")
 vars_pers <- c("EDAT", "DESPL")
 
-predictors <- c(motius_vars, estrategies_vars, ia_vars,
-                vars_fa, vars_acad, vars_pers)
+predictors <- c(ia_vars, vars_fa, vars_acad, vars_pers)
 predictors <- predictors[predictors %in% names(dades_cat)]
 
 dades_cat_net <- dades_cat %>%
@@ -105,9 +105,9 @@ MIN_RECALL <- 0.60
 cat("================= 1. GRID SEARCH ================ \n")
 
 grid <- expand.grid(
-  depth = c(4, 6, 8),
+  depth = c(4, 6),
   learning_rate = c(0.01, 0.03, 0.05),
-  l2_leaf_reg = c(1, 5, 10),
+  l2_leaf_reg = c(1, 5),
   random_strength = c(0.5, 1.5),
   stringsAsFactors = FALSE
 )
@@ -117,46 +117,54 @@ cat(sprintf("Recall minim acceptable: %.2f\n\n", MIN_RECALL))
 
 set.seed(1234)
 grid_results <- vector("list", nrow(grid))
+folds_grid   <- caret::createFolds(Y_train, k = 5, list = TRUE)
 
 for (i in seq_len(nrow(grid))) {
   params_i <- list(
-    loss_function = "Logloss",
-    eval_metric = "AUC",
-    iterations = 500,
-    learning_rate = grid$learning_rate[i],
-    depth = grid$depth[i],
-    l2_leaf_reg = grid$l2_leaf_reg[i],
+    loss_function   = "Logloss",
+    eval_metric     = "AUC",
+    iterations      = 500,
+    learning_rate   = grid$learning_rate[i],
+    depth           = grid$depth[i],
+    l2_leaf_reg     = grid$l2_leaf_reg[i],
     random_strength = grid$random_strength[i],
-    random_seed = 1234,
-    logging_level = "Silent"
+    random_seed     = 1234,
+    logging_level   = "Silent"
   )
 
-  cv_i <- tryCatch(
-    catboost.cv(pool = train_pool_cat, params = params_i,
-                fold_count = 5, type = "Classical", verbose = FALSE),
-    error = function(e) NULL
-  )
-
-  if (is.null(cv_i)) {
-    auc_i <- NA_real_; best_iter_i <- 500L
-  } else {
-    auc_i      <- max(cv_i$test.AUC.mean, na.rm = TRUE)
-    best_iter_i <- which.max(cv_i$test.AUC.mean)
+  aucs_folds <- numeric(5)
+  for (fi in seq_along(folds_grid)) {
+    vi   <- folds_grid[[fi]]
+    p_tr <- catboost.load_pool(as.data.frame(X_train_df[-vi, ]), Y_train[-vi])
+    p_va <- catboost.load_pool(as.data.frame(X_train_df[vi,  ]), Y_train[vi])
+    m_fi <- tryCatch(
+      catboost.train(p_tr, test_pool = p_va, params = params_i),
+      error = function(e) NULL
+    )
+    if (is.null(m_fi)) {
+      aucs_folds[fi] <- NA_real_
+    } else {
+      pr_fi <- extreure_prob_cat(
+        catboost.predict(m_fi, p_va, prediction_type = "Probability"))
+      aucs_folds[fi] <- as.numeric(pROC::auc(
+        pROC::roc(Y_train[vi], pr_fi, quiet = TRUE)))
+    }
   }
 
+  auc_i <- mean(aucs_folds, na.rm = TRUE)
+
   grid_results[[i]] <- data.frame(
-    depth = grid$depth[i],
-    learning_rate = grid$learning_rate[i],
-    l2_leaf_reg = grid$l2_leaf_reg[i],
+    depth           = grid$depth[i],
+    learning_rate   = grid$learning_rate[i],
+    l2_leaf_reg     = grid$l2_leaf_reg[i],
     random_strength = grid$random_strength[i],
-    cv_auc = round(auc_i, 4),
-    best_iter = best_iter_i,
+    cv_auc          = round(auc_i, 4),
+    best_iter       = 500L,
     stringsAsFactors = FALSE
   )
 
-  if (i %% 12 == 0) {
+  if (i %% 12 == 0)
     cat(sprintf("  %d / %d combinacions completades...\n", i, nrow(grid)))
-  }
 }
 
 df_grid <- do.call(rbind, grid_results)
@@ -180,15 +188,17 @@ cat(sprintf("  CV AUC = %.4f | best_iter = %d\n\n", best_row$cv_auc, best_row$be
 cat(" =============== MODEL FINAL CatBoost ================ \n")
 
 best_params_cat <- list(
-  loss_function = "Logloss",
-  eval_metric = "AUC",
-  iterations = best_row$best_iter,
-  learning_rate = best_row$learning_rate,
-  depth = best_row$depth,
-  l2_leaf_reg = best_row$l2_leaf_reg,
+  loss_function   = "Logloss",
+  eval_metric     = "AUC",
+  iterations      = 1000, # màxim; early stopping ho aturarà abans
+  od_type         = "Iter", # early stopping per iteracions sense millora
+  od_wait         = 50, # para si 50 iteracions sense millorar AUC
+  learning_rate   = best_row$learning_rate,
+  depth           = best_row$depth,
+  l2_leaf_reg     = best_row$l2_leaf_reg,
   random_strength = best_row$random_strength,
-  random_seed = 1234,
-  logging_level = "Silent"
+  random_seed     = 1234,
+  logging_level   = "Silent"
 )
 
 set.seed(1234)

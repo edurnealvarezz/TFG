@@ -175,25 +175,25 @@ Taula comparativa de models (sobre conjunt test):
   Logit Millorat  0.8063 ± 0.0772   0.8528   0.6765    0.9524 0.4878 0.6452
      RF-A (test) OOB err = 0.1928   0.8916   0.8088    0.9667 0.7073 0.8169
      RF-B (test) OOB err = 0.1862   0.8076   0.6324    0.8333 0.4878 0.6154
-         XGBoost                —   0.8546   0.7353    0.8966 0.6341 0.7429
-        CatBoost                —   0.8546   0.7647    0.8378 0.7561 0.7949
+         XGBoost                —   0.8708   0.7353    0.9259 0.6098 0.7353
+        CatBoost                —   0.8618   0.8529    0.9189 0.8293 0.8718
          SVM-RBF                —   0.8491   0.7206    0.8929 0.6098 0.7246
  Balanced_Acc
        0.7254
        0.7254
        0.8351
        0.6698
-       0.7615
-       0.7669
+       0.7678
+       0.8591
        0.7493
 
 Millor model per metrica:
  AUC_test      : RF-A (test) (0.8916)
- Accuracy      : RF-A (test) (0.8088)
+ Accuracy      : CatBoost (0.8529)
  Precision     : RF-A (test) (0.9667)
- Recall        : CatBoost (0.7561)
- F1            : RF-A (test) (0.8169)
- Balanced_Acc  : RF-A (test) (0.8351)
+ Recall        : CatBoost (0.8293)
+ F1            : CatBoost (0.8718)
+ Balanced_Acc  : CatBoost (0.8591)
 
 -> Metriques guardades a: 2. Dades/metriques_svm.rds
 
