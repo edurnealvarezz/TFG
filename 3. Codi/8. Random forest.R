@@ -237,6 +237,23 @@ print(
     theme_minimal(base_size = 13)
 )
 
+# Corba PR (test)
+pr_test_rfa <- seleccionar_llindar_pr(prob_test_a, test_a$Y, MIN_RECALL)
+print(
+  ggplot(pr_test_rfa$pr_curve, aes(x = recall, y = precision)) +
+    geom_path(color = "#4A90B8", linewidth = 1) +
+    geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
+               color = "red", linewidth = 0.8) +
+    geom_point(data = data.frame(
+                 recall    = pr_test_rfa$recall,
+                 precision = ifelse(is.na(pr_test_rfa$precision), 0, pr_test_rfa$precision)),
+               color = "#E07B54", size = 3, shape = 17) +
+    labs(title = "Corba Precisio-Recall — RF-A (test)",
+         subtitle = sprintf("AUPRC = %.4f | Llindar OOB = %.4f", pr_test_rfa$auprc, thresh_pr_a),
+         x = "Recall", y = "Precisio (PPV)") +
+    theme_minimal(base_size = 13)
+)
+
 #### ============================================================ ####
 ####                   2. RANDOM FOREST B                         ####
 #### ============================================================ ####
@@ -329,6 +346,37 @@ print(df_ov_b, row.names = FALSE)
 # tampoc hi ha overfitting
 
 print(grafic_cm(met_rfb_test, "RF-B"))
+
+# Corba ROC (test)
+roc_b <- pROC::roc(test_b$Y, prob_test_b, quiet = TRUE)
+roc_df_b <- data.frame(spec_inv = 1 - roc_b$specificities, sens = roc_b$sensitivities)
+print(
+  ggplot(roc_df_b, aes(x = spec_inv, y = sens)) +
+    geom_path(color = "#E07B54", linewidth = 1.2) +
+    geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
+    annotate("text", x = 0.65, y = 0.25,
+             label = sprintf("AUC = %.3f", met_rfb_test$AUC),
+             size = 5, color = "#E07B54") +
+    labs(title = "Corba ROC — RF-B", x = "1 - Especificitat", y = "Sensibilitat") +
+    theme_minimal(base_size = 13)
+)
+
+# Corba PR (test)
+pr_test_rfb <- seleccionar_llindar_pr(prob_test_b, test_b$Y, MIN_RECALL)
+print(
+  ggplot(pr_test_rfb$pr_curve, aes(x = recall, y = precision)) +
+    geom_path(color = "#E07B54", linewidth = 1) +
+    geom_vline(xintercept = MIN_RECALL, linetype = "dashed",
+               color = "red", linewidth = 0.8) +
+    geom_point(data = data.frame(
+                 recall    = pr_test_rfb$recall,
+                 precision = ifelse(is.na(pr_test_rfb$precision), 0, pr_test_rfb$precision)),
+               color = "#4A90B8", size = 3, shape = 17) +
+    labs(title = "Corba Precisio-Recall — RF-B (test)",
+         subtitle = sprintf("AUPRC = %.4f | Llindar OOB = %.4f", pr_test_rfb$auprc, thresh_pr_b),
+         x = "Recall", y = "Precisio (PPV)") +
+    theme_minimal(base_size = 13)
+)
 
 #### ============================================================ ####
 ####               3. IMPORTÀNCIA DE VARIABLES                    ####

@@ -67,5 +67,16 @@ Threshold OOF: 0.6860 | recall_ok (>=0.60): SI
            F1   0.7816 0.6452 -0.1364  (!)
     Precision   0.8383 0.9524  0.1141     
        Recall   0.7516 0.4878 -0.2638  (!)
+
+--- Matriu de confusió (test) ---
+Llindar aplicat: 0.6860 (OOF PR, recall >= 0.60)
+
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           26          1
+  Regular(1)             21         20
+
+  Precision (PPV): 0.9524 | Recall (Sens): 0.4878 | F1: 0.6452
+
 Threshold aplicat: 0.6860 (OOF PR, recall >= 0.60)
 

@@ -284,6 +284,24 @@ print(
     theme_minimal(base_size = 13)
 )
 
+# Matriu de confusió (test)
+cat("\n--- Matriu de confusió (test) ---\n")
+cat(sprintf("Llindar aplicat: %.4f (OOF PR, recall >= %.2f)\n\n", thresh_oof, MIN_RECALL))
+cm_text <- matrix(
+  c(metriques_logit_pred$TN, metriques_logit_pred$FN,
+    metriques_logit_pred$FP, metriques_logit_pred$TP),
+  nrow = 2,
+  dimnames = list(Observat = c("Irregular(0)", "Regular(1)"),
+                  Predit   = c("Irregular(0)", "Regular(1)"))
+)
+print(cm_text)
+cat(sprintf("\n  Precision (PPV): %.4f | Recall (Sens): %.4f | F1: %.4f\n\n",
+            metriques_logit_pred$precision,
+            metriques_logit_pred$recall,
+            metriques_logit_pred$F1))
+
+print(grafic_cm(metriques_logit_pred, "Logit Predictiu (test)"))
+
 saveRDS(metriques_logit_pred, "2. Dades/metriques_logit_pred.rds")
 saveRDS(model_sel, "2. Dades/model_logit_pred.rds")
 
