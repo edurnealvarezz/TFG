@@ -170,7 +170,7 @@ cat("--- 4.2 Taula resum per cluster ---\n\n")
 for (cl in 1:c_final) {
   df_cl <- df_cc[df_cc$cluster_hard == cl, ]
   cat(sprintf("Cluster %d: n=%d (%.1f%% del total)\n", cl, nrow(df_cl),
-              nrow(df_cl) / nrow(df_cc)))
+              nrow(df_cl) / nrow(df_cc) * 100))
   cat(sprintf("  Regular (>=80%%): %.1f%% | Irregular: %.1f%%\n",
               mean(df_cl$GRUP_ASSIST == "Regular (≥80%)", na.rm = TRUE),
               mean(df_cl$GRUP_ASSIST != "Regular (≥80%)", na.rm = TRUE)))
@@ -323,6 +323,7 @@ mw_lbl    <- sprintf("Mann-Whitney: W=%.0f, p=%.4f, r=%.3f", mw_pa$W, mw_pa$p, m
 print(
   ggplot(df_cc_pa, aes(x = cluster_f, y = P_ASSIST * 100, fill = cluster_f)) +
     geom_violin(alpha = 0.45, trim = FALSE) +
+    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
     geom_boxplot(width = 0.14, alpha = 0.80, outlier.shape = 21, outlier.size = 2) +
     scale_fill_manual(values = col_clusters, guide = "none") +
     scale_x_discrete(labels = c("1" = "Cluster 1", "2" = "Cluster 2")) +

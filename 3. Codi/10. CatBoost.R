@@ -455,9 +455,9 @@ models_llista <- list()
 
 fitxers <- c(
   Logit = "2. Dades/metriques_logit.rds",
-  `RF-A` = "2. Dades/metriques_rf_a.rds",
-  `RF-B` = "2. Dades/metriques_rf_b.rds",
-  XGBoost = "2. Dades/metriques_xgb.rds"
+  `RF-A` = "4. Outputs/Metriques i models/metriques_rf_a.rds",
+  `RF-B` = "4. Outputs/Metriques i models/metriques_rf_b.rds",
+  XGBoost = "4. Outputs/Metriques i models/metriques_xgb.rds"
 )
 
 for (nom in names(fitxers)) {
@@ -499,7 +499,10 @@ print(
 )
 
 
-saveRDS(metriques_cat, "2. Dades/metriques_catboost.rds")
+dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
+saveRDS(metriques_cat,    "4. Outputs/Metriques i models/metriques_catboost.rds")
+saveRDS(catboost_model,   "4. Outputs/Metriques i models/model_catboost.rds")
+cat("-> metriques_catboost.rds i model_catboost.rds guardats\n")
 
 # --- Guardar probabilitats i bbdd  ---
 predictors_ok_cat <- predictors[predictors %in% names(dades_cat)]

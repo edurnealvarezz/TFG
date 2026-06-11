@@ -18,7 +18,7 @@ rm(packages)
 setwd("C:/Users/Edurne/Downloads/TFG")
 
 load("2. Dades/8. Dades CatBoost.RData")
-model_logit_pred <- readRDS("2. Dades/model_logit_pred.rds")
+model_logit_pred <- readRDS("4. Outputs/Metriques i models/model_logit_pred.rds")
 formula_pred <- formula(model_logit_pred)
 source("3. Codi/Funcions models.R")
 
@@ -560,10 +560,10 @@ cat("=================================================================\n\n")
 fitxers_met <- list(
  "Logit" = "2. Dades/metriques_logit.rds",
  "LogitMil" = "2. Dades/metriques_logit_millorat.rds",
- "RF-A" = "2. Dades/metriques_rf_a.rds",
- "RF-B" = "2. Dades/metriques_rf_b.rds",
- "XGBoost" = "2. Dades/metriques_xgb.rds",
- "CatBoost" = "2. Dades/metriques_catboost.rds"
+ "RF-A" = "4. Outputs/Metriques i models/metriques_rf_a.rds",
+ "RF-B" = "4. Outputs/Metriques i models/metriques_rf_b.rds",
+ "XGBoost" = "4. Outputs/Metriques i models/metriques_xgb.rds",
+ "CatBoost" = "4. Outputs/Metriques i models/metriques_catboost.rds"
 )
 
 extreure_comp <- function(nom, m) {
@@ -689,9 +689,10 @@ metriques_sl <- list(
  TP = TP_sl, TN = TN_sl, FP = FP_sl, FN = FN_sl
 )
 
-saveRDS(metriques_sl, "2. Dades/metriques_superlearner.rds")
-saveRDS(meta_cv, "2. Dades/model_superlearner_meta.rds")
-saveRDS(df_oof, "2. Dades/oof_predictions.rds")
+dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
+saveRDS(metriques_sl, "4. Outputs/Metriques i models/metriques_superlearner.rds")
+saveRDS(meta_cv,      "4. Outputs/Metriques i models/model_superlearner_meta.rds")
+saveRDS(df_oof,       "4. Outputs/Metriques i models/oof_predictions.rds")
 cat("-> metriques_superlearner.rds, model_superlearner_meta.rds, oof_predictions.rds guardats\n\n")
 
 # Guardar probabilitats a dades_def (OOF per train, full-train per test)

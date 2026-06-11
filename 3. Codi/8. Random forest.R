@@ -648,8 +648,12 @@ if (file.exists("2. Dades/metriques_logit.rds")) {
 
 # sembla que el millor és el logit
 
-saveRDS(met_rfa_test, "2. Dades/metriques_rf_a.rds")
-saveRDS(met_rfb_test, "2. Dades/metriques_rf_b.rds")
+dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
+saveRDS(met_rfa_test, "4. Outputs/Metriques i models/metriques_rf_a.rds")
+saveRDS(met_rfb_test, "4. Outputs/Metriques i models/metriques_rf_b.rds")
+saveRDS(rf_a,         "4. Outputs/Metriques i models/model_rf_a.rds")
+saveRDS(rf_b,         "4. Outputs/Metriques i models/model_rf_b.rds")
+cat("-> metriques_rf_a/b.rds i model_rf_a/b.rds guardats\n")
 
 # --- Guardar probabilitats i bbdd encadenada ---
 vars_rfa_ok <- vars_rfa[vars_rfa %in% names(dades_rf)]

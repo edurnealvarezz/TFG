@@ -302,8 +302,10 @@ cat(sprintf("\n  Precision (PPV): %.4f | Recall (Sens): %.4f | F1: %.4f\n\n",
 
 print(grafic_cm(metriques_logit_pred, "Logit Predictiu (test)"))
 
-saveRDS(metriques_logit_pred, "2. Dades/metriques_logit_pred.rds")
-saveRDS(model_sel, "2. Dades/model_logit_pred.rds")
+dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
+saveRDS(metriques_logit_pred, "4. Outputs/Metriques i models/metriques_logit_pred.rds")
+saveRDS(model_sel,            "4. Outputs/Metriques i models/model_logit_pred.rds")
+cat("-> metriques_logit_pred.rds i model_logit_pred.rds guardats\n")
 
 #### ============================================================ ####
 ####                      4. GUARDAR DADES                        ####

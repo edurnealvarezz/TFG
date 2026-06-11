@@ -1,0 +1,332 @@
+=================================================================
+   FASE 4 — PROFILING ENRIQUIT
+=================================================================
+
+--- 4.1 Reassignació completa (totes les obs) ---
+
+Total obs: 342 | Completes (clustering): 342 | Excloses: 0
+
+Cluster 1: 167 obs (48.8%) | Cluster 2: 175 obs (51.2%)
+
+--- 4.2 Taula resum per cluster ---
+
+Cluster 1: n=167 (0.5% del total)
+  Regular (>=80%): 0.7% | Irregular: 0.3%
+  P_ASSIST: mitjana=74.4% | mediana=85.0%
+
+Cluster 2: n=175 (0.5% del total)
+  Regular (>=80%): 0.5% | Irregular: 0.5%
+  P_ASSIST: mitjana=66.5% | mediana=70.0%
+
+Chi2 (GRUP_ASSIST vs cluster): chi2=17.700, df=1, p=0.0000
+V de Cramer = 0.227 ***
+
+Mann-Whitney P_ASSIST: W=18213, p=0.0001, r=0.214 ***
+
+--- 4.3 Profiling variables clustering ---
+
+       Variable Cluster1 Cluster2 Diferencia p_valor   r_rb Signif
+       IA_HABIT    3.737    5.623     -1.886  0.0000 -0.429    ***
+       IA_COMPR    4.353    5.794     -1.441  0.0000 -0.429    ***
+        IA_REND    3.234    5.074     -1.841  0.0000 -0.429    ***
+        IA_PDFS    3.749    5.457     -1.709  0.0000 -0.429    ***
+       IA_SUBST    1.737    4.006     -2.269  0.0000 -0.429    ***
+       IA_ATENC    1.497    3.554     -2.057  0.0000 -0.429    ***
+        IA_CONF    1.665    2.903     -1.238  0.0000 -0.429    ***
+       NOTA_num    2.635    2.389      0.246  0.0145  0.132      *
+          DESPL   52.012   45.863      6.149  0.0450  0.108      *
+        N_ASSIG    9.617   10.217     -0.600  0.0977 -0.090     ns
+           EDAT   23.868   20.497      3.371  0.1042  0.088     ns
+     T_AVAL_num    0.952    0.909      0.044  0.1161  0.085     ns
+        CURS_1R    0.263    0.206      0.058  0.2081  0.068     ns
+      DEDIC_num    2.096    2.023      0.073  0.6743  0.023     ns
+ DOBLE_GRAU_EST    0.311    0.331     -0.020  0.6924 -0.021     ns
+    GENERE_Home    0.467    0.451      0.016  0.7726  0.016     ns
+
+--- 4.4 Profiling factors EFA (post-hoc, no entren al clustering) ---
+
+            Factor Cluster1 Cluster2 Diferencia p_valor   r_rb Signif
+    IA_EINA_ESTUDI   -0.772    0.736     -1.508  0.0000 -0.429    ***
+    IA_SUBSTITUCIO   -0.744    0.710     -1.454  0.0000 -0.429    ***
+  MOT_DESMOTIVACIO   -0.382    0.365     -0.747  0.0000 -0.374    ***
+    MOT_AUTOGESTIO   -0.369    0.352     -0.720  0.0000 -0.372    ***
+  EST_TEMPS_CLASSE   -0.133    0.127     -0.260  0.0144 -0.132      *
+   MOT_FORCA_MAJOR    0.122   -0.116      0.238  0.0378  0.112      *
+  EST_AVALUACIO_AC   -0.124    0.118     -0.242  0.1196 -0.084     ns
+ EST_GRUPS_REDUITS   -0.063    0.060     -0.123  0.3118 -0.055     ns
+  EST_QUALITAT_DOC   -0.048    0.046     -0.095  0.8977 -0.007     ns
+
+Factors EFA significatius (p<0.05): IA_EINA_ESTUDI, IA_SUBSTITUCIO, MOT_DESMOTIVACIO, MOT_AUTOGESTIO, EST_TEMPS_CLASSE, MOT_FORCA_MAJOR
+
+--- 4.5 Grafics ---
+
+--- 4.6 Taula resum interpretativa ---
+
+          Tipus            Factor Cluster1 Cluster2 Diferencia p_valor   r_rb
+     Clustering          IA_HABIT    3.737    5.623     -1.886  0.0000 -0.429
+     Clustering          IA_COMPR    4.353    5.794     -1.441  0.0000 -0.429
+     Clustering           IA_REND    3.234    5.074     -1.841  0.0000 -0.429
+     Clustering           IA_PDFS    3.749    5.457     -1.709  0.0000 -0.429
+     Clustering          IA_SUBST    1.737    4.006     -2.269  0.0000 -0.429
+     Clustering          IA_ATENC    1.497    3.554     -2.057  0.0000 -0.429
+     Clustering           IA_CONF    1.665    2.903     -1.238  0.0000 -0.429
+ EFA (post-hoc)    IA_EINA_ESTUDI   -0.772    0.736     -1.508  0.0000 -0.429
+ EFA (post-hoc)    IA_SUBSTITUCIO   -0.744    0.710     -1.454  0.0000 -0.429
+ EFA (post-hoc)  MOT_DESMOTIVACIO   -0.382    0.365     -0.747  0.0000 -0.374
+ EFA (post-hoc)    MOT_AUTOGESTIO   -0.369    0.352     -0.720  0.0000 -0.372
+     Clustering          NOTA_num    2.635    2.389      0.246  0.0145  0.132
+ EFA (post-hoc)  EST_TEMPS_CLASSE   -0.133    0.127     -0.260  0.0144 -0.132
+ EFA (post-hoc)   MOT_FORCA_MAJOR    0.122   -0.116      0.238  0.0378  0.112
+     Clustering             DESPL   52.012   45.863      6.149  0.0450  0.108
+     Clustering           N_ASSIG    9.617   10.217     -0.600  0.0977 -0.090
+     Clustering              EDAT   23.868   20.497      3.371  0.1042  0.088
+     Clustering        T_AVAL_num    0.952    0.909      0.044  0.1161  0.085
+ EFA (post-hoc)  EST_AVALUACIO_AC   -0.124    0.118     -0.242  0.1196 -0.084
+     Clustering           CURS_1R    0.263    0.206      0.058  0.2081  0.068
+ EFA (post-hoc) EST_GRUPS_REDUITS   -0.063    0.060     -0.123  0.3118 -0.055
+     Clustering         DEDIC_num    2.096    2.023      0.073  0.6743  0.023
+     Clustering    DOBLE_GRAU_EST    0.311    0.331     -0.020  0.6924 -0.021
+     Clustering       GENERE_Home    0.467    0.451      0.016  0.7726  0.016
+ EFA (post-hoc)  EST_QUALITAT_DOC   -0.048    0.046     -0.095  0.8977 -0.007
+ Signif
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+      *
+      *
+      *
+      *
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+
+=================================================================
+   FASE 5 — TEST c=3 (VALIDACIO OPCIONAL)
+=================================================================
+
+--- 5.1 FCM c=3, m=1.5, nstart=25 sobre X_train ---
+
+--- 5.2 Metriques c=3 ---
+
+c=3: PC=0.4305 | PE=0.9505 | XB=4.0739 | Silhouette=0.1046
+
+--- 5.3 Comparacio c=2 vs c=3 ---
+
+ c   m     PC     PE     XB Silhouette
+ 2 1.5 0.6037 0.5819 2.1933     0.1462
+ 3 1.5 0.4305 0.9505 4.0739     0.1046
+
+--- 5.4 Decisio ---
+
+Silhouette(c=3)=0.1046 <= Silhouette(c=2)=0.1462 + 0.02 -> Es manté c=2.
+
+--- 5.5 Centroides c=3 (escala original) ---
+
+               Cluster_1 Cluster_2 Cluster_3
+EDAT               21.40     23.52     22.20
+DESPL              43.47     48.34     50.96
+N_ASSIG            10.10      9.70     10.16
+NOTA_num            2.36      2.64      2.55
+T_AVAL_num          0.92      0.93      0.92
+CURS_1R             0.17      0.28      0.20
+GENERE_Home         0.48      0.47      0.46
+DOBLE_GRAU_EST      0.30      0.31      0.38
+DEDIC_num           2.04      1.98      2.14
+IA_HABIT            5.44      3.55      4.93
+IA_COMPR            5.66      4.16      5.33
+IA_REND             4.89      3.10      4.32
+IA_PDFS             5.36      3.53      4.87
+IA_SUBST            3.94      1.87      2.68
+IA_ATENC            3.63      1.61      2.30
+IA_CONF             3.04      1.71      2.11
+
+Distribucio c=3 (totes les obs completes):
+Cluster
+  1   2   3 
+122  99 121 
+
+--- Guardant resultats de profiling ---
+
+null device 
+          1 
+=================================================================
+   FASE 4 — PROFILING ENRIQUIT
+=================================================================
+
+--- 4.1 Reassignació completa (totes les obs) ---
+
+Total obs: 342 | Completes (clustering): 342 | Excloses: 0
+
+Cluster 1: 167 obs (48.8%) | Cluster 2: 175 obs (51.2%)
+
+--- 4.2 Taula resum per cluster ---
+
+Cluster 1: n=167 (48.8% del total)
+  Regular (>=80%): 0.7% | Irregular: 0.3%
+  P_ASSIST: mitjana=74.4% | mediana=85.0%
+
+Cluster 2: n=175 (51.2% del total)
+  Regular (>=80%): 0.5% | Irregular: 0.5%
+  P_ASSIST: mitjana=66.5% | mediana=70.0%
+
+Chi2 (GRUP_ASSIST vs cluster): chi2=17.700, df=1, p=0.0000
+V de Cramer = 0.227 ***
+
+Mann-Whitney P_ASSIST: W=18213, p=0.0001, r=0.214 ***
+
+--- 4.3 Profiling variables clustering ---
+
+       Variable Cluster1 Cluster2 Diferencia p_valor   r_rb Signif
+       IA_HABIT    3.737    5.623     -1.886  0.0000 -0.429    ***
+       IA_COMPR    4.353    5.794     -1.441  0.0000 -0.429    ***
+        IA_REND    3.234    5.074     -1.841  0.0000 -0.429    ***
+        IA_PDFS    3.749    5.457     -1.709  0.0000 -0.429    ***
+       IA_SUBST    1.737    4.006     -2.269  0.0000 -0.429    ***
+       IA_ATENC    1.497    3.554     -2.057  0.0000 -0.429    ***
+        IA_CONF    1.665    2.903     -1.238  0.0000 -0.429    ***
+       NOTA_num    2.635    2.389      0.246  0.0145  0.132      *
+          DESPL   52.012   45.863      6.149  0.0450  0.108      *
+        N_ASSIG    9.617   10.217     -0.600  0.0977 -0.090     ns
+           EDAT   23.868   20.497      3.371  0.1042  0.088     ns
+     T_AVAL_num    0.952    0.909      0.044  0.1161  0.085     ns
+        CURS_1R    0.263    0.206      0.058  0.2081  0.068     ns
+      DEDIC_num    2.096    2.023      0.073  0.6743  0.023     ns
+ DOBLE_GRAU_EST    0.311    0.331     -0.020  0.6924 -0.021     ns
+    GENERE_Home    0.467    0.451      0.016  0.7726  0.016     ns
+
+--- 4.4 Profiling factors EFA (post-hoc, no entren al clustering) ---
+
+            Factor Cluster1 Cluster2 Diferencia p_valor   r_rb Signif
+    IA_EINA_ESTUDI   -0.772    0.736     -1.508  0.0000 -0.429    ***
+    IA_SUBSTITUCIO   -0.744    0.710     -1.454  0.0000 -0.429    ***
+  MOT_DESMOTIVACIO   -0.382    0.365     -0.747  0.0000 -0.374    ***
+    MOT_AUTOGESTIO   -0.369    0.352     -0.720  0.0000 -0.372    ***
+  EST_TEMPS_CLASSE   -0.133    0.127     -0.260  0.0144 -0.132      *
+   MOT_FORCA_MAJOR    0.122   -0.116      0.238  0.0378  0.112      *
+  EST_AVALUACIO_AC   -0.124    0.118     -0.242  0.1196 -0.084     ns
+ EST_GRUPS_REDUITS   -0.063    0.060     -0.123  0.3118 -0.055     ns
+  EST_QUALITAT_DOC   -0.048    0.046     -0.095  0.8977 -0.007     ns
+
+Factors EFA significatius (p<0.05): IA_EINA_ESTUDI, IA_SUBSTITUCIO, MOT_DESMOTIVACIO, MOT_AUTOGESTIO, EST_TEMPS_CLASSE, MOT_FORCA_MAJOR
+
+--- 4.5 Grafics ---
+
+--- 4.6 Taula resum interpretativa ---
+
+          Tipus            Factor Cluster1 Cluster2 Diferencia p_valor   r_rb
+     Clustering          IA_HABIT    3.737    5.623     -1.886  0.0000 -0.429
+     Clustering          IA_COMPR    4.353    5.794     -1.441  0.0000 -0.429
+     Clustering           IA_REND    3.234    5.074     -1.841  0.0000 -0.429
+     Clustering           IA_PDFS    3.749    5.457     -1.709  0.0000 -0.429
+     Clustering          IA_SUBST    1.737    4.006     -2.269  0.0000 -0.429
+     Clustering          IA_ATENC    1.497    3.554     -2.057  0.0000 -0.429
+     Clustering           IA_CONF    1.665    2.903     -1.238  0.0000 -0.429
+ EFA (post-hoc)    IA_EINA_ESTUDI   -0.772    0.736     -1.508  0.0000 -0.429
+ EFA (post-hoc)    IA_SUBSTITUCIO   -0.744    0.710     -1.454  0.0000 -0.429
+ EFA (post-hoc)  MOT_DESMOTIVACIO   -0.382    0.365     -0.747  0.0000 -0.374
+ EFA (post-hoc)    MOT_AUTOGESTIO   -0.369    0.352     -0.720  0.0000 -0.372
+     Clustering          NOTA_num    2.635    2.389      0.246  0.0145  0.132
+ EFA (post-hoc)  EST_TEMPS_CLASSE   -0.133    0.127     -0.260  0.0144 -0.132
+ EFA (post-hoc)   MOT_FORCA_MAJOR    0.122   -0.116      0.238  0.0378  0.112
+     Clustering             DESPL   52.012   45.863      6.149  0.0450  0.108
+     Clustering           N_ASSIG    9.617   10.217     -0.600  0.0977 -0.090
+     Clustering              EDAT   23.868   20.497      3.371  0.1042  0.088
+     Clustering        T_AVAL_num    0.952    0.909      0.044  0.1161  0.085
+ EFA (post-hoc)  EST_AVALUACIO_AC   -0.124    0.118     -0.242  0.1196 -0.084
+     Clustering           CURS_1R    0.263    0.206      0.058  0.2081  0.068
+ EFA (post-hoc) EST_GRUPS_REDUITS   -0.063    0.060     -0.123  0.3118 -0.055
+     Clustering         DEDIC_num    2.096    2.023      0.073  0.6743  0.023
+     Clustering    DOBLE_GRAU_EST    0.311    0.331     -0.020  0.6924 -0.021
+     Clustering       GENERE_Home    0.467    0.451      0.016  0.7726  0.016
+ EFA (post-hoc)  EST_QUALITAT_DOC   -0.048    0.046     -0.095  0.8977 -0.007
+ Signif
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+    ***
+      *
+      *
+      *
+      *
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+     ns
+
+=================================================================
+   FASE 5 — TEST c=3 (VALIDACIO OPCIONAL)
+=================================================================
+
+--- 5.1 FCM c=3, m=1.5, nstart=25 sobre X_train ---
+
+--- 5.2 Metriques c=3 ---
+
+c=3: PC=0.4305 | PE=0.9505 | XB=4.0739 | Silhouette=0.1046
+
+--- 5.3 Comparacio c=2 vs c=3 ---
+
+ c   m     PC     PE     XB Silhouette
+ 2 1.5 0.6037 0.5819 2.1933     0.1462
+ 3 1.5 0.4305 0.9505 4.0739     0.1046
+
+--- 5.4 Decisio ---
+
+Silhouette(c=3)=0.1046 <= Silhouette(c=2)=0.1462 + 0.02 -> Es manté c=2.
+
+--- 5.5 Centroides c=3 (escala original) ---
+
+               Cluster_1 Cluster_2 Cluster_3
+EDAT               21.40     23.52     22.20
+DESPL              43.47     48.34     50.96
+N_ASSIG            10.10      9.70     10.16
+NOTA_num            2.36      2.64      2.55
+T_AVAL_num          0.92      0.93      0.92
+CURS_1R             0.17      0.28      0.20
+GENERE_Home         0.48      0.47      0.46
+DOBLE_GRAU_EST      0.30      0.31      0.38
+DEDIC_num           2.04      1.98      2.14
+IA_HABIT            5.44      3.55      4.93
+IA_COMPR            5.66      4.16      5.33
+IA_REND             4.89      3.10      4.32
+IA_PDFS             5.36      3.53      4.87
+IA_SUBST            3.94      1.87      2.68
+IA_ATENC            3.63      1.61      2.30
+IA_CONF             3.04      1.71      2.11
+
+Distribucio c=3 (totes les obs completes):
+Cluster
+  1   2   3 
+122  99 121 
+
+--- Guardant resultats de profiling ---
+
+null device 
+          1 

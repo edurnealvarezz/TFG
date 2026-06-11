@@ -436,10 +436,10 @@ cat("=============== 7. COMPARACIÓ GLOBAL DE MODELS =============== \n")
 fitxers <- c(
  Logit = "2. Dades/metriques_logit.rds",
  `Logit Millorat` = "2. Dades/metriques_logit_millorat.rds",
- `RF-A` = "2. Dades/metriques_rf_a.rds",
- `RF-B` = "2. Dades/metriques_rf_b.rds",
- XGBoost = "2. Dades/metriques_xgb.rds",
- CatBoost = "2. Dades/metriques_catboost.rds"
+ `RF-A` = "4. Outputs/Metriques i models/metriques_rf_a.rds",
+ `RF-B` = "4. Outputs/Metriques i models/metriques_rf_b.rds",
+ XGBoost = "4. Outputs/Metriques i models/metriques_xgb.rds",
+ CatBoost = "4. Outputs/Metriques i models/metriques_catboost.rds"
 )
 
 models_llista <- list()
@@ -518,8 +518,10 @@ ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) 
 ####                   8. GUARDAR MÈTRIQUES I BBDD                ####
 #### ============================================================ ####
 
-saveRDS(metriques_svm, "2. Dades/metriques_svm.rds")
-cat("-> Metriques guardades a: 2. Dades/metriques_svm.rds\n\n")
+dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
+saveRDS(metriques_svm, "4. Outputs/Metriques i models/metriques_svm.rds")
+saveRDS(svm_model,     "4. Outputs/Metriques i models/model_svm.rds")
+cat("-> metriques_svm.rds i model_svm.rds guardats\n\n")
 
 # Guardar probabilitats a dades_def (tots els obs de dades_svm)
 X_all_svm <- preparar_matriu_svm(dades_svm, predictors)
