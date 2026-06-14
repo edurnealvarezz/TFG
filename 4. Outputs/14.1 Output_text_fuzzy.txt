@@ -1,7 +1,4 @@
-=======================================================
-FASE 1 — PREPROCESSAMENT
-=======================================================
-
+================ 1. PREPROCESSAMENT ================
 Observacions originals: 342
 Observacions completes: 342 (eliminats 0 per NAs)
 
@@ -20,10 +17,7 @@ Partició: Train = 275 obs | Test = 67 obs
   Train — Regular: 56.7% | Irregular: 43.3%
   Test  — Regular: 56.7% | Irregular: 43.3%
 
-=======================================================
-FASE 2 — SELECCIÓ DEL NOMBRE ÒPTIM DE CLUSTERS
-=======================================================
-
+ =========== 2. SELECCIÓ NOMBRE DE CLUSTERS ===========
 Calculant criteris per c=2...
 Calculant criteris per c=3...
 Calculant criteris per c=4...
@@ -33,76 +27,74 @@ Calculant criteris per c=5...
 # A tibble: 4 × 5
       c    PC    PE Silhouette        XB
   <dbl> <dbl> <dbl>      <dbl>     <dbl>
-1     2 0.5   0.693      0.144   324928.
-2     3 0.333 1.10       0.144  3013774.
-3     4 0.25  1.39       0.144  2757694.
-4     5 0.2   1.61       0.144 84563634.
+1     2 0.5   0.693     0.138    457887.
+2     3 0.333 1.10      0.138  13923286.
+3     4 0.25  1.39      0.138   4555011.
+4     5 0.2   1.61     -0.0225  5308155.
 
-PC màxim         → c=2
-PE mínim         → c=2
+PC màxim → c=2
+PE mínim → c=2
 Silhouette màxim → c=2
-Xie-Beni mínim   → c=2
+Xie-Beni mínim → c=2
 
 >>> c òptim seleccionat: c=2 (per majoria de criteris)
 
-=======================================================
-FASE 3 — FUZZY C-MEANS FINAL
-=======================================================
-
+ ============= 3. FUZZY C-MEANS FINAL ============= 
 --- 3.1 Selecció de m (fuzziness exponent) ---
-m=1.5 | PC=0.6037 | PE=0.5819 | XB=2.1933
-m=2.0 | PC=0.5000 | PE=0.6931 | XB=324173.4992
-m=2.5 | PC=0.5000 | PE=0.6931 | XB=1424156.8989
+m=1.5 | PC=0.5939 | PE=0.5929 | XB=2.4044
+m=2.0 | PC=0.5000 | PE=0.6931 | XB=457722.6618
+m=2.5 | PC=0.5000 | PE=0.6931 | XB=1688266.6398
+m=3.0 | PC=0.5000 | PE=0.6931 | XB=2266226.8007
 
 >>> m òptim seleccionat: m=1.5 (màxim PC)
 
 --- 3.2 Model FCM final ---
 c = 2 | m = 1.5 | nstart = 25
 
-PC final  = 0.6037
-PE final  = 0.5819
-XB final  = 2.1933
+PC final  = 0.5939
+PE final  = 0.5929
+XB final  = 2.4044
 
 Distribució d'alumnes per cluster (hard assignment — train):
 Cluster
   1   2 
-132 143 
+128 147 
 
-Proporcions: 48% / 52
+Proporcions: 46.5% / 53.5
 
 Estadística de nitidesa — max(u_ik):
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
- 0.5003  0.6058  0.7106  0.6988  0.7921  0.9080 
-Obs amb max(u) > 0.60: 208 (75.6%)
-Obs amb max(u) > 0.80: 65 (23.6%)
+ 0.5005  0.5972  0.6906  0.6868  0.7849  0.8965 
+Obs amb max(u) > 0.60: 204 (74.2%)
+Obs amb max(u) > 0.80: 54 (19.6%)
 
 Centroides FCM (escala original):
                Cluster_1 Cluster_2
-EDAT               23.17     21.60
-DESPL              49.69     45.53
-N_ASSIG             9.85     10.13
-NOTA_num            2.62      2.41
-T_AVAL_num          0.93      0.92
-CURS_1R             0.25      0.18
-GENERE_Home         0.46      0.48
-DOBLE_GRAU_EST      0.34      0.33
-DEDIC_num           2.05      2.06
-IA_HABIT            3.99      5.34
-IA_COMPR            4.56      5.59
-IA_REND             3.47      4.78
-IA_PDFS             3.96      5.25
-IA_SUBST            2.06      3.62
-IA_ATENC            1.78      3.28
-IA_CONF             1.81      2.79
+EDAT               23.05     21.45
+DESPL              50.48     48.21
+N_ASSIG             9.58     10.14
+NOTA_num            2.60      2.44
+T_AVAL_num          0.95      0.94
+CURS_1R             0.24      0.19
+GENERE_Home         0.47      0.45
+DOBLE_GRAU_EST      0.30      0.33
+DEDIC_num           2.06      2.08
+IA_HABIT            3.94      5.27
+IA_COMPR            4.51      5.55
+IA_REND             3.46      4.74
+IA_PDFS             3.98      5.21
+IA_SUBST            2.12      3.50
+IA_ATENC            1.86      3.21
+IA_CONF             1.84      2.72
 
 Distribució per cluster (test — projecció sobre centroides train):
 Cluster
  1  2 
-35 32 
+27 40 
 
 Estadística nitidesa test — max(u_ik):
    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
- 0.5001  0.5783  0.6702  0.6732  0.7724  0.8842 
+ 0.5071  0.5907  0.7055  0.6885  0.7810  0.8390 
 
 null device 
           1 

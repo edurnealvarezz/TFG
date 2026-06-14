@@ -187,8 +187,10 @@ cat(sprintf("Chi2 (GRUP_ASSIST vs cluster): chi2=%.3f, df=%d, p=%.4f\n",
             chi2_res$statistic, chi2_res$parameter, chi2_res$p.value))
 cat(sprintf("V de Cramer = %.3f %s\n\n", v_cram, signif_stars(chi2_res$p.value)))
 
-pa1  <- df_cc$P_ASSIST[df_cc$cluster_hard == 1 & !is.na(df_cc$P_ASSIST)]
-pa2  <- df_cc$P_ASSIST[df_cc$cluster_hard == 2 & !is.na(df_cc$P_ASSIST)]
+pa1 <- c(p_assist_train[hard_train == 1], p_assist_test[hard_test == 1])
+pa2 <- c(p_assist_train[hard_train == 2], p_assist_test[hard_test == 2])
+pa1 <- pa1[!is.na(pa1)]
+pa2 <- pa2[!is.na(pa2)]
 mw_pa <- wilcox_rb(pa1, pa2)
 cat(sprintf("Mann-Whitney P_ASSIST: W=%.0f, p=%.4f, r=%.3f %s\n\n",
             mw_pa$W, mw_pa$p, mw_pa$r, signif_stars(mw_pa$p)))
@@ -317,14 +319,20 @@ print(
 )
 
 # Grafic C — Distribucio P_ASSIST
-df_cc_pa  <- df_cc[!is.na(df_cc$P_ASSIST), ]
-mw_lbl    <- sprintf("Mann-Whitney: W=%.0f, p=%.4f, r=%.3f", mw_pa$W, mw_pa$p, mw_pa$r)
+# Usem p_assist_train/test + hard_train/test del .RData (garantit sense NA)
+df_cc_pa <- data.frame(
+  P_ASSIST  = c(p_assist_train, p_assist_test),
+  cluster_f = factor(c(hard_train, hard_test))
+)
+df_cc_pa <- df_cc_pa[!is.na(df_cc_pa$P_ASSIST), ]
+mw_lbl <- sprintf("Mann-Whitney: W=%.0f, p=%.4f, r=%.3f", mw_pa$W, mw_pa$p, mw_pa$r)
 
 print(
-  ggplot(df_cc_pa, aes(x = cluster_f, y = P_ASSIST * 100, fill = cluster_f)) +
+  ggplot(df_cc_pa, aes(x = cluster_f, y = P_ASSIST, fill = cluster_f)) +
     geom_violin(alpha = 0.45, trim = FALSE) +
-    scale_y_continuous(limits = c(0, 100), breaks = seq(0, 100, 20)) +
     geom_boxplot(width = 0.14, alpha = 0.80, outlier.shape = 21, outlier.size = 2) +
+    scale_y_continuous(breaks = seq(0, 100, 20)) +
+    coord_cartesian(ylim = c(0, 100)) +
     scale_fill_manual(values = col_clusters, guide = "none") +
     scale_x_discrete(labels = c("1" = "Cluster 1", "2" = "Cluster 2")) +
     labs(
