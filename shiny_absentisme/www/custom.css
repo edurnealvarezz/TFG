@@ -1,0 +1,32 @@
+/* ── Navbar ──────────────────────────────────────────── */
+.navbar { background-color: #2c3e50 !important; }
+.navbar .navbar-brand,
+.navbar .nav > li > a { color: #ecf0f1 !important; }
+.navbar .nav > li > a:hover { color: #4A90B8 !important; background: transparent !important; }
+.navbar .nav > li.active > a { background-color: #4A90B8 !important; color: #fff !important; }
+
+/* ── Botons ──────────────────────────────────────────── */
+.btn-primary { background-color: #4A90B8 !important; border-color: #3a7aa0 !important; }
+.btn-primary:hover { background-color: #3a7aa0 !important; }
+.btn-success { background-color: #27AE60 !important; border-color: #219a52 !important; }
+
+/* ── Sliders ──────────────────────────────────────────── */
+.irs-bar, .irs-bar-edge { background: #4A90B8 !important; border-color: #4A90B8 !important; }
+.irs-single, .irs-to, .irs-from { background: #4A90B8 !important; }
+
+/* ── Taules ──────────────────────────────────────────── */
+.dataTables_wrapper { font-size: 13px; }
+table.dataTable thead { background-color: #2c3e50; color: white; }
+
+/* ── Cards / blocs resultat ──────────────────────────── */
+.bloc-resultat { border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+.bloc-regular  { background-color: #d4edda; border-left: 5px solid #27AE60; }
+.bloc-irregular { background-color: #f8d7da; border-left: 5px solid #E74C3C; }
+.bloc-info { background-color: #d1ecf1; border-left: 5px solid #4A90B8; }
+
+/* ── Barra de probabilitat ───────────────────────────── */
+.prob-bar-bg { background: #e9ecef; border-radius: 5px; height: 20px; margin: 8px 0; }
+.prob-bar-fill { height: 20px; border-radius: 5px; transition: width 0.5s; }
+
+/* ── Sidebar ─────────────────────────────────────────── */
+.well { background-color: #f8f9fa; border: 1px solid #dee2e6; box-shadow: none; }

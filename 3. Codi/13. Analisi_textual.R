@@ -1,6 +1,6 @@
 packages <- c("tidytext", "wordcloud", "dplyr", "stringr", "ggplot2",
               "tibble", "tidyr", "RColorBrewer", "stopwords", "igraph", "ggraph",
-              "topicmodels", "tm", "syuzhet")
+              "ggrepel", "topicmodels", "tm", "syuzhet", "cld2", "httr")
 install_if_missing <- function(pkg) {
   if (!require(pkg, character.only = TRUE)) {
     install.packages(pkg)
@@ -13,10 +13,14 @@ rm(packages)
 setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 
-load("2. Dades/10. Dades SVM.RData")
+load("2. Dades/11. Dades SVM.RData")
 
 sink("4. Outputs/13.1 Output_text_textual.txt")
 pdf("4. Outputs/13.2 Output_grafics_textual.pdf", width = 12, height = 8)
+on.exit({
+  if (dev.cur() > 1) dev.off()
+  if (sink.number() > 0) sink()
+}, add = TRUE)
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -45,8 +49,8 @@ sw_cat_extra <- c(
   "ens", "us", "vos", "seu", "seus", "seva", "seves", "meu", "meus",
   "meva", "teu", "teus", "teva", "nostre", "nostres", "vostre",
   "al", "del", "pel", "cal", "fa", "fer", "fet", "feta", "fetes", "fets",
-  "o", "ni", "doncs", "perquè", "perque", "ja", "be", "bé", "tenir",
-  "tinc", "té", "tenim", "teniu", "tenen"
+  "o", "ni", "doncs", "perquè", "perque", "perqué", "ja", "be", "bé", "tenir",
+  "tinc", "té", "tenim", "teniu", "tenen", "nomes", "només", "sols", "solament"
 )
 
 sw_es_extra <- c(
@@ -66,62 +70,68 @@ sw_all <- unique(c(sw_cat, sw_es, sw_cat_extra, sw_es_extra))
 cat(sprintf("Total stopwords carregades (cat+es): %d\n\n", length(sw_all)))
 
 # ── Diccionari de normalització lingüística (lemmatització manual) ──────────
-# Unifica variants català/castellà al mateix token canònic en català.
-# Cobreix les paraules acadèmiques més freqüents en enquestes universitàries.
+# Unifica variants català/castellà al mateix token canònic en castellà.
+# Cobreix restes de català que la traducció automàtica pugui no haver cobert.
 lemma_dict <- c(
-  # classe
-  "clase" = "classe", "clases" = "classe", "classes" = "classe",
-  # professor
-  "profesor" = "professor", "profesora" = "professor", "professors" = "professor",
-  "profesores" = "professor", "profesoras" = "professor", "professora" = "professor",
-  "professores" = "professor",
-  # assignatura
-  "asignatura" = "assignatura", "asignaturas" = "assignatura", "assignatures" = "assignatura",
-  # pràctica
-  "practica" = "practica", "practicas" = "practica", "practiques" = "practica",
-  "pràctica" = "practica", "pràctiques" = "practica", "prácticas" = "practica",
-  "práctica" = "practica",
+  # clase
+  "classe" = "clase", "classes" = "clase", "clases" = "clase",
+  # profesor (professora i totes les variants → profesor, s'unifica el gènere)
+  "professor" = "profesor", "professors" = "profesor",
+  "professora" = "profesor", "professores" = "profesor",
+  "profesora" = "profesor", "profesoras" = "profesor", "profesores" = "profesor",
+  # asignatura
+  "assignatura" = "asignatura", "assignatures" = "asignatura",
+  "asignaturas" = "asignatura",
+  # practica (normalitzar accents i plurals)
+  "pràctica" = "practica", "pràctiques" = "practica",
+  "práctica" = "practica", "prácticas" = "practica", "practiques" = "practica",
   # examen
-  "examenes" = "examen", "examens" = "examen", "exàmen" = "examen",
-  "exàmens" = "examen", "exámenes" = "examen",
-  # estudiant
-  "estudiante" = "estudiant", "estudiantes" = "estudiant", "estudiants" = "estudiant",
-  # contingut
-  "contenido" = "contingut", "contenidos" = "contingut", "continguts" = "contingut",
-  # teoria
+  "examens" = "examen", "exàmen" = "examen", "exàmens" = "examen",
+  "examenes" = "examen", "exámenes" = "examen",
+  # estudiante
+  "estudiant" = "estudiante", "estudiants" = "estudiante",
+  "estudiantes" = "estudiante",
+  # contenido
+  "contingut" = "contenido", "continguts" = "contenido",
+  "contenidos" = "contenido",
+  # teoria (normalitzar accents)
   "teoría" = "teoria", "teorías" = "teoria", "teories" = "teoria",
-  # motivació
-  "motivacion" = "motivacio", "motivaciones" = "motivacio",
-  "motivació" = "motivacio", "motivacion" = "motivacio",
-  # aprenentatge
-  "aprendizaje" = "aprenentatge", "aprendizajes" = "aprenentatge",
-  # dinàmica
-  "dinamica" = "dinamica", "dinamiques" = "dinamica", "dinámica" = "dinamica",
-  "dinámicas" = "dinamica", "dinàmica" = "dinamica", "dinàmiques" = "dinamica",
-  # activitat
-  "activitats" = "activitat", "actividad" = "activitat", "actividades" = "activitat",
-  # matèria
-  "materia" = "materia", "materias" = "materia", "matèria" = "materia",
-  "matèries" = "materia",
-  # treball
-  "trabajo" = "treball", "trabajos" = "treball", "treballs" = "treball",
-  # grup
-  "grupo" = "grup", "grupos" = "grup", "grups" = "grup",
-  # nota
-  "notas" = "nota", "notes" = "nota",
-  # horari
-  "horario" = "horari", "horarios" = "horari", "horaris" = "horari",
-  # interessant
-  "interesante" = "interessant", "interesantes" = "interessant",
-  # metodologia
-  "metodologia" = "metodologia", "metodologias" = "metodologia",
-  "metodologies" = "metodologia", "metodologías" = "metodologia",
-  # participació
-  "participacion" = "participacio", "participaciones" = "participacio",
-  "participació" = "participacio", "participacion" = "participacio",
-  # avaluació
-  "evaluacion" = "avaluacio", "evaluaciones" = "avaluacio",
-  "avaluació" = "avaluacio", "evaluación" = "avaluacio"
+  # motivacion
+  "motivació" = "motivacion", "motivacio" = "motivacion",
+  "motivaciones" = "motivacion",
+  # aprendizaje
+  "aprenentatge" = "aprendizaje", "aprendizajes" = "aprendizaje",
+  # dinamica
+  "dinàmica" = "dinamica", "dinàmiques" = "dinamica",
+  "dinamiques" = "dinamica", "dinámica" = "dinamica", "dinámicas" = "dinamica",
+  # actividad
+  "activitat" = "actividad", "activitats" = "actividad",
+  "actividades" = "actividad",
+  # materia
+  "matèria" = "materia", "matèries" = "materia", "materias" = "materia",
+  # trabajo
+  "treball" = "trabajo", "treballs" = "trabajo", "trabajos" = "trabajo",
+  # grupo
+  "grup" = "grupo", "grups" = "grupo", "grupos" = "grupo",
+  # nota (plurals)
+  "notes" = "nota", "notas" = "nota",
+  # horario
+  "horari" = "horario", "horaris" = "horario", "horarios" = "horario",
+  # interesante
+  "interessant" = "interesante", "interesantes" = "interesante",
+  # metodologia (normalitzar plurals i accents)
+  "metodologies" = "metodologia", "metodologias" = "metodologia",
+  "metodologías" = "metodologia",
+  # participacion
+  "participació" = "participacion", "participacio" = "participacion",
+  "participaciones" = "participacion",
+  # evaluacion
+  "avaluació" = "evaluacion", "avaluacio" = "evaluacion",
+  "evaluación" = "evaluacion", "evaluaciones" = "evaluacion",
+  # teoricas (formes catalanes que l'API pot deixar sense traduir)
+  "teoriques" = "teoricas", "teòriques" = "teoricas", "teòrica" = "teorica",
+  # contabilidad
+  "contabilitat" = "contabilidad", "comptabilitat" = "contabilidad"
 )
 
 lematitzar <- function(words) {
@@ -130,6 +140,30 @@ lematitzar <- function(words) {
 
 cat(sprintf("Diccionari de lemmatització: %d variants normalitzades\n\n",
             length(lemma_dict)))
+
+# ── Traducció cat→es via API Softcatalà (Apertium) ──────────────────────────
+detectar_idioma <- function(texto) {
+  tryCatch(cld2::detect_language(texto), error = function(e) NA_character_)
+}
+
+traducir_ca_es <- function(texto) {
+  tryCatch({
+    res <- httr::POST(
+      "https://www.softcatala.org/apertium/json/translate",
+      body = list(langpair = "ca|es", q = texto),
+      encode = "form",
+      httr::timeout(15)
+    )
+    out <- httr::content(res, "parsed")$responseData$translatedText
+    if (is.null(out) || nchar(trimws(out)) == 0) texto else out
+  }, error = function(e) texto)
+}
+
+normalitzar_a_es <- function(texto) {
+  if (is.na(texto) || str_squish(texto) == "") return(texto)
+  lang <- detectar_idioma(texto)
+  if (!is.na(lang) && lang == "ca") traducir_ca_es(texto) else texto
+}
 
 # Funció de neteja de text
 clean_text <- function(x) {
@@ -164,6 +198,15 @@ for (v in vars_text) {
               length(vals_net),
               sum(is.na(vals) | str_squish(vals) == ""),
               mean(str_count(vals_net, "\\S+"), na.rm = TRUE)))
+}
+cat("\n")
+
+# ── Traducció cat→es: aplica a totes les variables textuals ─────────────────
+cat("Traduint respostes del català al castellà (pot trigar uns minuts)...\n")
+for (v in vars_text) {
+  dades_def[[v]] <- vapply(dades_def[[v]], normalitzar_a_es,
+                           character(1), USE.NAMES = FALSE)
+  cat(sprintf("  %s: completat\n", v))
 }
 cat("\n")
 
@@ -204,7 +247,7 @@ plot_freq <- function(tokens_df, titol, color_fill, top_n = 20) {
       geom_col(fill = color_fill, alpha = 0.85) +
       geom_text(aes(label = n), hjust = -0.2, size = 3.5) +
       labs(title = paste0("Top ", top_n, " paraules — ", titol),
-           subtitle = "Sense stopwords, amb lemmatització cat/es",
+           subtitle = "Textos normalitzats al castellà (cat→es), sense stopwords",
            x = "Freqüència", y = NULL) +
       scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
       theme_minimal(base_size = 13) +
@@ -223,12 +266,15 @@ plot_wordcloud <- function(tokens_df, titol, paleta) {
     return(invisible(NULL))
   }
   colors_wc <- brewer.pal(max(3, min(8, nrow(freq))), paleta)
-  set.seed(42)
-  wordcloud(
-    words = freq$word, freq = freq$n,
-    min.freq = 2, max.words = 80,
-    random.order = FALSE, rot.per = 0.15,
-    colors = colors_wc, scale = c(4.5, 0.6)
+  set.seed(1234)
+  tryCatch(
+    wordcloud(
+      words = freq$word, freq = freq$n,
+      min.freq = 2, max.words = 80,
+      random.order = FALSE, rot.per = 0.15,
+      colors = colors_wc, scale = c(4.5, 0.6)
+    ),
+    error = function(e) cat(sprintf("  wordcloud error: %s\n", conditionMessage(e)))
   )
   title(main = paste0("Word cloud — ", titol), cex.main = 1.2, font.main = 2)
   invisible(freq)
@@ -286,8 +332,8 @@ analisi_lda <- function(tokens_df, var_nom, k = 3, etiquetes = NULL) {
     return(invisible(NULL))
   }
 
-  set.seed(42)
-  lda_fit <- LDA(dtm, k = k, control = list(seed = 42))
+  set.seed(1234)
+  lda_fit <- LDA(dtm, k = k, control = list(seed = 1234))
 
   # Etiquetes temàtiques (proporcionades externament o genèriques)
   if (!is.null(etiquetes) && length(etiquetes) == k) {
@@ -712,8 +758,7 @@ if ("TREB_INTENS" %in% names(tok_mot_grup)) {
     filter(!is.na(TREB_INTENS)) %>%
     count(TREB_INTENS) %>%
     mutate(etiqueta = recode(as.character(TREB_INTENS),
-      "1" = "Estudi complet", "2" = "Treball ocasional",
-      "3" = "Treball parcial", "4" = "Treball complet"))
+    "0" = "No treballa", "1" = "Treballa"))
   cat("Distribució de respostes per TREB_INTENS:\n")
   print(n_dedic)
   cat("\n")
@@ -724,7 +769,7 @@ if ("TREB_INTENS" %in% names(tok_mot_grup)) {
     filter(!is.na(TREB_INTENS)) %>%
     mutate(DEDIC_BIN = ifelse(TREB_INTENS == 1, "No treballa", "Treballa"))
 
-  cat("Comparativa binària: No treballa (TREB_INTENS=1) vs. Treballa (TREB_INTENS=2,3,4)\n")
+  cat("Comparativa binària: No treballa (TREB_INTENS=0) vs. Treballa (TREB_INTENS=1)\n")
   comparativa_subgrup(tok_mot_dedic, "DEDIC_BIN",
                       titols["PROP_MOT"], "situació laboral",
                       colors = c("#E67E22", "#2ECC71"))
@@ -796,13 +841,16 @@ cat("Total paraules úniques (totes 3 variables):", nrow(freq_tot), "\n")
 cat("Top 30 paraules globals:\n")
 print(slice_head(freq_tot, n = 30))
 
-set.seed(42)
+set.seed(1234)
 colors_comb <- brewer.pal(8, "Set2")
-wordcloud(
-  words = freq_tot$word, freq = freq_tot$n,
-  min.freq = 2, max.words = 100,
-  random.order = FALSE, rot.per = 0.15,
-  colors = colors_comb, scale = c(5, 0.6)
+tryCatch(
+  wordcloud(
+    words = freq_tot$word, freq = freq_tot$n,
+    min.freq = 2, max.words = 100,
+    random.order = FALSE, rot.per = 0.15,
+    colors = colors_comb, scale = c(5, 0.6)
+  ),
+  error = function(e) cat(sprintf("  wordcloud combinat error: %s\n", conditionMessage(e)))
 )
 title(main = "Word cloud combinat — EXP_POS + EXP_NEG + PROP_MOT",
       cex.main = 1.2, font.main = 2)
@@ -867,7 +915,6 @@ cooc_net("PROP_MOT", dades_def, min_cooc = 2, color_edge = "#1E8449")
 ####                  GUARDAR I TANCAR                            ####
 #### ============================================================ ####
 
-cat("\n========== GUARDAT ==========\n\n")
 cat("-> 13.1 Output_text_textual.txt\n")
 cat("-> 13.2 Output_grafics_textual.pdf\n")
 
