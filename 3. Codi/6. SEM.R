@@ -11,8 +11,7 @@ rm(packages)
 setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 
-load("2. Dades/10. Dades SVM.RData")
-
+load("2. Dades/5. Dades Logit.RData")
 sink("4. Outputs/6.1 Output_text_sem.txt")
 pdf("4. Outputs/6.2 Output_grafics_sem.pdf", width = 12, height = 9)
 
@@ -25,15 +24,16 @@ cat("========== 0. PREPARACIÓ DE DADES ==========\n\n")
 items_desg <- c("M_TEOR", "M_PASSIU", "M_AVORR", "M_PROF", "M_AMICS")
 items_fmaj <- c("M_SALUT", "M_FAM", "M_TREB")
 items_aval <- c("E_ACT_AC", "E_PES_AC", "E_PART")
-items_ia   <- c("IA_SUBST", "IA_ATENC", "IA_CONF")
-items_ord  <- c(items_desg, items_fmaj, items_aval, items_ia)
+items_ia <- c("IA_SUBST", "IA_CONF")
+items_ord <- c(items_desg, items_fmaj, items_aval, items_ia)
 
 dades_sem <- dades_def %>%
   mutate(
     NOTA_num = as.numeric(NOTA),
     CURS_1R_d = as.integer(as.logical(CURS_1R) | as.character(CURS_1R) %in%
-                             c("1", "SI", "TRUE", "1r", "TRUE")),
+                                  c("1", "SI", "TRUE", "1r", "TRUE")),
     T_AVAL_num = as.integer(T_AVAL == "Continuada"),
+    DOBLE_GRAU_EST = as.integer(DOBLE_GRAU_EST),
     P_ASSIST = as.numeric(P_ASSIST)
   )
 
@@ -43,7 +43,7 @@ for (v in items_ord) {
     dades_sem[[v]] <- ordered(as.integer(dades_sem[[v]]))
 }
 
-vars_model <- c(items_ord, "P_ASSIST", "NOTA_num", "CURS_1R_d", "T_AVAL_num")
+vars_model <- c(items_ord, "P_ASSIST", "NOTA_num", "CURS_1R_d", "T_AVAL_num", "DOBLE_GRAU_EST")
 vars_model <- vars_model[vars_model %in% names(dades_sem)]
 dades_sem_net <- dades_sem[, vars_model, drop = FALSE]
 dades_sem_net <- dades_sem_net[complete.cases(dades_sem_net), ]
@@ -59,6 +59,7 @@ cat(sprintf("SD: %.2f\n\n", sd(dades_sem_net$P_ASSIST)))
 
 cat("CURS_1R_d:\n"); print(table(dades_sem_net$CURS_1R_d))
 cat("\nT_AVAL_num:\n"); print(table(dades_sem_net$T_AVAL_num))
+cat("\nDOBLE_GRAU_EST:\n"); print(table(dades_sem_net$DOBLE_GRAU_EST))
 cat("\n")
 
 #### ============================================================ ####
@@ -92,7 +93,7 @@ model_cfa_str <- paste(
   "DESMOTIVACIO_PEDAG =~ M_TEOR + M_PASSIU + M_AVORR + M_PROF + M_AMICS",
   "FORCA_MAJOR =~ M_SALUT + M_FAM + M_TREB",
   "AVALUACIO_AC =~ E_ACT_AC + E_PES_AC + E_PART",
-  "IA_SUBSTITUCIO =~ IA_SUBST + IA_ATENC + IA_CONF",
+  "IA_SUBSTITUCIO =~ IA_SUBST + IA_CONF",
   sep = "\n"
 )
 cat("\nModel CFA:\n"); cat(model_cfa_str); cat("\n\n")
@@ -179,60 +180,17 @@ if (!is.null(fit_cfa)) {
   }
 }
 
-# --- CFA sense IA_ATENC (si Heywood o necessari) ---
-cat("\n--- CFA alternatiu sense IA_ATENC (robustesa) ---\n")
-model_cfa_noatenc <- paste(
-  "DESMOTIVACIO_PEDAG =~ M_TEOR + M_PASSIU + M_AVORR + M_PROF + M_AMICS",
-  "FORCA_MAJOR =~ M_SALUT + M_FAM + M_TREB",
-  "AVALUACIO_AC =~ E_ACT_AC + E_PES_AC + E_PART",
-  "IA_SUBSTITUCIO =~ IA_SUBST + IA_CONF",
-  sep = "\n"
-)
-fit_cfa2 <- tryCatch(
-  cfa(model_cfa_noatenc, data = dades_sem_net,
-      estimator = "WLSMV",
-      ordered = items_ord[items_ord != "IA_ATENC"],
-      std.lv = TRUE),
-  error = function(e) { cat("ERROR CFA2:", e$message, "\n"); NULL }
-)
-if (!is.null(fit_cfa2)) {
-  cat("Indexs CFA sense IA_ATENC:\n")
-  print(fitMeasures(fit_cfa2, c("cfi", "tli", "rmsea", "srmr", "wrmr")))
-}
-
-# Decidir quin CFA usar per al SEM
-use_atenc <- TRUE
-if (!is.null(fit_cfa)) {
-  pe_cfa_check <- parameterEstimates(fit_cfa)
-  hw_check <- pe_cfa_check[pe_cfa_check$op == "~~" & pe_cfa_check$lhs == pe_cfa_check$rhs &
-                              pe_cfa_check$lhs == "IA_ATENC" & !is.na(pe_cfa_check$est) &
-                              pe_cfa_check$est < 0, ]
-  if (nrow(hw_check) > 0) {
-    use_atenc <- FALSE
-    cat("\n-> S'usara el CFA/SEM SENSE IA_ATENC (Heywood case detectat).\n\n")
-  } else {
-    cat("\n-> S'usara el CFA/SEM AMB IA_ATENC (sense Heywood).\n\n")
-  }
-}
-
-# Seleccionar model i items finals
+# Model de mesura final: IA_SUBSTITUCIO = IA_SUBST + IA_CONF (sense IA_ATENC)
 mesura_comuns <- paste(
   "DESMOTIVACIO_PEDAG =~ M_TEOR + M_PASSIU + M_AVORR + M_PROF + M_AMICS",
   "FORCA_MAJOR =~ M_SALUT + M_FAM + M_TREB",
   "AVALUACIO_AC =~ E_ACT_AC + E_PES_AC + E_PART",
   sep = "\n"
 )
-if (use_atenc) {
-  items_ia_final <- items_ia
-  model_mesura <- paste(mesura_comuns,
-                        "IA_SUBSTITUCIO =~ IA_SUBST + IA_ATENC + IA_CONF",
-                        sep = "\n")
-} else {
-  items_ia_final <- c("IA_SUBST", "IA_CONF")
-  model_mesura <- paste(mesura_comuns,
-                        "IA_SUBSTITUCIO =~ IA_SUBST + IA_CONF",
-                        sep = "\n")
-}
+items_ia_final <- items_ia   # c("IA_SUBST", "IA_CONF")
+model_mesura <- paste(mesura_comuns,
+                      "IA_SUBSTITUCIO =~ IA_SUBST + IA_CONF",
+                      sep = "\n")
 items_ord_final <- c(items_desg, items_fmaj, items_aval, items_ia_final)
 
 #### ============================================================ ####
@@ -254,7 +212,8 @@ b_aval = efecto de AVALUACIO_AC sobre P_ASSIST (segunda parte de la mediación)
 model_sem_b <- paste(
   model_mesura,
   "P_ASSIST ~ a1*DESMOTIVACIO_PEDAG + b_fmaj*FORCA_MAJOR + b_aval*AVALUACIO_AC +",
-  "           b_ia*IA_SUBSTITUCIO + b_nota*NOTA_num + b_curs*CURS_1R_d + b_taval*T_AVAL_num",
+  "           b_ia*IA_SUBSTITUCIO + b_nota*NOTA_num + b_curs*CURS_1R_d + b_taval*T_AVAL_num +",
+  "           b_dg*DOBLE_GRAU_EST",
   "AVALUACIO_AC ~ a2*DESMOTIVACIO_PEDAG",
   "DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR",
   "DESMOTIVACIO_PEDAG ~~ IA_SUBSTITUCIO",
@@ -341,7 +300,7 @@ cat("\n========== 4. MODELS ALTERNATIUS ==========\n\n")
 model_sem_a <- paste(
   model_mesura,
   "P_ASSIST ~ DESMOTIVACIO_PEDAG + FORCA_MAJOR + AVALUACIO_AC +",
-  "           IA_SUBSTITUCIO + NOTA_num + CURS_1R_d + T_AVAL_num",
+  "           IA_SUBSTITUCIO + NOTA_num + CURS_1R_d + T_AVAL_num + DOBLE_GRAU_EST",
   "DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR",
   "DESMOTIVACIO_PEDAG ~~ IA_SUBSTITUCIO",
   "FORCA_MAJOR ~~ IA_SUBSTITUCIO",
@@ -411,6 +370,60 @@ if (!is.null(fit_sem_a) && !is.null(fit_sem_b)) {
     error = function(e) { cat("  lavTestLRT:", e$message, "\n"); NULL }
   )
   if (!is.null(lrt_res)) print(lrt_res)
+}
+
+# Model D: com Model A però amb items IA crus en comptes del constructe latent
+cat("\n--- Model D: variables IA crues com a predictors directes (sense IA_SUBSTITUCIO) ---\n")
+cat("Objectiu: testar si IA_ATENC (i/o IA_SUBST, IA_CONF) son individualment significatives.\n\n")
+
+model_sem_d <- paste(
+  c(mesura_comuns,
+    "P_ASSIST ~ DESMOTIVACIO_PEDAG + FORCA_MAJOR + AVALUACIO_AC +",
+    "           IA_SUBST + NOTA_num + CURS_1R_d + T_AVAL_num + DOBLE_GRAU_EST",
+    "DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR",
+    "DESMOTIVACIO_PEDAG ~~ IA_SUBST",
+    "FORCA_MAJOR ~~ IA_SUBST",
+    "AVALUACIO_AC ~~ IA_SUBST"),
+  collapse = "\n"
+)
+
+fit_sem_d <- tryCatch(
+  sem(model_sem_d, data = dades_sem_net,
+      estimator = "WLSMV", ordered = items_ord_final, std.lv = TRUE),
+  error = function(e) { cat("ERROR SEM-D:", e$message, "\n"); NULL }
+)
+avaluar_ajust(fit_sem_d, "SEM Model D (IA crues)")
+
+if (!is.null(fit_sem_d)) {
+  pe_d <- parameterEstimates(fit_sem_d, standardized = TRUE)
+  pa_d <- pe_d[pe_d$op == "~" & pe_d$lhs == "P_ASSIST",
+               c("rhs", "est.std", "se", "z", "pvalue")]
+  colnames(pa_d) <- c("Predictor", "Beta_std", "SE", "z", "p")
+  pa_d$signif <- ifelse(is.na(pa_d$p), "",
+                        ifelse(pa_d$p < .001, "***",
+                               ifelse(pa_d$p < .01, "**",
+                                      ifelse(pa_d$p < .05, "*",
+                                             ifelse(pa_d$p < .10, ".", "")))))
+  cat("Coeficients estructurals estandaritzats Model D (P_ASSIST ~):\n")
+  print(pa_d, row.names = FALSE)
+  cat(sprintf("\nR^2 P_ASSIST (Model D): %.3f\n\n",
+              as.numeric(inspect(fit_sem_d, "r2")["P_ASSIST"])))
+
+  # Comparació índexs ajust A vs D
+  comp_ad <- data.frame(
+    Model  = c("A (IA latent)", "D (IA crues)"),
+    CFI    = sapply(list(fit_sem_a, fit_sem_d), function(f)
+                    if (!is.null(f)) round(as.numeric(fitMeasures(f, "cfi")), 3) else NA),
+    RMSEA  = sapply(list(fit_sem_a, fit_sem_d), function(f)
+                    if (!is.null(f)) round(as.numeric(fitMeasures(f, "rmsea")), 3) else NA),
+    SRMR   = sapply(list(fit_sem_a, fit_sem_d), function(f)
+                    if (!is.null(f)) round(as.numeric(fitMeasures(f, "srmr")), 3) else NA),
+    df     = sapply(list(fit_sem_a, fit_sem_d), function(f)
+                    if (!is.null(f)) as.numeric(fitMeasures(f, "df")) else NA)
+  )
+  cat("Comparació ajust Model A (IA latent) vs Model D (IA crues):\n")
+  print(comp_ad, row.names = FALSE)
+  cat("\n")
 }
 
 #### ============================================================ ####
@@ -485,9 +498,10 @@ if (!is.null(fit_sem_a)) {
   # OR del Logit Millorat (del model final amb interaccio MOT_DESMOTIVACIO x CURS_1R)
   or_ref <- data.frame(
     Predictor = c("DESMOTIVACIO_PEDAG", "FORCA_MAJOR", "AVALUACIO_AC",
-                  "IA_SUBSTITUCIO", "NOTA_num", "CURS_1R_d", "T_AVAL_num"),
-    OR_logit = c(0.568, 1.374, 1.830, 0.701, 1.821, 2.677, 5.467),
-    Dir_logit = c("-", "+", "+", "-", "+", "+", "+"),
+                  "IA_SUBSTITUCIO", "NOTA_num", "CURS_1R_d", "T_AVAL_num",
+                  "DOBLE_GRAU_EST"),
+    OR_logit = c(0.568, 1.374, 1.830, 0.701, 1.821, 2.677, 5.467, NA),
+    Dir_logit = c("-", "+", "+", "-", "+", "+", "+", NA),
     stringsAsFactors = FALSE
   )
 
