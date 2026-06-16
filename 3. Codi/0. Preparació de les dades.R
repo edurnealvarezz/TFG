@@ -11,7 +11,7 @@ lapply(packages, install_if_missing); rm(packages)
 
 
 #### ============================================================ ####
-####              LECTURA DE DADES                                ####
+####                    1. LECTURA DE DADES                       ####
 #### ============================================================ ####
 
 setwd("C:/Users/Edurne/Downloads/TFG")
@@ -22,11 +22,11 @@ dades <- dades %>%
   select(-contains("Puntos"), -contains("Comentarios"))
 
 #### ============================================================ ####
-####          RENOMBRAR COLUMNES                                  ####
+####                    2. RENOMBRAR COLUMNES                     ####
 #### ============================================================ ####
 
 names(dades) <- c(
-  # Secció 1
+  # Secció 1 - variables acadèmiques
   "GRAU", "CURS", "N_ASSIG", "NOTA", "T_AVAL", "P_ASSIST",
   # Secció 2
   "GENERE", "EDAT", "DEDIC", "DESPL",
@@ -50,10 +50,10 @@ dades$GRAU <- gsub("[\u2018\u2019\u201A\u201B]", "'", dades$GRAU)
 dades$GRAU <- gsub("\u00A0", " ", dades$GRAU)
 
 #### ============================================================ ####
-####             TRANSFORMACIÓ VARIABLES                          ####
+####               3. TRANSFORMACIÓ VARIABLES                     ####
 #### ============================================================ ####
 
-# --- SECCIÓ 1: Dades acadèmiques ---
+##### --------- SECCIÓ 1: Dades acadèmiques ------------ #####
 
 dades$GRAU <- factor(dades$GRAU,
                      levels = c(
@@ -96,7 +96,8 @@ dades$T_AVAL <- factor(dades$T_AVAL,
 
 dades$P_ASSIST <- as.numeric(dades$P_ASSIST)
 
-# --- SECCIÓ 2: Situació personal ---
+
+##### --------- SECCIÓ 2: Situació personal ------------ #####
 
 dades$GENERE <- factor(dades$GENERE,
                        levels = c("Dona", "Home", "No binari", "Prefereixo no respondre")
@@ -120,7 +121,9 @@ dades$DEDIC <- factor(dades$DEDIC,
 # DESPL: numèrica contínua (minuts)
 dades$DESPL <- as.numeric(dades$DESPL)
 
-# --- SECCIÓ 3: Opinió personal ---
+##### --------- SECCIÓ 3: Opinió personal ------------ #####
+
+# --- SECCIÓ 3.1 : Motius per no anar a classe i estratègies per anar-hi ---
 
 extreu_likert <- function(x, max_nivell) {
   num <- as.integer(gsub("^(\\d+).*", "\\1", trimws(x)))
@@ -140,12 +143,12 @@ estrategies_vars <- c("E_PES_AC", "E_PART", "E_DINAM", "E_REDU", "E_CURT", "E_DE
 dades[estrategies_vars] <- lapply(dades[estrategies_vars], extreu_likert, max_nivell = 6)
 
 
-# --- SECCIÓ 3: Preguntes obertes (text) ---
+# --- SECCIÓ 3.2 : Preguntes obertes (text) ---
 dades$EXP_POS  <- as.character(dades$EXP_POS)
 dades$EXP_NEG  <- as.character(dades$EXP_NEG)
 dades$PROP_MOT <- as.character(dades$PROP_MOT)
 
-# --- SECCIÓ 4: Ús de la IA (Likert 1-6) ---
+##### --------- SECCIÓ 4: Ús de la IA (Likert 1-6) ------------ #####
 
 ia_vars <- c("IA_HABIT", "IA_COMPR", "IA_SUBST", "IA_CONF",
              "IA_ATENC", "IA_PREOC", "IA_REND", "IA_PDFS")
@@ -153,7 +156,7 @@ ia_vars <- c("IA_HABIT", "IA_COMPR", "IA_SUBST", "IA_CONF",
 dades[ia_vars] <- lapply(dades[ia_vars], extreu_likert, max_nivell = 6)
 
 #### ============================================================ ####
-####                        VALIDACIÓ                             ####
+####                       4. VALIDACIÓ                           ####
 #### ============================================================ ####
 
 str(dades)
@@ -169,6 +172,6 @@ dades %>% filter(DESPL > 120) %>% select(EDAT, DESPL, GRAU, CURS)
 
 
 save(dades, file = "2. Dades/0. Dades inicials.RData")
-saveRDS(estrategies_vars, "2. Dades/estrategies_vars.rds")
-saveRDS(ia_vars, "2. Dades/ia_vars.rds")
-saveRDS(motius_vars, "2. Dades/motius_vars.rds")
+saveRDS(estrategies_vars, "2. Dades/1. Objectes/estrategies_vars.rds")
+saveRDS(ia_vars, "2. Dades/1. Objectes/ia_vars.rds")
+saveRDS(motius_vars, "2. Dades/1. Objectes/motius_vars.rds")

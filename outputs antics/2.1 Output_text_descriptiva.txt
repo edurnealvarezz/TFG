@@ -1,10 +1,18 @@
 
+ === Distribució GRUP_ASSIST: ===
+
+Irregular (<80%)   Regular (≥80%) 
+             148              194 
+
+Irregular (<80%)   Regular (≥80%) 
+            43.3             56.7 
+
  === Estadíastiques bàsiques numèriques: ===
 # A tibble: 4 × 6
   Variable Mitjana Mediana    sd   min   max
   <chr>      <dbl>   <dbl> <dbl> <dbl> <dbl>
 1 EDAT       22.1       20  8.15    18    82
-2 DESPL      48.9       40 29.8      1   120
+2 DESPL      50.4       40 42.4      1   605
 3 N_ASSIG     9.92      10  2.70     1    16
 4 P_ASSIST   70.3       80 29.2      0   100
 

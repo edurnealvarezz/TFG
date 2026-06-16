@@ -1,13 +1,4 @@
 
- === Distribució GRUP_ASSIST: ===
-
-Irregular (<80%)   Regular (≥80%) 
-             148              194 
-
-Irregular (<80%)   Regular (≥80%) 
-            43.3             56.7 
-Observació amb DESPL=605 convertida a 65, es considera error tipogràfic 
-
  === NA per variable === 
          variable n_na pct_na
 PROP_MOT PROP_MOT  227  66.37

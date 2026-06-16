@@ -158,7 +158,7 @@ df_all <- dades_def %>%
  CURS_1R  = as.integer(CURS_1R),
  GENERE_Home = as.integer(GENERE == "Home"),
  DOBLE_GRAU_EST = as.integer(DOBLE_GRAU_EST),
- DEDIC_num = as.integer(DEDIC),
+ TREB_INTENS = as.integer(TREB_INTENS),
  IA_HABIT = as.integer(IA_HABIT),
  IA_COMPR = as.integer(IA_COMPR),
  IA_REND  = as.integer(IA_REND),

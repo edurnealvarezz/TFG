@@ -1,0 +1,2 @@
+setwd("C:/Users/Edurne/Downloads/TFG")
+shiny::runApp("shiny_absentisme")

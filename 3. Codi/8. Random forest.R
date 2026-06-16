@@ -46,7 +46,7 @@ vars_rfa <- c(
   "IA_SUBST_num",
   "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num",
   # Descartades pel logit pero potencialment rellevants
-  "MOT_AUTOGESTIO",
+  "MOT_AUTOGESTIO", "DOBLE_GRAU_EST",
   "EST_QUALITAT_DOC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS",
   "IA_EINA_ESTUDI",
   "DESPL", "N_ASSIG"
