@@ -1,0 +1,298 @@
+========== 0. PREPARACIÓ DE DADES ==========
+
+Observacions totals dades_def: 342
+Observacions al model (sense NAs): 342
+Parametres lliures aprox. (regla 10 obs/param): max ~34
+
+Distribucio P_ASSIST:
+   Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+   0.00   60.00   80.00   70.31   90.00  100.00 
+SD: 29.17
+
+CURS_1R_d:
+
+  0   1 
+262  80 
+
+T_AVAL_num:
+
+  0   1 
+ 24 318 
+
+DOBLE_GRAU_EST:
+
+  0   1 
+232 110 
+
+TREB_INTENS:
+
+  0   1 
+212 130 
+
+
+========== 1. MODEL DE MESURA (CFA) ==========
+
+Nivells per item (minim 2):
+  M_TEOR M_PASSIU  M_AVORR   M_PROF  M_AMICS  M_SALUT    M_FAM   M_TREB 
+       5        5        5        5        5        5        5        5 
+E_ACT_AC E_PES_AC   E_PART IA_SUBST  IA_CONF 
+       6        6        6        6        6 
+
+Model CFA:
+DESMOTIVACIO_PEDAG =~ M_TEOR + M_PASSIU + M_AVORR + M_PROF + M_AMICS
+FORCA_MAJOR =~ M_SALUT + M_FAM + M_TREB
+AVALUACIO_AC =~ E_ACT_AC + E_PES_AC + E_PART
+IA_SUBSTITUCIO =~ IA_SUBST + IA_CONF
+
+Resum CFA (model de mesura):
+
+Indexs d'ajust CFA:
+           cfi            tli          rmsea rmsea.ci.lower rmsea.ci.upper 
+         0.986          0.982          0.063          0.050          0.077 
+          srmr           wrmr 
+         0.066          1.018 
+
+Modindices CFA (top 15):
+                   lhs op      rhs     mi    epc sepc.lv sepc.all sepc.nox
+186            M_AVORR ~~   M_PROF 22.473  0.217   0.217    0.527    0.527
+163             M_TEOR ~~ M_PASSIU 18.779  0.213   0.213    0.720    0.720
+124 DESMOTIVACIO_PEDAG =~  M_SALUT 14.602 -0.158  -0.158   -0.158   -0.158
+133        FORCA_MAJOR =~ M_PASSIU 13.995  0.177   0.177    0.177    0.177
+127 DESMOTIVACIO_PEDAG =~ E_ACT_AC 13.590 -0.156  -0.156   -0.156   -0.156
+160     IA_SUBSTITUCIO =~ E_ACT_AC 13.537 -0.188  -0.188   -0.188   -0.188
+134        FORCA_MAJOR =~  M_AVORR 12.479 -0.160  -0.160   -0.160   -0.160
+164             M_TEOR ~~  M_AVORR 12.369 -0.192  -0.192   -0.666   -0.666
+157     IA_SUBSTITUCIO =~  M_SALUT 12.233 -0.176  -0.176   -0.176   -0.176
+235           E_PES_AC ~~   E_PART 11.257 -0.718  -0.718   -1.629   -1.629
+126 DESMOTIVACIO_PEDAG =~   M_TREB 10.587  0.121   0.121    0.121    0.121
+188            M_AVORR ~~  M_SALUT 10.462 -0.192  -0.192   -0.614   -0.614
+159     IA_SUBSTITUCIO =~   M_TREB 10.120  0.144   0.144    0.144    0.144
+220              M_FAM ~~   M_TREB 10.081  0.744   0.744    3.828    3.828
+142       AVALUACIO_AC =~   M_TEOR  9.537  0.155   0.155    0.155    0.155
+
+Carregues factorials estandaritzades:
+                lhs      rhs est.std    se      z pvalue
+ DESMOTIVACIO_PEDAG   M_TEOR   0.868 0.021 41.998      0
+ DESMOTIVACIO_PEDAG M_PASSIU   0.804 0.026 31.323      0
+ DESMOTIVACIO_PEDAG  M_AVORR   0.813 0.026 31.582      0
+ DESMOTIVACIO_PEDAG   M_PROF   0.705 0.033 21.544      0
+ DESMOTIVACIO_PEDAG  M_AMICS   0.575 0.041 14.106      0
+        FORCA_MAJOR  M_SALUT   0.843 0.033 25.183      0
+        FORCA_MAJOR    M_FAM   0.968 0.033 29.498      0
+        FORCA_MAJOR   M_TREB   0.637 0.041 15.649      0
+       AVALUACIO_AC E_ACT_AC   0.859 0.041 20.932      0
+       AVALUACIO_AC E_PES_AC   0.777 0.041 18.800      0
+       AVALUACIO_AC   E_PART   0.713 0.036 19.777      0
+     IA_SUBSTITUCIO IA_SUBST   0.983 0.075 13.067      0
+     IA_SUBSTITUCIO  IA_CONF   0.520 0.053  9.789      0
+
+Heywood check: cap variancia negativa detectada.
+
+AVE per constructe (> 0.50 = convergencia adequada):
+DESMOTIVACIO_PEDAG        FORCA_MAJOR       AVALUACIO_AC     IA_SUBSTITUCIO 
+             0.578              0.685              0.617              0.618 
+
+Fiabilitat composta (omega) per constructe:
+          DESMOTIVACIO_PEDAG FORCA_MAJOR AVALUACIO_AC IA_SUBSTITUCIO
+alpha                  0.821       0.804        0.754          0.598
+alpha.ord              0.859       0.853        0.821          0.676
+omega                  0.845       0.818        0.769          0.780
+omega2                 0.845       0.818        0.769          0.780
+omega3                 0.861       0.817        0.773          0.780
+avevar                 0.578       0.685        0.617          0.618
+
+Correlacions entre constructes (r) i r^2 (ha de ser < AVE):
+                lhs            rhs est.std    r2
+ DESMOTIVACIO_PEDAG    FORCA_MAJOR  -0.102 0.010
+ DESMOTIVACIO_PEDAG   AVALUACIO_AC   0.106 0.011
+ DESMOTIVACIO_PEDAG IA_SUBSTITUCIO   0.590 0.348
+        FORCA_MAJOR   AVALUACIO_AC   0.095 0.009
+        FORCA_MAJOR IA_SUBSTITUCIO  -0.093 0.009
+       AVALUACIO_AC IA_SUBSTITUCIO   0.068 0.005
+
+========== 2. MODEL ESTRUCTURAL COMPLET (SEM) ==========
+
+Model SEM-B:
+DESMOTIVACIO_PEDAG =~ M_TEOR + M_PASSIU + M_AVORR + M_PROF + M_AMICS
+FORCA_MAJOR =~ M_SALUT + M_FAM + M_TREB
+AVALUACIO_AC =~ E_ACT_AC + E_PES_AC + E_PART
+IA_SUBSTITUCIO =~ IA_SUBST + IA_CONF
+P_ASSIST ~ a1*DESMOTIVACIO_PEDAG + b_fmaj*FORCA_MAJOR + b_aval*AVALUACIO_AC +
+           b_ia*IA_SUBSTITUCIO + b_nota*NOTA_num + b_curs*CURS_1R_d + b_taval*T_AVAL_num +
+           b_dg*DOBLE_GRAU_EST + b_treb*TREB_INTENS
+AVALUACIO_AC ~ a2*DESMOTIVACIO_PEDAG
+DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR
+DESMOTIVACIO_PEDAG ~~ IA_SUBSTITUCIO
+FORCA_MAJOR ~~ IA_SUBSTITUCIO
+ind_desm := a2 * b_aval
+tot_desm := a1 + ind_desm
+
+Resum SEM complet (Model B — amb mediacio):
+
+Indexs d'ajust SEM Model B:
+           cfi            tli          rmsea rmsea.ci.lower rmsea.ci.upper 
+         0.958          0.972          0.073          0.064          0.082 
+          srmr           wrmr 
+         0.068          1.313 
+
+Coeficients estructurals estandaritzats (relacions ~ i :=):
+          lhs                rhs    est    se      z pvalue ci.lower ci.upper
+     P_ASSIST DESMOTIVACIO_PEDAG -6.528 1.736 -3.761  0.000   -9.930   -3.126
+     P_ASSIST        FORCA_MAJOR  5.222 1.396  3.741  0.000    2.486    7.958
+     P_ASSIST       AVALUACIO_AC  6.312 1.423  4.436  0.000    3.523    9.101
+     P_ASSIST     IA_SUBSTITUCIO -1.452 1.661 -0.874  0.382   -4.707    1.803
+     P_ASSIST           NOTA_num  5.948 1.619  3.674  0.000    2.775    9.121
+     P_ASSIST          CURS_1R_d 10.584 3.992  2.651  0.008    2.759   18.409
+     P_ASSIST         T_AVAL_num 39.687 5.634  7.045  0.000   28.645   50.728
+     P_ASSIST     DOBLE_GRAU_EST  5.299 3.687  1.437  0.151   -1.926   12.525
+     P_ASSIST        TREB_INTENS -7.824 2.908 -2.690  0.007  -13.523   -2.124
+ AVALUACIO_AC DESMOTIVACIO_PEDAG  0.024 0.061  0.399  0.690   -0.096    0.145
+ std.all
+  -0.224
+   0.179
+   0.217
+  -0.050
+   0.178
+   0.154
+   0.348
+   0.085
+  -0.131
+   0.024
+
+Efectes indirectes i totals (mediacio):
+      lhs    est    se      z pvalue ci.lower ci.upper
+ ind_desm  0.154 0.389  0.396  0.692   -0.609    0.917
+ tot_desm -6.374 1.736 -3.673  0.000   -9.775   -2.972
+
+R^2 P_ASSIST i AVALUACIO_AC:
+      M_TEOR     M_PASSIU      M_AVORR       M_PROF      M_AMICS      M_SALUT 
+       0.733        0.638        0.640        0.474        0.323        0.739 
+       M_FAM       M_TREB     E_ACT_AC     E_PES_AC       E_PART     IA_SUBST 
+       0.901        0.483        0.777        0.555        0.477        0.966 
+     IA_CONF     P_ASSIST AVALUACIO_AC 
+       0.284        0.394        0.001 
+
+========== 3. INDEXS D'AJUST I DIAGNOSTIC ==========
+
+--- CFA (model de mesura) ---
+  CFI   = 0.986  (>=0.95 excel·lent, >=0.90 acceptable)
+  TLI   = 0.982  (>=0.95 excel·lent)
+  RMSEA = 0.063 [0.050, 0.077]  (<=0.06 bo, <=0.08 acceptable)
+  SRMR  = 0.066  (<=0.08 bo)
+  WRMR  = 1.018  (<=1.0 bo)
+  chi2(59) = 140.01
+  -> Veredicte: ACCEPTABLE
+
+--- SEM Model B (complet) ---
+  CFI   = 0.958  (>=0.95 excel·lent, >=0.90 acceptable)
+  TLI   = 0.972  (>=0.95 excel·lent)
+  RMSEA = 0.073 [0.064, 0.082]  (<=0.06 bo, <=0.08 acceptable)
+  SRMR  = 0.068  (<=0.08 bo)
+  WRMR  = 1.313  (<=1.0 bo)
+  chi2(135) = 379.02
+  -> Veredicte: ACCEPTABLE
+
+
+========== 4. MODELS ALTERNATIUS ==========
+
+--- SEM Model A (sense mediacio) ---
+  CFI   = 0.960  (>=0.95 excel·lent, >=0.90 acceptable)
+  TLI   = 0.973  (>=0.95 excel·lent)
+  RMSEA = 0.072 [0.063, 0.081]  (<=0.06 bo, <=0.08 acceptable)
+  SRMR  = 0.065  (<=0.08 bo)
+  WRMR  = 1.291  (<=1.0 bo)
+  chi2(133) = 366.66
+  -> Veredicte: ACCEPTABLE
+
+Coeficients estructurals estandaritzats — Model A (P_ASSIST ~):
+  Endogen          Predictor      B Beta_std    SE      z     p IC_lower
+ P_ASSIST         T_AVAL_num 39.687    0.348 5.634  7.045 0.000   28.645
+ P_ASSIST DESMOTIVACIO_PEDAG -6.439   -0.221 1.701 -3.785 0.000   -9.773
+ P_ASSIST       AVALUACIO_AC  5.878    0.202 1.412  4.163 0.000    3.110
+ P_ASSIST           NOTA_num  5.948    0.178 1.619  3.674 0.000    2.775
+ P_ASSIST        FORCA_MAJOR  4.558    0.156 1.344  3.392 0.001    1.924
+ P_ASSIST          CURS_1R_d 10.584    0.154 3.992  2.651 0.008    2.759
+ P_ASSIST        TREB_INTENS -7.824   -0.131 2.908 -2.690 0.007  -13.523
+ P_ASSIST     DOBLE_GRAU_EST  5.299    0.085 3.687  1.437 0.151   -1.926
+ P_ASSIST     IA_SUBSTITUCIO -1.693   -0.058 1.577 -1.074 0.283   -4.784
+ IC_upper signif
+   50.728    ***
+   -3.105    ***
+    8.645    ***
+    9.121    ***
+    7.192    ***
+   18.409     **
+   -2.124     **
+   12.525       
+    1.398       
+
+R^2 P_ASSIST (Model A): 0.387
+
+Predictors no significatius (p > 0.10) al Model B: IA_SUBSTITUCIO, DOBLE_GRAU_EST
+
+--- SEM Model C (parsimoniós) ---
+  CFI   = 0.958  (>=0.95 excel·lent, >=0.90 acceptable)
+  TLI   = 0.969  (>=0.95 excel·lent)
+  RMSEA = 0.076 [0.067, 0.085]  (<=0.06 bo, <=0.08 acceptable)
+  SRMR  = 0.068  (<=0.08 bo)
+  WRMR  = 1.336  (<=1.0 bo)
+  chi2(123) = 367.78
+  -> Veredicte: ACCEPTABLE
+
+Comparació Models A i B:
+              Model   CFI RMSEA  SRMR  df
+ A (sense mediacio) 0.960 0.072 0.065 133
+        B (complet) 0.958 0.073 0.068 135
+
+Test de diferencia chi2 (Model A niat en B):
+
+Scaled Chi-Squared Difference Test (method = "satorra.2000")
+
+lavaan->lavTestLRT():  
+   lavaan NOTE: The "Chisq" column contains standard test statistics, not the 
+   robust test that should be reported per model. A robust difference test is 
+   a function of two standard (not robust) statistics.
+
+           Df AIC BIC  Chisq Chisq diff   RMSEA Df diff Pr(>Chisq)
+fit_sem_a 133         366.67                                      
+fit_sem_b 135         379.02     3.6963 0.12302       2     0.1575
+
+--- Model D: variables IA crues com a predictors directes (sense IA_SUBSTITUCIO) ---
+Objectiu: testar si IA_ATENC (i/o IA_SUBST, IA_CONF) son individualment significatives.
+
+SEM Model D (IA crues): model NO ha convergit — indices d'ajust no disponibles
+
+
+========== 5. VISUALITZACIO ==========
+
+
+========== 6. TAULA COMPARATIVA SEM vs LOGIT MILLORAT ==========
+
+SEM beta estand. (P_ASSIST) vs Logit Millorat OR:
+
+                rhs Beta_SEM  p_SEM OR_logit Dir_SEM Dir_logit Consistent
+         T_AVAL_num    0.348 0.0000    5.467       +         +         SI
+ DESMOTIVACIO_PEDAG   -0.221 0.0002    0.568       -         -         SI
+       AVALUACIO_AC    0.202 0.0000    1.830       +         +         SI
+           NOTA_num    0.178 0.0002    1.821       +         +         SI
+        FORCA_MAJOR    0.156 0.0007    1.374       +         +         SI
+          CURS_1R_d    0.154 0.0080    2.677       +         +         SI
+        TREB_INTENS   -0.131 0.0071       NA       -      <NA>          —
+     DOBLE_GRAU_EST    0.085 0.1506       NA       +      <NA>          —
+     IA_SUBSTITUCIO   -0.058 0.2830    0.701       -         -         SI
+
+Nota: SEM estima efectes sobre P_ASSIST (continua 0-100).
+Logit estimava P(GRUP_ASSIST=Regular>=80%). Les direccions han de coincidir.
+
+NOTA IA_SUBSTITUCIO: el signe 'NO consistent' reflecteix suppressio estadistica,
+no absencia d'efecte. La correlacio r=0.591 entre IA_SUBSTITUCIO i
+DESMOTIVACIO_PEDAG fa que l'efecte net de IA_SUBSTITUCIO canvii de signe
+en presencia de DESMOTIVACIO_PEDAG. Cal interpretar ambdos predictors
+conjuntament, no per separat.
+
+========== GUARDAR ==========
+
+-> model_sem_complet.rds desat
+-> model_cfa.rds desat
+null device 
+          1 

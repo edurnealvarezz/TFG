@@ -169,7 +169,10 @@ print(
          subtitle = sprintf("Millors params: cost=%.1f | gamma=%.3f | AUC_CV=%.4f",
                             best_cost, best_gamma, best_auc),
          x = "Cost (C)", y = "Gamma (γ)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -236,7 +239,11 @@ ggplot(df_platt_plot, aes(x = dv, y = prob, color = Y)) +
  subtitle = "Eix x = valor de decisio SVM | Eix y = P(Regular) Platt",
  x = "Valor de decisio (distancia al hiperplan)",
  y = "P(Regular ≥ 80%)", color = NULL) +
- theme_minimal(base_size = 13) + theme(legend.position = "top")
+ theme_minimal(base_size = 13) +
+ theme(legend.position = "top",
+ axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
 
 #### ============================================================ ####
 ####                        4. LLINDAR PR                         ####
@@ -283,7 +290,10 @@ print(
  labs(title = "Corba Precisio-Recall — SVM-RBF (test)",
  subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f", pr_test_svm$auprc, thresh_svm),
  x = "Recall (Sensibilitat)", y = "Precisio (PPV)") +
- theme_minimal(base_size = 13)
+ theme_minimal(base_size = 13) +
+ theme(axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -326,7 +336,10 @@ ggplot(shap_imp_svm %>% slice_head(n = 15),
  labs(title = "Importancia SHAP — SVM-RBF",
  subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
  x = "", y = "Importancia SHAP") +
- theme_minimal(base_size = 13)
+ theme_minimal(base_size = 13) +
+ theme(axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
 
 # SHAP Beeswarm (top 12)
 top12_svm <- shap_imp_svm$variable[1:min(12, nrow(shap_imp_svm))]
@@ -352,7 +365,10 @@ ggplot(shap_long_svm, aes(x = shap, y = variable, color = valor)) +
  labs(title = "SHAP Beeswarm — SVM-RBF (top 12)",
  subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
  x = "Valor SHAP", y = "") +
- theme_minimal(base_size = 12)
+ theme_minimal(base_size = 12) +
+ theme(axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
 
 # SHAP Dependence plots (top 4)
 top4_svm <- shap_imp_svm$variable[1:4]
@@ -370,7 +386,10 @@ for (v in top4_svm) {
  labs(title = sprintf("SHAP Dependence Plot SVM-RBF — %s", v),
  subtitle = "Linia taronja = tendencia LOESS | y > 0 augmenta P(Regular)",
  x = v, y = "Valor SHAP") +
- theme_minimal(base_size = 13)
+ theme_minimal(base_size = 13) +
+ theme(axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
  print(p)
 }
 
@@ -426,7 +445,10 @@ ggplot(roc_df_test, aes(x = spec_inv, y = sens)) +
  size = 5, color = "#4A90B8") +
  labs(title = "Corba ROC — SVM-RBF (test)",
  x = "1 - Especificitat", y = "Sensibilitat") +
- theme_minimal(base_size = 13)
+ theme_minimal(base_size = 13) +
+ theme(axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
 
 #### ============================================================ ####
 ####                    7. COMPARACIÓ GLOBAL DE MODELS            ####
@@ -487,8 +509,10 @@ print(ggplot(df_comp_long, aes(x = metrica, y = valor, fill = Model,
  labs(title = "Comparacio de models",
  x = "", y = "Valor") +
  theme_minimal(base_size = 13) +
- theme(axis.text.x = element_text(angle = 25, hjust = 1),
- legend.position = "bottom"))
+ theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 12),
+ axis.text.y = element_text(size = 12),
+ legend.position = "bottom",
+ legend.text = element_text(size = 12)))
 
 # Grafic lollipop: AUC i Balanced Accuracy per model
 df_lollipop <- df_comp %>%
@@ -512,7 +536,11 @@ ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) 
  labs(title = "AUC i Balanced Accuracy — tots els models",
  subtitle = "Rombe = SVM-RBF",
  x = "Valor", y = "", color = NULL) +
- theme_minimal(base_size = 13) + theme(legend.position = "top")
+ theme_minimal(base_size = 13) +
+ theme(legend.position = "top",
+ axis.text.y = element_text(size = 12),
+ axis.text.x = element_text(size = 12),
+ legend.text = element_text(size = 12))
 
 #### ============================================================ ####
 ####                   8. GUARDAR MÈTRIQUES I BBDD                ####

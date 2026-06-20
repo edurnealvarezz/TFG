@@ -16,8 +16,9 @@ setwd("C:/Users/Edurne/Downloads/TFG")
 load("2. Dades/5. Dades Logit.RData")
 source("3. Codi/Funcions models.R")
 
-sink("4. Outputs/7.1 Output_text_logit_pred.txt")
-pdf("4. Outputs/7.2 Output_grafics_logit_pred.pdf", width = 10, height = 8)
+sink("4. Outputs/7. Logit predictiu/7.1 Output_text_logit_pred.txt")
+png("4. Outputs/7. Logit predictiu/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
+
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -46,55 +47,53 @@ cat(sprintf("  Test  — Regular: %.1f%% | Irregular: %.1f%%\n\n",
 MIN_RECALL <- 0.60
 
 #### ============================================================ ####
-####          1. SELECCIÓ DEL MODEL PREDICTIU (AIC sobre TRAIN)   ####
+####     1. SELECCIÓ BACKWARD AIC DES DEL MODEL COMPLET (TRAIN)   ####
 #### ============================================================ ####
 
-cat("============== 1. CANDIDATS PREDICTIUS (AIC sobre TRAIN) =============\n\n")
+cat("============== 1. BACKWARD AIC DES DEL MODEL COMPLET =============\n\n")
 
 mk_f <- function(...) as.formula(paste("Y ~", paste(c(...), collapse = " + ")))
 
-vars_fa_mot <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR")
-vars_fa_mot_ref <- c("MOT_DESMOTIVACIO", "MOT_FORCA_MAJOR")
-vars_fa_est <- c("EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS")
-vars_fa_est_ref <- "EST_AVALUACIO_AC"
-vars_fa_ia <- c("IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
-vars_cat_full <- c("T_AVAL", "CURS_1R", "GENERE", "DOBLE_GRAU_EST")
-vars_cat_ref <- c("T_AVAL", "CURS_1R")
+vars_fa_mot  <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR")
+vars_fa_est  <- c("EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS")
+vars_cat_full <- c("T_AVAL", "CURS_1R", "GENERE", "DOBLE_GRAU_EST", "TREB_INTENS")
 vars_num_full <- c("EDAT", "DESPL", "NOTA_num")
-vars_num_ref <- c("EDAT", "NOTA_num")
 
-# Formula del model explicatiu (millor BIC de 5. Logit.R, pot incloure interaccions)
-formula_exp <- tryCatch(readRDS("2. Dades/formula_logit_explicatiu.rds"), error = function(e) NULL)
+# Model complet SENSE interaccio (model final)
+formula_full <- mk_f(vars_fa_mot, vars_fa_est, vars_cat_full, vars_num_full,
+                     "IA_SUBST_num", "IA_ATENC_num")
 
-candidats <- list(
-  "0. Complet" = mk_f(vars_fa_mot, vars_fa_est, vars_fa_ia, vars_cat_full, vars_num_full),
-  "1.1 Likert num (IA_SUBST + IA_ATENC)" = mk_f(vars_fa_mot, vars_fa_est_ref, "IA_SUBST_num", "IA_ATENC_num", vars_cat_ref, vars_num_ref),
-  "1.2 Likert num (IA_SUBST)" = mk_f(vars_fa_mot, vars_fa_est_ref, "IA_SUBST_num", vars_cat_ref, vars_num_ref),
-  "3.0 sense MOT_AUTOGESTIO" = mk_f(vars_fa_mot_ref, vars_fa_est_ref, "IA_SUBST_num", vars_cat_ref, vars_num_ref)
+# Model complet AMB interaccio (per comparació al TFG)
+formula_full_int <- mk_f(vars_fa_mot, vars_fa_est, vars_cat_full, vars_num_full,
+                         "IA_SUBST_num", "IA_ATENC_num", "MOT_DESMOTIVACIO:CURS_1R")
+
+model_full <- tryCatch(
+  glm(formula_full, data = dades_train, family = binomial),
+  error = function(e) { cat("ERROR model complet:", e$message, "\n"); NULL }
 )
-if (!is.null(formula_exp))
-  candidats[["E. Explicatiu (BIC)"]] <- formula_exp
+if (is.null(model_full)) stop("El model complet no ha pogut ajustar-se.")
 
-models_pred <- lapply(candidats, function(f)
-  tryCatch(glm(f, data = dades_train, family = binomial), error = function(e) NULL)
+model_full_int <- tryCatch(
+  glm(formula_full_int, data = dades_train, family = binomial),
+  error = function(e) { cat("ERROR model amb interaccio:", e$message, "\n"); NULL }
 )
-models_pred <- Filter(Negate(is.null), models_pred)
 
-df_sel <- do.call(rbind, lapply(names(models_pred), function(nom) {
-  m <- models_pred[[nom]]
-  data.frame(model = nom, n_param = length(coef(m)),
-             AIC = round(AIC(m), 2), BIC = round(BIC(m), 2), stringsAsFactors = FALSE)
-}))
-
-print(df_sel, row.names = FALSE)
-
-nom_aic <- df_sel$model[which.min(df_sel$AIC)]
-model_sel <- models_pred[[nom_aic]]
+cat("--- Backward AIC model SENSE interaccio (model final) ---\n")
+model_sel  <- step(model_full, direction = "backward", trace = 1)
 formula_sel <- formula(model_sel)
-
-cat(sprintf("\n→ Model seleccionat per AIC: %s\n", nom_aic))
-cat("  Fórmula:\n"); print(formula_sel); cat("\n")
+cat(sprintf("\nAIC final (sense interaccio): %.2f | n params: %d\n", AIC(model_sel), length(coef(model_sel))))
+cat("Formula:\n"); print(formula_sel); cat("\n")
 print(summary(model_sel))
+
+cat("\n--- Backward AIC model AMB interaccio MOT_DESMOTIVACIO x CURS_1R (comparatiu) ---\n")
+model_int <- if (!is.null(model_full_int))
+  step(model_full_int, direction = "backward", trace = 1) else NULL
+formula_int <- if (!is.null(model_int)) formula(model_int) else NULL
+if (!is.null(model_int)) {
+  cat(sprintf("\nAIC final (amb interaccio): %.2f | n params: %d\n", AIC(model_int), length(coef(model_int))))
+  cat("Formula:\n"); print(formula_int); cat("\n")
+  print(summary(model_int))
+}
 
 #### ============================================================ ####
 ####          2. REPEATED 5×10-fold CV (sobre TRAIN)              ####
@@ -231,7 +230,10 @@ print(
       x = "", y = "Valor", fill = "Conjunt"
     ) +
     theme_minimal(base_size = 13) +
-    theme(legend.position = "top")
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Grafic: Corba ROC (test)
@@ -248,7 +250,10 @@ print(
              size = 5, color = "#4A90B8") +
     labs(title = "Corba ROC — Logit Predictiu (test)",
          x = "1 - Especificitat", y = "Sensibilitat") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Grafic: Corba PR (OOF train)
@@ -267,7 +272,10 @@ print(
     labs(title = "Corba Precisio-Recall — Logit Predictiu (OOF train)",
          subtitle = sprintf("AUPRC = %.4f | Threshold = %.4f", pr_oof_full$auprc, thresh_oof),
          x = "Recall", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Grafic: Distribucio metriques CV per fold
@@ -281,7 +289,10 @@ print(
     geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
     labs(title = sprintf("Distribucio metriques CV (%d×%d-fold) — Logit Predictiu", n_rep, n_fold),
          x = "", y = "Valor") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Matriu de confusió (test)
@@ -302,10 +313,45 @@ cat(sprintf("\n  Precision (PPV): %.4f | Recall (Sens): %.4f | F1: %.4f\n\n",
 
 print(grafic_cm(metriques_logit_pred, "Logit Predictiu (test)"))
 
-dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
-saveRDS(metriques_logit_pred, "4. Outputs/Metriques i models/metriques_logit_pred.rds")
-saveRDS(model_sel,            "4. Outputs/Metriques i models/model_logit_pred.rds")
+saveRDS(metriques_logit_pred, "2. Dades/2. Models/metriques_logit_pred.rds")
+saveRDS(model_sel,            "2. Dades/2. Models/model_logit_pred.rds")
 cat("-> metriques_logit_pred.rds i model_logit_pred.rds guardats\n")
+
+# --- Avaluació model AMB interaccio (per demostrar efecte negatiu al TFG) ---
+if (!is.null(model_int)) {
+  cat("\n=== 3b. MODEL AMB INTERACCIO MOT_DESMOTIVACIO x CURS_1R (test) ===\n\n")
+
+  prob_int_tr <- predict(model_int, newdata = dades_train, type = "response")
+  pr_int_tr   <- seleccionar_llindar_pr(prob_int_tr, dades_train$Y, MIN_RECALL)
+  thresh_int  <- pr_int_tr$threshold
+  cat(sprintf("Threshold PR-train (interaccio): %.4f | recall_ok: %s\n\n",
+              thresh_int, ifelse(pr_int_tr$recall_ok, "SI", "NO (Youden)")))
+
+  metriques_logit_int <- calcular_metriques(
+    model_glm       = model_int,
+    dades_test_df   = dades_test,
+    nom_model       = "Logit Pred + Interaccio",
+    auc_cv_mean     = NA_real_,
+    auc_cv_sd       = NA_real_,
+    thresh_override = thresh_int
+  )
+
+  df_comp_int <- data.frame(
+    Model     = c("Sense interaccio (final)", "Amb interaccio MOT x CURS_1R"),
+    Threshold = round(c(thresh_oof, thresh_int), 4),
+    AUC       = c(metriques_logit_pred$AUC,               metriques_logit_int$AUC),
+    Recall    = c(metriques_logit_pred$recall,             metriques_logit_int$recall),
+    Precision = c(metriques_logit_pred$precision,          metriques_logit_int$precision),
+    F1        = c(metriques_logit_pred$F1,                 metriques_logit_int$F1),
+    Bal_Acc   = c(metriques_logit_pred$balanced_accuracy,  metriques_logit_int$balanced_accuracy)
+  )
+  cat("Comparacio models sense/amb interaccio (test):\n")
+  print(df_comp_int, row.names = FALSE)
+
+  saveRDS(metriques_logit_int, "2. Dades/2. Models/metriques_logit_pred_interaccio.rds")
+  cat("-> metriques_logit_pred_interaccio.rds guardat\n\n")
+}
+
 
 #### ============================================================ ####
 ####                      4. GUARDAR DADES                        ####

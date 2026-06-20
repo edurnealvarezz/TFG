@@ -315,7 +315,10 @@ print(
       x = "Puntuació mitjana factor EFA", y = "", fill = "Cluster"
     ) +
     theme_minimal(base_size = 13) +
-    theme(legend.position = "top")
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Grafic C — Distribucio P_ASSIST
@@ -340,7 +343,10 @@ print(
       subtitle = mw_lbl,
       x = "Cluster", y = "% Assistència"
     ) +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Grafic D — Heatmap de nitidesa (zona ambigüitat)
@@ -363,7 +369,10 @@ print(
                          n_ambig, n_ambig / nrow(df_cc) * 100),
       x = "u1 (probabilitat pertenènça Cluster 1)", y = "Cluster hard"
     ) +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # --- 4.6 Taula resum interpretativa ---

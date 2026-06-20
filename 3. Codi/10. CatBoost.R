@@ -236,7 +236,10 @@ print(
              size = 4.5, color = "#4A90B8") +
     labs(title = "Corba ROC — CatBoost (test)",
          x = "1 - Especificitat", y = "Sensibilitat") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -270,7 +273,10 @@ print(
     labs(title = "Importancia de variables — CatBoost",
          subtitle = "Top 20 | Mesura: FeatureImportance (%)",
          x = "", y = "Importancia (%)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -308,7 +314,10 @@ print(
     labs(title = "Importancia SHAP — CatBoost",
          subtitle = "Top 20 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importancia SHAP") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Beeswarm (top 15)
@@ -336,7 +345,10 @@ print(
     labs(title = "SHAP Beeswarm — CatBoost (top 15 variables)",
          subtitle = "Color = valor de la variable | x > 0 -> augmenta P(Regular)",
          x = "Valor SHAP", y = "") +
-    theme_minimal(base_size = 12)
+    theme_minimal(base_size = 12) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Dependence plots (top 4)
@@ -353,7 +365,10 @@ for (v in top4_vars) {
       labs(title = sprintf("SHAP Dependence Plot — %s", v),
            subtitle = "Linia taronja = tendencia LOESS",
            x = v, y = "Valor SHAP") +
-      theme_minimal(base_size = 13)
+      theme_minimal(base_size = 13) +
+      theme(axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
     print(p_dep)
   }
 }
@@ -414,7 +429,10 @@ print(
     labs(title = "Corba Precisio-Recall — CatBoost (test)",
          subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f", pr_cat_test$auprc, thresh_final),
          x = "Recall (Sensibilitat)", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # ------ Mètriques test i train ------
@@ -494,8 +512,10 @@ print(
          subtitle = "Metriques sobre conjunt test",
          x = "", y = "Valor") +
     theme_minimal(base_size = 13) +
-    theme(axis.text.x = element_text(angle = 25, hjust = 1),
-          legend.position = "bottom")
+    theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 12),
+          axis.text.y = element_text(size = 12),
+          legend.position = "bottom",
+          legend.text = element_text(size = 12))
 )
 
 

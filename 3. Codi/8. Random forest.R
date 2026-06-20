@@ -17,8 +17,9 @@ setwd("C:/Users/Edurne/Downloads/TFG")
 load("2. Dades/7. Dades Logit Predictiu.RData")
 source("3. Codi/Funcions models.R")
 
-sink("4. Outputs/8.1 Output_text_rf.txt")
-pdf("4. Outputs/8.2 Output_grafics_rf.pdf", width = 10, height = 8)
+sink("4. Outputs/8. Random forest/8.1 Output_text_rf.txt")
+png("4. Outputs/8. Random forest/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
+
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -46,7 +47,7 @@ vars_rfa <- c(
   "IA_SUBST_num",
   "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num",
   # Descartades pel logit pero potencialment rellevants
-  "MOT_AUTOGESTIO", "DOBLE_GRAU_EST",
+  "MOT_AUTOGESTIO", "DOBLE_GRAU_EST", "TREB_INTENS",
   "EST_QUALITAT_DOC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS",
   "IA_EINA_ESTUDI",
   "DESPL", "N_ASSIG"
@@ -234,7 +235,10 @@ print(
              label = sprintf("AUC = %.3f", met_rfa_test$AUC),
              size = 5, color = "#4A90B8") +
     labs(title = "Corba ROC — RF-A", x = "1 - Especificitat", y = "Sensibilitat") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Corba PR (test)
@@ -251,7 +255,10 @@ print(
     labs(title = "Corba Precisio-Recall — RF-A (test)",
          subtitle = sprintf("AUPRC = %.4f | Llindar OOB = %.4f", pr_test_rfa$auprc, thresh_pr_a),
          x = "Recall", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -358,7 +365,10 @@ print(
              label = sprintf("AUC = %.3f", met_rfb_test$AUC),
              size = 5, color = "#E07B54") +
     labs(title = "Corba ROC — RF-B", x = "1 - Especificitat", y = "Sensibilitat") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Corba PR (test)
@@ -375,7 +385,10 @@ print(
     labs(title = "Corba Precisio-Recall — RF-B (test)",
          subtitle = sprintf("AUPRC = %.4f | Llindar OOB = %.4f", pr_test_rfb$auprc, thresh_pr_b),
          x = "Recall", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -413,7 +426,10 @@ print(
     labs(title = "Importancia variables — RF-A (factors EFA)",
          subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
          x = "", y = "Importancia (permutacio)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 print(
@@ -425,7 +441,10 @@ print(
     labs(title = "Importancia variables — RF-B (Likert originals)",
          subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
          x = "", y = "Importancia (permutacio)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -496,7 +515,10 @@ print(
     labs(title = "Importancia SHAP — RF-A (factors EFA)",
          subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importancia SHAP") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Grafic importancia SHAP RF-B
@@ -510,7 +532,10 @@ print(
     labs(title = "Importancia SHAP — RF-B (Likert originals)",
          subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importancia SHAP") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # --------------- 4.3. SHAP Beeswarm ---------------
@@ -542,7 +567,10 @@ print(
     labs(title = "SHAP Beeswarm — RF-A (factors EFA)",
          subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
          x = "Valor SHAP", y = "") +
-    theme_minimal(base_size = 12)
+    theme_minimal(base_size = 12) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # SHAP Beeswarm RF-B top 8
@@ -570,7 +598,10 @@ print(
     labs(title = "SHAP Beeswarm — RF-B (Likert originals)",
          subtitle = "x > 0 augmenta P(Regular) | color = valor de la variable",
          x = "Valor SHAP", y = "") +
-    theme_minimal(base_size = 12)
+    theme_minimal(base_size = 12) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # --------------- 4.4. SHAP gràfics dependència ---------------
@@ -594,7 +625,10 @@ for (v in top5_a) {
     labs(title = sprintf("SHAP Dependence Plot RF-A — %s", v),
          subtitle = "Linia taronja = tendencia LOESS | y > 0 augmenta P(Regular)",
          x = v, y = "Valor SHAP") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
   print(p)
 }
 
@@ -641,18 +675,19 @@ if (file.exists("2. Dades/metriques_logit.rds")) {
            subtitle = "Metriques sobre conjunt test",
            x = "", y = "Valor") +
       theme_minimal(base_size = 13) +
-      theme(axis.text.x = element_text(angle = 25, hjust = 1),
-            legend.position = "bottom")
+      theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 12),
+            axis.text.y = element_text(size = 12),
+            legend.position = "bottom",
+            legend.text = element_text(size = 12))
   )
 }
 
 # sembla que el millor és el logit
 
-dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
-saveRDS(met_rfa_test, "4. Outputs/Metriques i models/metriques_rf_a.rds")
-saveRDS(met_rfb_test, "4. Outputs/Metriques i models/metriques_rf_b.rds")
-saveRDS(rf_a,         "4. Outputs/Metriques i models/model_rf_a.rds")
-saveRDS(rf_b,         "4. Outputs/Metriques i models/model_rf_b.rds")
+saveRDS(met_rfa_test, "2. Dades/2. Models/metriques_rf_a.rds")
+saveRDS(met_rfb_test, "2. Dades/2. Models/metriques_rf_b.rds")
+saveRDS(rf_a,¡ "2. Dades/2. Models/model_rf_a.rds")
+saveRDS(rf_b,¡ "2. Dades/2. Models /model_rf_b.rds")
 cat("-> metriques_rf_a/b.rds i model_rf_a/b.rds guardats\n")
 
 # --- Guardar probabilitats i bbdd encadenada ---
@@ -683,8 +718,6 @@ dades_def$prob_rf_b[seq_len(nrow(dades_rf))] <- prob_rfb_tots
 dades_def$pred_rf_b <- NA_integer_
 dades_def$pred_rf_b[seq_len(nrow(dades_rf))] <- as.integer(prob_rfb_tots >= thresh_pr_b)
 cat(sprintf("Llindar aplicat per pred_rf_b: %.4f (PR, no 0.5)\n\n", thresh_pr_b))
-save(dades_def, file = "2. Dades/6. Dades RF.RData")
-
 
 
 save(dades_def, file = "2. Dades/8. Dades Random Forest.RData")

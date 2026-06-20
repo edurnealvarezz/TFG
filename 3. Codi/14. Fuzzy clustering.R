@@ -192,10 +192,11 @@ print(
     ) +
     theme_minimal(base_size = 10) +
     theme(
-      axis.text.x  = element_text(angle = 45, hjust = 1, size = 8),
-      axis.text.y  = element_text(size = 8),
+      axis.text.x  = element_text(angle = 45, hjust = 1, size = 12),
+      axis.text.y  = element_text(size = 12),
       plot.title   = element_text(face = "bold"),
-      legend.position = "right"
+      legend.position = "right",
+      legend.text = element_text(size = 12)
     )
 )
 
@@ -287,7 +288,10 @@ print(
     theme_minimal(base_size = 13) +
     theme(
       plot.title    = element_text(face = "bold"),
-      legend.position = "bottom"
+      legend.position = "bottom",
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
+      legend.text = element_text(size = 12)
     )
 )
 
@@ -394,7 +398,9 @@ print(
     theme_minimal(base_size = 12) +
     theme(
       plot.title      = element_text(face = "bold"),
-      legend.position = "none"
+      legend.position = "none",
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12)
     )
 )
 
@@ -428,7 +434,10 @@ print(
     theme_minimal(base_size = 13) +
     theme(
       plot.title      = element_text(face = "bold"),
-      legend.position = "right"
+      legend.position = "right",
+      axis.text.y = element_text(size = 12),
+      axis.text.x = element_text(size = 12),
+      legend.text = element_text(size = 12)
     )
 )
 

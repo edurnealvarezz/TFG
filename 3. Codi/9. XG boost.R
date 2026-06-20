@@ -235,7 +235,10 @@ print(
              size = 4.5, color = "#4A90B8") +
     labs(title = "Corba ROC — XGBoost (test)",
          x = "1 - Especificitat", y = "Sensibilitat") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Llindar PR sobre probabilitats OOF del CV (no contamina el test)
@@ -273,7 +276,10 @@ print(
     labs(title = "Corba Precisio-Recall — XGBoost (test)",
          subtitle = sprintf("AUPRC = %.4f | Llindar = %.4f", pr_test_xgb$auprc, thresh_pr_xgb),
          x = "Recall", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -299,7 +305,10 @@ print(
     labs(title = "Importància de variables — XGBoost",
          subtitle = "Top 20 | Mesura: Gain (reducció d'impuresa per splits)",
          x = "", y = "Gain") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ================================================= ####
@@ -338,7 +347,10 @@ print(
     labs(title = "Importància SHAP — XGBoost",
          subtitle = "Top 20 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importància SHAP (mean |SHAP|)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Gràfic: Beeswarm
@@ -370,7 +382,10 @@ print(
     labs(title = "SHAP Beeswarm — XGBoost (top 15 variables)",
          subtitle = "Color = valor de la variable | x > 0 → augmenta P(Regular)",
          x = "Valor SHAP", y = "") +
-    theme_minimal(base_size = 12)
+    theme_minimal(base_size = 12) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # Gràfic: Dependence plots
@@ -392,7 +407,10 @@ for (v in top4_vars) {
     labs(title = sprintf("SHAP Dependence Plot — %s", v),
          subtitle = "Línea taronja = tendència LOESS",
          x = v, y = "Valor SHAP") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 
   print(p)
 }
@@ -487,8 +505,10 @@ print(
          subtitle = "Mètriques sobre conjunt test",
          x = "", y = "Valor") +
     theme_minimal(base_size = 13) +
-    theme(axis.text.x = element_text(angle = 25, hjust = 1),
-          legend.position = "bottom")
+    theme(axis.text.x = element_text(angle = 25, hjust = 1, size = 12),
+          axis.text.y = element_text(size = 12),
+          legend.position = "bottom",
+          legend.text = element_text(size = 12))
 )
 
 dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)

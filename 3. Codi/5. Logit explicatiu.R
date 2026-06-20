@@ -16,8 +16,9 @@ setwd("C:/Users/Edurne/Downloads/TFG")
 load("2. Dades/4. Dades EFA.RData")
 source("3. Codi/Funcions models.R")
 
-sink("4. Outputs/5.1 Output_text_logit.txt")
-pdf("4. Outputs/5.2 Output_grafics_logit.pdf", width = 10, height = 8)
+sink("4. Outputs/5. Logit explicatiu/5.1 Output_text_logit.txt")
+png("4. Outputs/5. Logit explicatiu/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
+
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -50,7 +51,7 @@ cat("============== 1A. MODEL COMPLET AMB FACTORS EFA =============\n\n")
 formula_completa_efa <- Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR +
   EST_QUALITAT_DOC + EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS +
   IA_EINA_ESTUDI + IA_SUBSTITUCIO +
-  T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST +
+  T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST + TREB_INTENS +
   EDAT + DESPL + NOTA_num
 
 model_complet_efa <- glm(formula_completa_efa, data = dades_mod, family = binomial)
@@ -66,7 +67,7 @@ cat("\n\n============== 1B. MODEL COMPLET AMB LIKERT IA NUMÈRICA =============\
 formula_completa_ia <- Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR +
   EST_QUALITAT_DOC + EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS +
   IA_SUBST_num + IA_ATENC_num +
-  T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST +
+  T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST + TREB_INTENS +
   EDAT + DESPL + NOTA_num
 
 model_complet_ia <- glm(formula_completa_ia, data = dades_mod, family = binomial)
@@ -78,10 +79,10 @@ model_bic_ia <- step(model_complet_ia, direction = "backward",
 
 cat("\n\n===== Comparacio dels dos models BIC =====\n\n")
 df_comp_bic <- data.frame(
-  model    = c("BIC EFA (IA_EINA + IA_SUBST factor)", "BIC Likert (IA_SUBST_num + IA_ATENC_num)"),
-  n_param  = c(length(coef(model_bic_efa)), length(coef(model_bic_ia))),
-  AIC      = c(round(AIC(model_bic_efa), 2), round(AIC(model_bic_ia), 2)),
-  BIC      = c(round(BIC(model_bic_efa), 2), round(BIC(model_bic_ia), 2)),
+  model = c("BIC EFA (IA_EINA + IA_SUBST factor)", "BIC Likert (IA_SUBST_num + IA_ATENC_num)"),
+  n_param = c(length(coef(model_bic_efa)), length(coef(model_bic_ia))),
+  AIC = c(round(AIC(model_bic_efa), 2), round(AIC(model_bic_ia), 2)),
+  BIC = c(round(BIC(model_bic_efa), 2), round(BIC(model_bic_ia), 2)),
   stringsAsFactors = FALSE
 )
 print(df_comp_bic, row.names = FALSE)
@@ -122,16 +123,16 @@ if (length(vars_bt) > 0) {
   for (v in vars_bt) dades_bt[[paste0(v, "_log")]] <- dades_bt[[v]] * log(dades_bt[[v]])
   formula_bt <- update(formula_bic,
                        as.formula(paste(". ~ . +", paste(paste0(vars_bt, "_log"), collapse = " + "))))
-  model_bt  <- glm(formula_bt, data = dades_bt, family = binomial)
-  coefs_bt  <- coef(summary(model_bt))
-  noms_bt   <- paste0(vars_bt, "_log")
+  model_bt <- glm(formula_bt, data = dades_bt, family = binomial)
+  coefs_bt <- coef(summary(model_bt))
+  noms_bt <- paste0(vars_bt, "_log")
   df_bt <- data.frame(
-    variable  = vars_bt,
-    coef_BT   = coefs_bt[noms_bt, "Estimate"],
-    p         = coefs_bt[noms_bt, "Pr(>|z|)"],
+    variable = vars_bt,
+    coef_BT = coefs_bt[noms_bt, "Estimate"],
+    p = coefs_bt[noms_bt, "Pr(>|z|)"],
     stringsAsFactors = FALSE
   ) %>% mutate(
-    sig       = dplyr::case_when(p < 0.001 ~ "***", p < 0.01 ~ "**", p < 0.05 ~ "*", TRUE ~ "ns"),
+    sig = dplyr::case_when(p < 0.001 ~ "***", p < 0.01 ~ "**", p < 0.05 ~ "*", TRUE ~ "ns"),
     conclusio = ifelse(p >= 0.05, "lineal en log-odds", "NO lineal -> transformar")
   )
   rownames(df_bt) <- NULL
@@ -157,14 +158,14 @@ pQ <- list()
 for (var_nom in vars_quadratic) {
   cat(sprintf("--- %s ---\n", var_nom))
 
-  form_q  <- update(formula_bic,
+  form_q <- update(formula_bic,
                     as.formula(sprintf(". ~ . - %s + poly(%s, 2)", var_nom, var_nom)))
   model_q <- tryCatch(glm(form_q, data = dades_mod, family = binomial),
                       error = function(e) { cat("  Error model quadratic.\n\n"); NULL })
   if (is.null(model_q)) { pQ[[var_nom]] <- NA_real_; next }
 
-  cn     <- c(sprintf("poly(%s, 2)1", var_nom), sprintf("poly(%s, 2)2", var_nom))
-  cq     <- coef(summary(model_q))
+  cn <- c(sprintf("poly(%s, 2)1", var_nom), sprintf("poly(%s, 2)2", var_nom))
+  cq <- coef(summary(model_q))
   pQ[[var_nom]] <- cq[cn[2], "Pr(>|z|)"]
 
   cat(sprintf("  Lineal (L):    z=%.3f | p=%.4f\n", cq[cn[1], "z value"], cq[cn[1], "Pr(>|z|)"]))
@@ -186,7 +187,7 @@ for (var_nom in vars_quadratic) {
     }
   }
   grid$prob_lin <- predict(model_bic, newdata = grid, type = "response")
-  grid$prob_q   <- predict(model_q,   newdata = grid, type = "response")
+  grid$prob_q <- predict(model_q, newdata = grid, type = "response")
 
   df_plot <- pivot_longer(grid[, c(var_nom, "prob_lin", "prob_q")],
                           cols = c("prob_lin", "prob_q"),
@@ -201,7 +202,11 @@ for (var_nom in vars_quadratic) {
       labs(title = sprintf("Efecte de %s sobre P(Regular)", var_nom),
            subtitle = "Resta de predictors a la mediana",
            x = var_nom, y = "P(Regular >= 80%)", color = NULL, linetype = NULL) +
-      theme_minimal(base_size = 13) + theme(legend.position = "top")
+      theme_minimal(base_size = 13) +
+      theme(legend.position = "top",
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 }
 
@@ -235,11 +240,11 @@ df_inter <- do.call(rbind, lapply(interaccions, function(inter) {
   if (is.null(model_i)) return(NULL)
   lrt <- anova(model_bic, model_i, test = "LRT")
   data.frame(
-    Interaccio    = inter,
-    Chi2          = round(lrt[2, "Deviance"], 3),
-    gl            = lrt[2, "Df"],
-    p_LRT         = round(lrt[2, "Pr(>Chi)"], 4),
-    dBIC          = round(BIC(model_i) - BIC(model_bic), 2),
+    Interaccio = inter,
+    Chi2 = round(lrt[2, "Deviance"], 3),
+    gl = lrt[2, "Df"],
+    p_LRT = round(lrt[2, "Pr(>Chi)"], 4),
+    dBIC = round(BIC(model_i) - BIC(model_bic), 2),
     Significativa = ifelse(lrt[2, "Pr(>Chi)"] < 0.05, "Si", "No"),
     stringsAsFactors = FALSE
   )
@@ -273,7 +278,7 @@ if (!is.na(ia_var) && all(c("MOT_DESMOTIVACIO", "CURS_1R") %in% vars_bic)) {
 sig_inter <- df_inter$Interaccio[df_inter$Significativa == "Si"]
 
 for (inter in sig_inter) {
-  parts   <- strsplit(inter, ":")[[1]]
+  parts <- strsplit(inter, ":")[[1]]
   model_i <- glm(update(formula_bic, as.formula(paste(". ~ . +", inter))),
                  data = dades_mod, family = binomial)
 
@@ -298,16 +303,20 @@ for (inter in sig_inter) {
       if (is.factor(col)) factor(lvl, levels = levels(col)) else lvl
     }
   }
-  grid_i$prob  <- predict(model_i, newdata = grid_i, type = "response")
+  grid_i$prob <- predict(model_i, newdata = grid_i, type = "response")
   grid_i$x_val <- grid_i[[var1]]
-  grid_i$grp   <- factor(round(grid_i[[var2]], 2))
+  grid_i$grp <- factor(round(grid_i[[var2]], 2))
 
   print(
     ggplot(grid_i, aes(x = x_val, y = prob, color = grp)) +
       geom_line(linewidth = 1.1) +
       labs(title = sprintf("Interaccio %s", inter),
            x = var1, y = "P(Regular >= 80%)", color = var2) +
-      theme_minimal(base_size = 13) + theme(legend.position = "top")
+      theme_minimal(base_size = 13) +
+      theme(legend.position = "top",
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 }
 
@@ -368,7 +377,10 @@ print(
     coord_flip() + scale_y_log10() +
     labs(title = "Odds Ratios - Model logistic final explicatiu",
          subtitle = "IC 95% Wald | Escala logaritmica", x = "", y = "Odds Ratio") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -402,7 +414,10 @@ if (!is.null(vif_res)) {
       coord_flip() +
       scale_fill_manual(values = c("FALSE" = "#4A90B8", "TRUE" = "#E07B54"), guide = "none") +
       labs(title = "Factor d'Inflacio de la Variancia (FIV)", x = "", y = "VIF equivalent") +
-      theme_minimal(base_size = 13)
+      theme_minimal(base_size = 13) +
+      theme(axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 }
 
@@ -412,17 +427,17 @@ if (!is.null(vif_res)) {
 
 cat("\n====== 7. OBSERVACIONS INFLUENTS ======\n\n")
 
-n_obs   <- nrow(model.frame(model_final_exp))
-k_pred  <- length(coef(model_final_exp)) - 1
+n_obs <- nrow(model.frame(model_final_exp))
+k_pred <- length(coef(model_final_exp)) - 1
 row_idx <- as.integer(rownames(model.frame(model_final_exp)))
 
-cook_d        <- cooks.distance(model_final_exp)
-lev_vals      <- hatvalues(model_final_exp)
+cook_d <- cooks.distance(model_final_exp)
+lev_vals <- hatvalues(model_final_exp)
 res_pears_std <- residuals(model_final_exp, type = "pearson") / sqrt(1 - hatvalues(model_final_exp))
 
 thresh_cook <- 4 / n_obs
-thresh_lev  <- 2 * (k_pred + 1) / n_obs
-thresh_res  <- 2.5
+thresh_lev <- 2 * (k_pred + 1) / n_obs
+thresh_res <- 2.5
 
 cat(sprintf("n=%d | k=%d | thresh Cook=%.4f | thresh lev=%.4f\n", n_obs, k_pred, thresh_cook, thresh_lev))
 cat(sprintf("Cook's D > %.4f: %d obs\n", thresh_cook, sum(cook_d > thresh_cook)))
@@ -432,10 +447,10 @@ idx_res <- which(abs(res_pears_std) > thresh_res)
 if (length(idx_res) > 0) {
   cat("Observacions amb |residu Pearson std| > 2.5:\n")
   print(data.frame(
-    index_orig      = row_idx[idx_res],
+    index_orig = row_idx[idx_res],
     res_pearson_std = round(res_pears_std[idx_res], 3),
-    cook_D          = round(cook_d[idx_res], 4),
-    leverage        = round(lev_vals[idx_res], 4)
+    cook_D = round(cook_d[idx_res], 4),
+    leverage = round(lev_vals[idx_res], 4)
   ))
   cat("\n")
 }
@@ -457,7 +472,10 @@ print(
     scale_size_continuous(name = "Cook's D", range = c(1, 6)) +
     labs(title = "Leverage vs Residus de Pearson estandarditzats",
          x = "Leverage", y = "Residu Pearson estandarditzat") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # --- 7b. Analisi de sensibilitat (sense observacions influents)) ---
@@ -474,15 +492,15 @@ if (length(idx_res) > 0) {
   )
 
   if (!is.null(model_sensit)) {
-    or_full   <- exp(coef(model_final_exp))
+    or_full <- exp(coef(model_final_exp))
     or_sensit <- exp(coef(model_sensit))
     vars_comuns <- intersect(names(or_full), names(or_sensit))
 
     df_sens <- data.frame(
-      variable   = vars_comuns,
+      variable = vars_comuns,
       OR_complet = round(or_full[vars_comuns], 3),
-      OR_sensit  = round(or_sensit[vars_comuns], 3),
-      canvi_pct  = round((or_sensit[vars_comuns] - or_full[vars_comuns]) /
+      OR_sensit = round(or_sensit[vars_comuns], 3),
+      canvi_pct = round((or_sensit[vars_comuns] - or_full[vars_comuns]) /
                            or_full[vars_comuns] * 100, 1),
       stringsAsFactors = FALSE
     )
@@ -534,7 +552,10 @@ print(
     labs(title = "Calibration plot - Model logistic final (totes les dades)",
          x = "Probabilitat predicta (decil)", y = "Proporcio observada Regular") +
     coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -561,7 +582,10 @@ if (!is.null(ame_final)) {
       labs(title = "Efectes Marginals Promig (AME) - Model logistic final",
            subtitle = "IC 95% (delta method) | variable resposta: P(Regular >= 80%)",
            x = "", y = "AME (canvi en probabilitat)") +
-      theme_minimal(base_size = 13)
+      theme_minimal(base_size = 13) +
+      theme(axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 }
 
@@ -569,8 +593,8 @@ if (!is.null(ame_final)) {
 ####                     10. GUARDAR MODEL                        ####
 #### ============================================================ ####
 
-saveRDS(model_final_exp, "2. Dades/model_logit_explicatiu.rds")
-saveRDS(formula_final,   "2. Dades/formula_logit_explicatiu.rds")
+saveRDS(model_final_exp, "2. Dades/2. Models/model_logit_explicatiu.rds")
+saveRDS(formula_final,   "2. Dades/2. Models/formula_logit_explicatiu.rds")
 
 dades_def$prob_logit_exp <- NA_real_
 dades_def$prob_logit_exp[as.integer(rownames(model.frame(model_final_exp)))] <- prob_mod

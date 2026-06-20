@@ -268,7 +268,10 @@ print(
   labs(title = "Seleccio de k — KNN fuzzy-aware (CV 5-fold)",
   subtitle = "AUC-ROC mig +/- 1 SD | cerca per cluster separat", 
   x = "k (veins per cluster)", y = "AUC-ROC (CV)") +
-  theme_minimal(base_size = 13)
+  theme_minimal(base_size = 13) +
+  theme(axis.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -415,7 +418,10 @@ print(
       labs(title = sprintf("Corba ROC — KNN fuzzy (k=%d, test)", k_optim),
       subtitle = "Triangle: llindar Youden | probabilitats calibrades (Platt)",
       x = "1 - Especificitat", y = "Sensibilitat") +
-      theme_minimal(base_size = 13)
+      theme_minimal(base_size = 13) +
+      theme(axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
 )
 
 # --- 5.2 Corba Precisio-Recall (test) ---
@@ -432,7 +438,10 @@ print(
     labs(title = sprintf("Corba Precisio-Recall — KNN fuzzy (k=%d, test)", k_optim),
     subtitle = sprintf("AUPRC = %.4f | Llindar OOF = %.3f", pr_test$auprc, thresh_knn),
     x = "Recall", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13)
+    theme_minimal(base_size = 13) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 # --- 5.3 Matriu de confusio ---
@@ -480,7 +489,11 @@ print(
   n_bins, brier_raw, brier_cal),
   x = "Probabilitat predicta (bin)", y = "Proporcio observada Regular",
   color = "Prob.") +
-  theme_minimal(base_size = 13) + theme(legend.position = "top")
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top",
+        axis.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        legend.text = element_text(size = 12))
 )
 
 # --- 5.5 Dispersio: u1 vs prob_cal, per cluster i per resultat ---
@@ -507,7 +520,11 @@ print(
  labs(title = sprintf("KNN fuzzy-aware (k=%d) — test", k_optim),
  subtitle = "x = u1 (pertinenca Cluster 1) | y = P(Regular) calibrada (Platt)",
  x = "u1", y = "P(Regular) calibrada") +
- theme_minimal(base_size = 13) + theme(legend.position = "right")
+ theme_minimal(base_size = 13) +
+ theme(legend.position = "right",
+       axis.text.y = element_text(size = 12),
+       axis.text.x = element_text(size = 12),
+       legend.text = element_text(size = 12))
 )
 
 # --- 5.6 Densitat P(Regular) per cluster ---
@@ -520,7 +537,10 @@ print(
  k_optim),
  subtitle = "Test set | linia puntejada: llindar PR (OOF)",
  x = "P(Regular) calibrada", y = "Densitat") +
- theme_minimal(base_size = 13)
+ theme_minimal(base_size = 13) +
+ theme(axis.text.y = element_text(size = 12),
+       axis.text.x = element_text(size = 12),
+       legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -679,6 +699,162 @@ dades_def$cluster_hard <- hard_all_full
 dades_def$u1  <- u1_full
 dades_def$u2  <- u2_full
 
+#### ============================================================ ####
+####         7b. BASELINE: u1 COM A CRITERI (LDA 1D)              ####
+#### ============================================================ ####
+
+cat("================= 7b. BASELINE LDA SOBRE u1 =================\n\n")
+cat("Avaluem si el grau de pertinenca fuzzy u1 (Cluster 1, alta assistencia)\n")
+cat("es suficient com a classificador lineal, sense necessitat del KNN.\n\n")
+
+u1_tr <- U_train_knn[, 1]
+u1_te <- U_test_knn[, 1]
+
+# --- Grafic densitat u1 per GRUP_ASSIST (tots els obs. complets) ---
+df_u1_dens <- dades_def %>%
+  filter(!is.na(u1), !is.na(GRUP_ASSIST)) %>%
+  mutate(Grup = ifelse(GRUP_ASSIST == 1, "Regular", "Irregular"))
+
+print(
+  ggplot(df_u1_dens, aes(x = u1, fill = Grup, color = Grup)) +
+    geom_density(alpha = 0.40, linewidth = 0.8) +
+    scale_fill_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
+    scale_color_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
+    labs(
+      title    = "Distribucio de u1 per grup d'assistencia",
+      subtitle = "u1 = grau de pertinenca al Cluster 1 (alta assistencia)",
+      x = "u1 (pertinenca Cluster 1)", y = "Densitat",
+      fill = NULL, color = NULL
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
+
+# --- LDA 1D: ajust sobre train ---
+df_lda_tr <- data.frame(
+  u1 = u1_tr,
+  y  = factor(Y_train_knn, levels = c(0, 1), labels = c("Irregular", "Regular"))
+)
+lda_u1 <- MASS::lda(y ~ u1, data = df_lda_tr)
+
+# Punt de tall: u1 on la probabilitat posterior de Regular = 0.5
+u1_grid   <- seq(0, 1, length.out = 10000)
+post_grid <- predict(lda_u1, newdata = data.frame(u1 = u1_grid))$posterior[, "Regular"]
+thresh_lda_u1 <- u1_grid[which.min(abs(post_grid - 0.5))]
+
+cat(sprintf("Punt de tall LDA: u1 = %.4f\n", thresh_lda_u1))
+cat(sprintf("Mitjana u1 Irregulars (train): %.4f\n", mean(u1_tr[Y_train_knn == 0])))
+cat(sprintf("Mitjana u1 Regulars   (train): %.4f\n\n", mean(u1_tr[Y_train_knn == 1])))
+
+# --- Prediccions sobre test ---
+prob_lda_te <- predict(lda_u1,
+                       newdata = data.frame(u1 = u1_te))$posterior[, "Regular"]
+pred_lda_te <- as.integer(prob_lda_te >= 0.5)
+
+roc_lda <- pROC::roc(Y_test_knn, prob_lda_te, quiet = TRUE)
+auc_lda <- as.numeric(pROC::auc(roc_lda))
+
+TP_l <- sum(pred_lda_te == 1 & Y_test_knn == 1)
+TN_l <- sum(pred_lda_te == 0 & Y_test_knn == 0)
+FP_l <- sum(pred_lda_te == 1 & Y_test_knn == 0)
+FN_l <- sum(pred_lda_te == 0 & Y_test_knn == 1)
+acc_lda  <- (TP_l + TN_l) / length(Y_test_knn)
+prec_lda <- ifelse(TP_l + FP_l > 0, TP_l / (TP_l + FP_l), NA_real_)
+rec_lda  <- ifelse(TP_l + FN_l > 0, TP_l / (TP_l + FN_l), NA_real_)
+spec_lda <- ifelse(TN_l + FP_l > 0, TN_l / (TN_l + FP_l), NA_real_)
+f1_lda   <- ifelse(!is.na(prec_lda) & !is.na(rec_lda) & (prec_lda + rec_lda) > 0,
+                   2 * prec_lda * rec_lda / (prec_lda + rec_lda), NA_real_)
+bacc_lda <- (rec_lda + spec_lda) / 2
+
+metriques_lda_u1 <- list(
+  model             = "LDA-u1",
+  n_test            = length(Y_test_knn),
+  threshold         = round(thresh_lda_u1, 4),
+  AUC               = round(auc_lda, 4),
+  AUC_cv_mean       = NA_real_,
+  AUC_cv_sd         = NA_real_,
+  accuracy          = round(acc_lda, 4),
+  precision         = round(prec_lda, 4),
+  recall            = round(rec_lda, 4),
+  specificity       = round(spec_lda, 4),
+  F1                = round(f1_lda, 4),
+  balanced_accuracy = round(bacc_lda, 4),
+  TP = TP_l, TN = TN_l, FP = FP_l, FN = FN_l
+)
+
+cat("--- Metriques LDA-u1 (test) ---\n")
+cat(sprintf("Threshold u1: %.4f\n", thresh_lda_u1))
+cat(sprintf("AUC:          %.4f\n", auc_lda))
+cat(sprintf("Accuracy:     %.4f\n", acc_lda))
+cat(sprintf("Precision:    %.4f\n", prec_lda))
+cat(sprintf("Recall:       %.4f\n", rec_lda))
+cat(sprintf("F1:           %.4f\n", f1_lda))
+cat(sprintf("Balanced Acc: %.4f\n\n", bacc_lda))
+cm_lda <- matrix(c(TN_l, FN_l, FP_l, TP_l), nrow = 2,
+  dimnames = list(Observat = c("Irregular(0)", "Regular(1)"),
+                  Predit   = c("Irregular(0)", "Regular(1)")))
+cat("Matriu de confusio:\n")
+print(cm_lda)
+cat("\n")
+
+# --- Comparacio LDA-u1 vs KNN fuzzy-aware ---
+cat("--- Comparacio LDA-u1 vs KNN fuzzy-aware (test) ---\n")
+df_comp_lda <- data.frame(
+  Model     = c("KNN fuzzy-aware", "LDA-u1"),
+  AUC       = c(met_knn_test$AUC,              metriques_lda_u1$AUC),
+  Precision = c(met_knn_test$precision,         metriques_lda_u1$precision),
+  Recall    = c(met_knn_test$recall,            metriques_lda_u1$recall),
+  F1        = c(met_knn_test$F1,                metriques_lda_u1$F1),
+  Bal_Acc   = c(met_knn_test$balanced_accuracy, metriques_lda_u1$balanced_accuracy)
+)
+print(df_comp_lda, row.names = FALSE)
+
+delta_auc <- met_knn_test$AUC - metriques_lda_u1$AUC
+delta_f1  <- met_knn_test$F1  - metriques_lda_u1$F1
+cat(sprintf("\nDelta AUC (KNN - LDA): %+.4f\n", delta_auc))
+cat(sprintf("Delta F1  (KNN - LDA): %+.4f\n\n", delta_f1))
+
+if (abs(delta_auc) < 0.02 && abs(delta_f1) < 0.03) {
+  cat("Conclusio: el KNN fuzzy-aware NO aporta millora substancial sobre el tall LDA en u1.\n")
+  cat("La pertinenca fuzzy u1 captura practicament tota la informacio discriminant.\n\n")
+} else if (delta_auc > 0 || delta_f1 > 0) {
+  cat("Conclusio: el KNN fuzzy-aware SUPERA el tall LDA en u1.\n")
+  cat("El KNN afegeix valor real per sobre d'usar directament u1 com a criteri.\n\n")
+} else {
+  cat("Conclusio: el tall LDA en u1 supera el KNN en alguna metrica.\n\n")
+}
+
+# --- Grafic densitat amb tall LDA marcat ---
+print(
+  ggplot(df_u1_dens, aes(x = u1, fill = Grup, color = Grup)) +
+    geom_density(alpha = 0.40, linewidth = 0.8) +
+    geom_vline(xintercept = thresh_lda_u1, linetype = "dashed",
+               color = "grey30", linewidth = 1) +
+    annotate("text", x = thresh_lda_u1 + 0.02, y = Inf, vjust = 1.5, hjust = 0,
+             label = sprintf("Tall LDA\nu1=%.3f", thresh_lda_u1),
+             size = 3.8, color = "grey30") +
+    scale_fill_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
+    scale_color_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
+    labs(
+      title    = "Distribucio de u1 per grup — tall LDA marcat",
+      subtitle = sprintf("Tall LDA = %.4f | AUC LDA = %.4f | AUC KNN = %.4f",
+                          thresh_lda_u1, auc_lda, met_knn_test$AUC),
+      x = "u1 (pertinenca Cluster 1)", y = "Densitat",
+      fill = NULL, color = NULL
+    ) +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
+
+saveRDS(metriques_lda_u1, "4. Outputs/Metriques i models/metriques_lda_u1.rds")
+cat("-> metriques_lda_u1.rds guardat\n\n")
+
 save(
   fcm_final, scale_params, c_final, m_final,
   U_all, hard_all,
@@ -690,6 +866,7 @@ save(
   knn_model, k_optim, platt_model,
   predict_nou_alumne,
   metriques_knn,
+  metriques_lda_u1,
   dades_def,
   file = "2. Dades/fuzzy_clustering_model_complet.RData"
 )

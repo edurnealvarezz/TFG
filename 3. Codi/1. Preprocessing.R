@@ -19,9 +19,10 @@ motius_vars <- readRDS("2. Dades/1. Objectes/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/1. Objectes/estrategies_vars.rds")
 ia_vars <- readRDS("2. Dades/1. Objectes/ia_vars.rds")
 
-sink("4. Outputs/1.1 Output_text_preprocessing.txt")
-pdf("4. Outputs/1.2 Output_grafics_preprocessing.pdf",
-    width = 10, height = 8)
+
+png("4. Outputs/1. Preprocessing/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
+
+sink("4. Outputs/1. Preprocessing/1.1 Output_text_preprocessing.txt")
 
 #### ============================================================ ####
 ####     0. CREACIÓ DE LA VARIABLE GRUP_ASSIST (tall al 80%)      ####
@@ -37,7 +38,7 @@ cat("\n === Distribució GRUP_ASSIST: ===\n")
 print(table(dades$GRUP_ASSIST))
 print(round(prop.table(table(dades$GRUP_ASSIST)) * 100, 1))
 
-col_grups <- c("Irregular (<80%)" = "#C55A11", "Regular (≥80%)" = "#2F6F8F")
+col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4A90B8")
 
 
 #### ============================================================ ####
@@ -46,15 +47,17 @@ col_grups <- c("Irregular (<80%)" = "#C55A11", "Regular (≥80%)" = "#2F6F8F")
 
 # trobat al preprocessament de les dades
 
-ggplot(dades, aes(y = DESPL)) +
+print(ggplot(dades, aes(y = DESPL)) +
   geom_boxplot(fill = "#5B9BD5", alpha = 0.8, outlier.shape = 21, width = 0.2) +
   labs(title = "Temps de desplaçament",
        x = "",
        y = "Minuts de desplaçament") +
   theme_minimal(base_size = 13) +
   theme(
-    plot.margin = margin(100, 200, 100, 200)
-  )
+    plot.margin = margin(100, 200, 100, 200),
+    axis.text.y = element_text(size = 4.5),
+    axis.text.x = element_text(size = 4.5)
+  ))
 
 # Valor impossible: 605 minuts de desplaçament → NA
 dades$DESPL[dades$DESPL == 605] <- 65
@@ -76,16 +79,19 @@ na_resum <- data.frame(
 cat("\n === NA per variable === \n")
 print(na_resum)
 
-ggplot(na_resum, aes(x = reorder(variable, pct_na), y = pct_na)) +
+print(ggplot(na_resum, aes(x = reorder(variable, pct_na), y = pct_na)) +
   geom_col(fill = "#5B9BD5", alpha = 0.85, width = 0.5) +
-  geom_text(aes(label = paste0(pct_na, "%")), hjust = -0.1, size = 5) +
+  geom_text(aes(label = paste0(pct_na, "%")), hjust = -0.1, size = 5.5) +
   coord_flip() +
   scale_x_discrete(expand = c(0.01, 0.01)) +
   scale_y_continuous(limits = c(0, 75), expand = c(0, 0)) +
   labs(title = "% NAs per variable",
        x = "", y = "% NA") +
   theme_minimal(base_size = 13) +
-  theme(axis.text.y = element_text(size = 14))
+  theme(
+    axis.text.y = element_text(size = 12),
+    axis.text.x = element_text(size = 10)
+  ))
 # NAs de respostes obertes, no cal fer imputació
 
 #### ============================================================ ####
@@ -160,7 +166,7 @@ df_lof_plot <- data.frame(
   outlier = lof_scores > 2
 )
 
-ggplot(df_lof_plot, aes(x = index, y = score, color = outlier)) +
+print(ggplot(df_lof_plot, aes(x = index, y = score, color = outlier)) +
   geom_point(size = 2, alpha = 0.8) +
   geom_hline(yintercept = 2, linetype = "dashed",
              color = "red", linewidth = 0.8) +
@@ -172,8 +178,7 @@ ggplot(df_lof_plot, aes(x = index, y = score, color = outlier)) +
        subtitle = paste0("k = ", k_final, " veïns | ",
                          ncol(dades_gower), " variables"),
        x = "Índex observació", y = "LOF Score", color = "") +
-  theme_minimal(base_size = 13)
-
+  theme_minimal(base_size = 13))
 
 sink()
 dev.off()

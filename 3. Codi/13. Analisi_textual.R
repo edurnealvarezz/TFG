@@ -253,7 +253,10 @@ plot_freq <- function(tokens_df, titol, color_fill, top_n = 20) {
       theme_minimal(base_size = 13) +
       theme(plot.title = element_text(face = "bold"),
             panel.grid.minor = element_blank(),
-            panel.grid.major.y = element_blank())
+            panel.grid.major.y = element_blank(),
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
   invisible(freq)
 }
@@ -313,7 +316,10 @@ plot_bigrams <- function(bigrams_df, titol, color_fill) {
       theme_minimal(base_size = 13) +
       theme(plot.title = element_text(face = "bold"),
             panel.grid.minor = element_blank(),
-            panel.grid.major.y = element_blank())
+            panel.grid.major.y = element_blank(),
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
   invisible(bigrams_df)
 }
@@ -361,7 +367,10 @@ analisi_lda <- function(tokens_df, var_nom, k = 3, etiquetes = NULL) {
            x = "Probabilitat (β)", y = NULL) +
       theme_minimal(base_size = 12) +
       theme(plot.title = element_text(face = "bold"),
-            strip.text = element_text(face = "bold", size = 9))
+            strip.text = element_text(face = "bold", size = 9),
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 
   gamma_df <- tidy(lda_fit, matrix = "gamma") %>%
@@ -453,7 +462,10 @@ comparativa_subgrup <- function(tok_grup_df, subgrup_var, titol_text, titol_subg
       theme(plot.title = element_text(face = "bold"),
             legend.position = "top",
             panel.grid.minor = element_blank(),
-            panel.grid.major.y = element_blank())
+            panel.grid.major.y = element_blank(),
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
   invisible(log_r)
 }
@@ -621,7 +633,10 @@ print(
     theme(plot.title = element_text(face = "bold"),
           legend.position = "top",
           panel.grid.minor = element_blank(),
-          panel.grid.major.y = element_blank())
+          panel.grid.major.y = element_blank(),
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
 )
 
 #### ============================================================ ####
@@ -699,7 +714,10 @@ score_sentiment <- function(var_nom, titol) {
            subtitle = "Mitjana de mencions per resposta (escala NRC, cobertura espanyol)",
            x = NULL, y = "Mitjana per resposta") +
       theme_minimal(base_size = 13) +
-      theme(plot.title = element_text(face = "bold"))
+      theme(plot.title = element_text(face = "bold"),
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 
   # Boxplot sentiment net per GRUP_ASSIST
@@ -718,7 +736,9 @@ score_sentiment <- function(var_nom, titol) {
              fill = "Grup") +
         theme_minimal(base_size = 13) +
         theme(plot.title = element_text(face = "bold"),
-              legend.position = "none")
+              legend.position = "none",
+              axis.text.y = element_text(size = 12),
+              axis.text.x = element_text(size = 12))
     )
 
     test_res <- tryCatch(
@@ -823,7 +843,10 @@ if ("CURS" %in% names(tok_mot_grup)) {
              x = "Proporció", y = NULL) +
         theme_minimal(base_size = 12) +
         theme(plot.title = element_text(face = "bold"),
-              strip.text = element_text(face = "bold"))
+              strip.text = element_text(face = "bold"),
+              axis.text.y = element_text(size = 12),
+              axis.text.x = element_text(size = 12),
+              legend.text = element_text(size = 12))
     )
   }
 }

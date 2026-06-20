@@ -5,6 +5,7 @@ install_if_missing <- function(pkg) {
     library(pkg, character.only = TRUE)
   }
 }
+
 lapply(packages, install_if_missing)
 rm(packages)
 
@@ -12,8 +13,8 @@ setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 
 load("2. Dades/5. Dades Logit.RData")
-sink("4. Outputs/6.1 Output_text_sem.txt")
-pdf("4. Outputs/6.2 Output_grafics_sem.pdf", width = 12, height = 9)
+sink("4. Outputs/6. SEM/6.1 Output_text_sem.txt")
+png("4. Outputs/6. SEM/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -34,7 +35,8 @@ dades_sem <- dades_def %>%
                                   c("1", "SI", "TRUE", "1r", "TRUE")),
     T_AVAL_num = as.integer(T_AVAL == "Continuada"),
     DOBLE_GRAU_EST = as.integer(DOBLE_GRAU_EST),
-    P_ASSIST = as.numeric(P_ASSIST)
+    P_ASSIST = as.numeric(P_ASSIST),
+    TREB_INTENS = as.integer(TREB_INTENS),
   )
 
 # Declarar items com ordered, perquè no calculi corr pearson sinó polychoric
@@ -43,7 +45,7 @@ for (v in items_ord) {
     dades_sem[[v]] <- ordered(as.integer(dades_sem[[v]]))
 }
 
-vars_model <- c(items_ord, "P_ASSIST", "NOTA_num", "CURS_1R_d", "T_AVAL_num", "DOBLE_GRAU_EST")
+vars_model <- c(items_ord, "P_ASSIST", "NOTA_num", "CURS_1R_d", "T_AVAL_num", "DOBLE_GRAU_EST","TREB_INTENS")
 vars_model <- vars_model[vars_model %in% names(dades_sem)]
 dades_sem_net <- dades_sem[, vars_model, drop = FALSE]
 dades_sem_net <- dades_sem_net[complete.cases(dades_sem_net), ]
@@ -60,6 +62,7 @@ cat(sprintf("SD: %.2f\n\n", sd(dades_sem_net$P_ASSIST)))
 cat("CURS_1R_d:\n"); print(table(dades_sem_net$CURS_1R_d))
 cat("\nT_AVAL_num:\n"); print(table(dades_sem_net$T_AVAL_num))
 cat("\nDOBLE_GRAU_EST:\n"); print(table(dades_sem_net$DOBLE_GRAU_EST))
+cat("\nTREB_INTENS:\n"); print(table(dades_sem_net$TREB_INTENS))
 cat("\n")
 
 #### ============================================================ ####
@@ -201,10 +204,6 @@ items_ord_final <- c(items_desg, items_fmaj, items_aval, items_ia_final)
 
 cat("\n========== 2. MODEL ESTRUCTURAL COMPLET (SEM) ==========\n\n")
 
-a1 = efecto directo de DESMOTIVACIO_PEDAG sobre P_ASSIST
-a2 = efecto de DESMOTIVACIO_PEDAG sobre AVALUACIO_AC (primera parte de la mediación)
-b_aval = efecto de AVALUACIO_AC sobre P_ASSIST (segunda parte de la mediación)
-
 #a1 = efecte total de DESMOTIVACIO_PEDAG sobre P_ASSIST (sense mediacio)
 # a2 = efecte de DESMOTIVACIO_PEDAG sobre AVALUACIO_AC
 # b_aval = efecte de AVALUACIO_AC sobre P_ASSIST
@@ -213,7 +212,7 @@ model_sem_b <- paste(
   model_mesura,
   "P_ASSIST ~ a1*DESMOTIVACIO_PEDAG + b_fmaj*FORCA_MAJOR + b_aval*AVALUACIO_AC +",
   "           b_ia*IA_SUBSTITUCIO + b_nota*NOTA_num + b_curs*CURS_1R_d + b_taval*T_AVAL_num +",
-  "           b_dg*DOBLE_GRAU_EST",
+  "           b_dg*DOBLE_GRAU_EST + b_treb*TREB_INTENS",
   "AVALUACIO_AC ~ a2*DESMOTIVACIO_PEDAG",
   "DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR",
   "DESMOTIVACIO_PEDAG ~~ IA_SUBSTITUCIO",
@@ -270,6 +269,10 @@ cat("\n========== 3. INDEXS D'AJUST I DIAGNOSTIC ==========\n\n")
 
 avaluar_ajust <- function(fit, nom) {
   if (is.null(fit)) { cat(sprintf("%s: model no disponible\n", nom)); return(invisible(NULL)) }
+  if (!isTRUE(lavInspect(fit, "converged"))) {
+    cat(sprintf("%s: model NO ha convergit — indices d'ajust no disponibles\n\n", nom))
+    return(invisible(NULL))
+  }
   fm <- fitMeasures(fit, c("cfi", "tli", "rmsea", "rmsea.ci.lower",
                             "rmsea.ci.upper", "srmr", "wrmr", "df", "chisq"))
   cat(sprintf("--- %s ---\n", nom))
@@ -300,7 +303,7 @@ cat("\n========== 4. MODELS ALTERNATIUS ==========\n\n")
 model_sem_a <- paste(
   model_mesura,
   "P_ASSIST ~ DESMOTIVACIO_PEDAG + FORCA_MAJOR + AVALUACIO_AC +",
-  "           IA_SUBSTITUCIO + NOTA_num + CURS_1R_d + T_AVAL_num + DOBLE_GRAU_EST",
+  "           IA_SUBSTITUCIO + NOTA_num + CURS_1R_d + T_AVAL_num + DOBLE_GRAU_EST + TREB_INTENS",
   "DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR",
   "DESMOTIVACIO_PEDAG ~~ IA_SUBSTITUCIO",
   "FORCA_MAJOR ~~ IA_SUBSTITUCIO",
@@ -313,6 +316,24 @@ fit_sem_a <- tryCatch(
   error = function(e) { cat("ERROR SEM-A:", e$message, "\n"); NULL }
 )
 avaluar_ajust(fit_sem_a, "SEM Model A (sense mediacio)")
+
+if (!is.null(fit_sem_a)) {
+  cat("Coeficients estructurals estandaritzats — Model A (P_ASSIST ~):\n")
+  pe_a <- parameterEstimates(fit_sem_a, standardized = TRUE, ci = TRUE)
+  struct_a <- pe_a[pe_a$op == "~",
+                   c("lhs", "rhs", "est", "std.all", "se", "z", "pvalue", "ci.lower", "ci.upper")]
+  colnames(struct_a) <- c("Endogen", "Predictor", "B", "Beta_std", "SE", "z", "p",
+                           "IC_lower", "IC_upper")
+  struct_a$signif <- ifelse(is.na(struct_a$p), "",
+                     ifelse(struct_a$p < .001, "***",
+                     ifelse(struct_a$p < .01,  "**",
+                     ifelse(struct_a$p < .05,  "*",
+                     ifelse(struct_a$p < .10,  ".", "")))))
+  struct_a <- struct_a[order(struct_a$Endogen, -abs(struct_a$Beta_std)), ]
+  print(struct_a, row.names = FALSE)
+  cat(sprintf("\nR^2 P_ASSIST (Model A): %.3f\n\n",
+              as.numeric(inspect(fit_sem_a, "r2")["P_ASSIST"])))
+}
 
 # Model C: parsimoniós — elimina predictors amb p > 0.10 de P_ASSIST
 if (!is.null(fit_sem_b)) {
@@ -379,7 +400,7 @@ cat("Objectiu: testar si IA_ATENC (i/o IA_SUBST, IA_CONF) son individualment sig
 model_sem_d <- paste(
   c(mesura_comuns,
     "P_ASSIST ~ DESMOTIVACIO_PEDAG + FORCA_MAJOR + AVALUACIO_AC +",
-    "           IA_SUBST + NOTA_num + CURS_1R_d + T_AVAL_num + DOBLE_GRAU_EST",
+    "           IA_SUBST + NOTA_num + CURS_1R_d + T_AVAL_num + DOBLE_GRAU_EST + TREB_INTENS",
     "DESMOTIVACIO_PEDAG ~~ FORCA_MAJOR",
     "DESMOTIVACIO_PEDAG ~~ IA_SUBST",
     "FORCA_MAJOR ~~ IA_SUBST",
@@ -456,7 +477,10 @@ if (!is.null(fit_final)) {
       labs(title = "Coeficients estructurals estandaritzats — SEM Model A",
            x = "Beta estandaritzat", y = "", color = NULL) +
       theme_minimal(base_size = 13) +
-      theme(legend.position = "top")
+      theme(legend.position = "top",
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 
   # Grafic carregues factorials CFA
@@ -480,7 +504,10 @@ if (!is.null(fit_final)) {
              subtitle = "Estimador WLSMV | std.lv = TRUE",
              x = "Carrega estandaritzada (lambda)", y = "", fill = "Constructe") +
         theme_minimal(base_size = 12) +
-        theme(legend.position = "right")
+        theme(legend.position = "right",
+              axis.text.y = element_text(size = 12),
+              axis.text.x = element_text(size = 12),
+              legend.text = element_text(size = 12))
     )
   }
 }
@@ -499,9 +526,9 @@ if (!is.null(fit_sem_a)) {
   or_ref <- data.frame(
     Predictor = c("DESMOTIVACIO_PEDAG", "FORCA_MAJOR", "AVALUACIO_AC",
                   "IA_SUBSTITUCIO", "NOTA_num", "CURS_1R_d", "T_AVAL_num",
-                  "DOBLE_GRAU_EST"),
-    OR_logit = c(0.568, 1.374, 1.830, 0.701, 1.821, 2.677, 5.467, NA),
-    Dir_logit = c("-", "+", "+", "-", "+", "+", "+", NA),
+                  "DOBLE_GRAU_EST", "TREB_INTENS"),
+    OR_logit = c(0.568, 1.374, 1.830, 0.701, 1.821, 2.677, 5.467, NA, NA),
+    Dir_logit = c("-", "+", "+", "-", "+", "+", "+", NA, NA),
     stringsAsFactors = FALSE
   )
 
@@ -551,7 +578,10 @@ if (!is.null(fit_sem_a)) {
            subtitle = "SEM = beta estandaritzat sobre P_ASSIST | Logit = log(OR) sobre P(Regular)",
            x = "Coeficient (escala diferent)", y = "", color = NULL, shape = NULL) +
       theme_minimal(base_size = 12) +
-      theme(legend.position = "top")
+      theme(legend.position = "top",
+            axis.text.y = element_text(size = 12),
+            axis.text.x = element_text(size = 12),
+            legend.text = element_text(size = 12))
   )
 }
 
@@ -562,11 +592,11 @@ if (!is.null(fit_sem_a)) {
 cat("\n========== GUARDAR ==========\n\n")
 
 if (!is.null(fit_sem_a)) {
-  saveRDS(fit_sem_a, "2. Dades/model_sem_complet.rds")
+  saveRDS(fit_sem_a, "2. Dades/2. Models/model_sem_complet.rds")
   cat("-> model_sem_complet.rds desat\n")
 }
 if (!is.null(fit_cfa)) {
-  saveRDS(fit_cfa, "2. Dades/model_cfa.rds")
+  saveRDS(fit_cfa, "2. Dades/2. Models/model_cfa.rds")
   cat("-> model_cfa.rds desat\n")
 }
 
