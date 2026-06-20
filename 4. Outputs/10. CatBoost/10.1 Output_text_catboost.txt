@@ -1,0 +1,135 @@
+ ==================== PREPARACIÓ DE DADES ==================== 
+Observacions totals: 342
+Predictors inclosos: 18
+Distribucio Y — Irregular (0): 148 | Regular (1): 194
+
+Particio: Train = 274 | Test = 68
+  Train — Regular: 55.8% | Irregular: 44.2%
+  Test  — Regular: 60.3% | Irregular: 39.7%
+
+================= 1. GRID SEARCH ================ 
+Combinacions a avaluar: 24
+Recall minim acceptable: 0.60
+
+  12 / 24 combinacions completades...
+  24 / 24 combinacions completades...
+
+Top 10 combinacions (ordenades per AUC CV):
+ depth learning_rate l2_leaf_reg random_strength cv_auc best_iter
+     6          0.05           1             1.5 0.7801       500
+     6          0.03           5             1.5 0.7759       500
+     6          0.01           1             0.5 0.7757       500
+     6          0.01           5             1.5 0.7728       500
+     6          0.03           1             1.5 0.7727       500
+     4          0.03           1             0.5 0.7721       500
+     6          0.03           1             0.5 0.7712       500
+     6          0.05           5             1.5 0.7709       500
+     4          0.05           1             1.5 0.7702       500
+     4          0.03           5             1.5 0.7696       500
+
+Millors hiperparametres:
+  depth = 6 | learning_rate = 0.050 | l2_leaf_reg = 1.0 | random_strength = 1.5
+  CV AUC = 0.7801 | best_iter = 500
+
+ =============== MODEL FINAL CatBoost ================ 
+Iteracions del model final: 500
+
+AUC train (in-sample): 1.0000 | AUC test: 0.8636
+
+ ============ IMPORTANCIA DE VARIABLES ============ 
+Top 20 variables per importancia:
+# A tibble: 18 × 2
+   variable          importancia
+   <chr>                   <dbl>
+ 1 MOT_DESMOTIVACIO        11.5 
+ 2 EST_AVALUACIO_AC         9.09
+ 3 MOT_FORCA_MAJOR          8.54
+ 4 MOT_AUTOGESTIO           7.93
+ 5 IA_SUBST_num             6.75
+ 6 EST_QUALITAT_DOC         6.21
+ 7 NOTA_num                 5.92
+ 8 CURS_1R_num              5.56
+ 9 IA_EINA_ESTUDI           5.36
+10 EST_GRUPS_REDUITS        5.31
+11 EST_TEMPS_CLASSE         5.03
+12 N_ASSIG                  4.55
+13 DESPL                    4.39
+14 IA_SUBSTITUCIO           4.27
+15 EDAT                     3.63
+16 IA_ATENC_num             2.50
+17 DOBLE_GRAU_EST           2.18
+18 T_AVAL_num               1.31
+ =============== SHAP VALUES =============== 
+Top 20 variables per importancia SHAP:
+# A tibble: 18 × 2
+   variable          mean_abs_shap
+   <chr>                     <dbl>
+ 1 MOT_DESMOTIVACIO          1.19 
+ 2 EST_AVALUACIO_AC          0.929
+ 3 MOT_AUTOGESTIO            0.686
+ 4 MOT_FORCA_MAJOR           0.650
+ 5 IA_SUBST_num              0.601
+ 6 CURS_1R_num               0.586
+ 7 NOTA_num                  0.558
+ 8 IA_EINA_ESTUDI            0.364
+ 9 EST_GRUPS_REDUITS         0.301
+10 N_ASSIG                   0.292
+11 IA_ATENC_num              0.255
+12 EST_QUALITAT_DOC          0.242
+13 EDAT                      0.217
+14 T_AVAL_num                0.211
+15 IA_SUBSTITUCIO            0.204
+16 DESPL                     0.190
+17 DOBLE_GRAU_EST            0.190
+18 EST_TEMPS_CLASSE          0.188
+ ============== METRIQUES DE CLASSIFICACIO ============== 
+AUPRC (OOF CV): 0.7857
+-> Llindar seleccionat: 0.5535 | recall_ok (>= 0.60): SI
+
+--- Metriques sobre conjunt test ---
+
+--- Metriques: CatBoost ---
+n = 68 | Llindar = 0.554
+AUC:                    0.8636
+Accuracy:               0.8088
+Precision (PPV):        0.8889  ← metrica prioritaria
+Recall (Sensibilitat):  0.7805
+Especificitat:          0.8519
+F1:                     0.8312
+Balanced Accuracy:      0.8162
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           23          4
+  Regular(1)              9         32
+--- Metriques sobre train (in-sample) ---
+
+--- Metriques: CatBoost (train) ---
+n = 274 | Llindar = 0.554
+AUC:                    1.0000
+Accuracy:               1.0000
+Precision (PPV):        1.0000  ← metrica prioritaria
+Recall (Sensibilitat):  1.0000
+Especificitat:          1.0000
+F1:                     1.0000
+Balanced Accuracy:      1.0000
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)          121          0
+  Regular(1)              0        153
+
+--- Resum overfitting: train vs test ---
+
+ Conjunt    AUC Precision Recall     F1 Balanced_Acc
+   Train 1.0000    1.0000 1.0000 1.0000       1.0000
+    Test 0.8636    0.8889 0.7805 0.8312       0.8162
+
+ ============= COMPARACIO GLOBAL DE MODELS ============= 
+Taula comparativa de models (sobre conjunt test):
+
+    Model AUC_CV AUC_test Accuracy Precision Recall     F1 Balanced_Acc
+ CatBoost      —   0.8636   0.8088    0.8889 0.7805 0.8312       0.8162
+Llindar aplicat per pred_catboost: 0.5535 

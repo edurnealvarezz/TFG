@@ -1,0 +1,144 @@
+ ============= 0. PREPARACIÓ DE DADES ============= 
+Observacions totals: 342
+Predictors inclosos: 19
+Distribució Y — Irregular (0): 148 | Regular (1): 194
+
+Particio: Train = 274 | Test = 68
+  Train — Regular: 55.8% | Irregular: 44.2%
+  Test  — Regular: 60.3% | Irregular: 39.7%
+
+ ================= GRID SEARCH ================= 
+Combinacions a avaluar: 54 (alpha fixat a 0.0)
+Params fixos: eta = 0.01 | subsample = 0.6 | colsample_bytree = 0.6
+Seleccio per 5-fold CV AUC | early stopping (20 rounds sense millora)
+
+  10 / 54 combinacions completades...
+  20 / 54 combinacions completades...
+  30 / 54 combinacions completades...
+  40 / 54 combinacions completades...
+  50 / 54 combinacions completades...
+
+Top 10 combinacions per AUC CV:
+ max_depth min_child_weight gamma lambda alpha    cv_auc best_nrounds
+         2                5     0      3     0 0.7505823           21
+         3                5     1      1     0 0.7426198           13
+         4                5     0      1     0 0.7420632           13
+         3               10     0      5     0 0.7381044           32
+         2                5     0      5     0 0.7380976           54
+         2                5     0      1     0 0.7361349           20
+         3                5     1      5     0 0.7352739           32
+         3               10     1      5     0 0.7329794           15
+         3               10     0      3     0 0.7327945           40
+         2                5     1      1     0 0.7314812           10
+
+Millors hiperparàmetres (CV AUC = 0.7506):
+  max_depth = 2 | min_child_weight = 5 | gamma = 0.0
+  lambda = 3.0 | alpha = 0.0 | best_nrounds = 21
+
+ ================== MODEL FINAL ==================== 
+Entrenant model final amb nrounds = 21
+
+AUC train (in-sample): 0.8068 | AUC test: 0.8663
+
+AVIS OOF CV: OOF predictions invàlides — usant train in-sample com a fallback.
+XGBoost — AUPRC: 0.8319 | Llindar PR: 0.5669 | recall_ok: SI
+
+ ===================== IMPORTÀNCIA DE VARIABLES ===================== 
+Top 20 variables per importància (Gain):
+              Feature        Gain       Cover  Frequency
+               <char>       <num>       <num>      <num>
+ 1:    MOT_AUTOGESTIO 0.315063508 0.229359982 0.17241379
+ 2:    IA_EINA_ESTUDI 0.166601171 0.175143339 0.17241379
+ 3:      IA_SUBST_num 0.151590766 0.118738958 0.08620690
+ 4:  MOT_DESMOTIVACIO 0.147804458 0.137999530 0.12068966
+ 5:   MOT_FORCA_MAJOR 0.094033578 0.114763212 0.13793103
+ 6:       CURS_1R_num 0.056643441 0.063898010 0.05172414
+ 7:  EST_AVALUACIO_AC 0.026380376 0.044756452 0.06896552
+ 8: EST_GRUPS_REDUITS 0.022353813 0.051679503 0.06896552
+ 9:           N_ASSIG 0.005006068 0.010090790 0.01724138
+10:  EST_QUALITAT_DOC 0.004414980 0.014346779 0.03448276
+11:          NOTA_num 0.002827244 0.011667068 0.01724138
+12:       TREB_INTENS 0.002707965 0.009763003 0.01724138
+13:              EDAT 0.002485541 0.008117789 0.01724138
+14:      IA_ATENC_num 0.002087091 0.009675584 0.01724138
+ =============== SHAP VALUES ===============
+SHAP (TreeSHAP exacte) per a 68 obs i 19 variables.
+
+Top 20 variables per importància SHAP:
+# A tibble: 19 × 2
+   variable          mean_abs_shap
+   <chr>                     <dbl>
+ 1 MOT_AUTOGESTIO          0.0423 
+ 2 IA_EINA_ESTUDI          0.0302 
+ 3 MOT_DESMOTIVACIO        0.0225 
+ 4 MOT_FORCA_MAJOR         0.0185 
+ 5 IA_SUBST_num            0.0178 
+ 6 CURS_1R_num             0.00905
+ 7 EST_AVALUACIO_AC        0.00698
+ 8 EST_GRUPS_REDUITS       0.00328
+ 9 EST_QUALITAT_DOC        0.00208
+10 N_ASSIG                 0.00154
+11 NOTA_num                0.00151
+12 TREB_INTENS             0.00134
+13 IA_ATENC_num            0.00128
+14 EDAT                    0.00118
+15 EST_TEMPS_CLASSE        0      
+16 T_AVAL_num              0      
+17 DOBLE_GRAU_EST          0      
+18 DESPL                   0      
+19 GENERE                  0      
+ =================== MÈTRIQUES DE CLASSIFICACIÓ =================== 
+ Mètriques sobre conjunt test 
+
+--- Mètriques: XGBoost ---
+n = 68 | Llindar PR = 0.567
+AUC:                    0.8663
+Accuracy:               0.7500
+Precision (PPV):        0.9286
+Recall (Sensibilitat):  0.6341
+Especificitat:          0.9259
+F1:                     0.7536
+Balanced Accuracy:      0.7800
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           25          2
+  Regular(1)             15         26
+Mètriques sobre train (in-sample) 
+
+
+--- Mètriques: XGBoost (train in-sample) ---
+n = 274 | Llindar PR = 0.567
+AUC:                    0.8068
+Accuracy:               0.7336
+Precision (PPV):        0.8030
+Recall (Sensibilitat):  0.6928
+Especificitat:          0.7851
+F1:                     0.7439
+Balanced Accuracy:      0.7390
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           95         26
+  Regular(1)             47        106
+
+--- Resum overfitting: train vs test ---
+
+           Conjunt    AUC Accuracy     F1 Balanced_Acc
+ Train (in-sample) 0.8068   0.7336 0.7439        0.739
+              Test 0.8663   0.7500 0.7536        0.780
+
+ =================== COMPARACIÓ GLOBAL DE MODELS =================== 
+Taula comparativa de models (sobre conjunt test):
+
+       Model           AUC_CV AUC_test Accuracy Precision Recall     F1
+ RF-A (test) OOB err = 0.1966   0.9115   0.8088    0.9667 0.7073 0.8169
+ RF-B (test) OOB err = 0.1862   0.8076   0.6324    0.8333 0.4878 0.6154
+     XGBoost                —   0.8663   0.7500    0.9286 0.6341 0.7536
+ Balanced_Acc
+       0.8351
+       0.6698
+       0.7800
+Llindar aplicat per pred_xgb: 0.5669 

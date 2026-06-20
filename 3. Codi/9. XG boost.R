@@ -17,12 +17,12 @@ source("3. Codi/Funcions models.R")
 
 MIN_RECALL <- 0.6
 
-motius_vars <- readRDS("2. Dades/motius_vars.rds")
-estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
-ia_vars <- readRDS("2. Dades/ia_vars.rds")
+motius_vars <- readRDS("2. Dades/1. Objectes/motius_vars.rds")
+estrategies_vars <- readRDS("2. Dades/1. Objectes/estrategies_vars.rds")
+ia_vars <- readRDS("2. Dades/1. Objectes/ia_vars.rds")
 
-sink("4. Outputs/9.1 Output_text_xgb.txt")
-pdf("4. Outputs/9.2 Output_grafics_xgb.pdf", width = 10, height = 8)
+sink("4. Outputs/9. XGBoost/9.1 Output_text_xgb.txt")
+png("4. Outputs/9. XGBoost/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -47,7 +47,7 @@ vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
              "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST")
-vars_pers <- c("EDAT", "DESPL")
+vars_pers <- c("EDAT", "DESPL", "TREB_INTENS", "GENERE")
 
 predictors <- c(ia_vars,
                 vars_fa, vars_acad, vars_pers)
@@ -300,12 +300,14 @@ df_imp <- as_tibble(imp_xgb) %>% slice_head(n = 20)
 print(
   ggplot(df_imp, aes(x = reorder(Feature, Gain), y = Gain, fill = Gain)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(Gain, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importància de variables — XGBoost",
          subtitle = "Top 20 | Mesura: Gain (reducció d'impuresa per splits)",
          x = "", y = "Gain") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -342,12 +344,14 @@ print(
   ggplot(shap_top20, aes(x = reorder(variable, mean_abs_shap),
                          y = mean_abs_shap, fill = mean_abs_shap)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(mean_abs_shap, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importància SHAP — XGBoost",
          subtitle = "Top 20 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importància SHAP (mean |SHAP|)") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -467,8 +471,8 @@ models_llista <- list()
 
 fitxers <- c(
   Logit = "2. Dades/metriques_logit.rds",
-  `RF-A` = "4. Outputs/Metriques i models/metriques_rf_a.rds",
-  `RF-B` = "4. Outputs/Metriques i models/metriques_rf_b.rds"
+  `RF-A` = "2. Dades/2. Models/metriques_rf_a.rds",
+  `RF-B` = "2. Dades/2. Models/metriques_rf_b.rds"
 )
 
 for (nom in names(fitxers)) {
@@ -511,10 +515,8 @@ print(
           legend.text = element_text(size = 12))
 )
 
-dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
-saveRDS(metriques_xgb, "4. Outputs/Metriques i models/metriques_xgb.rds")
-saveRDS(xgb_model,     "4. Outputs/Metriques i models/model_xgb.rds")
-cat("-> metriques_xgb.rds i model_xgb.rds guardats\n")
+saveRDS(metriques_xgb, "2. Dades/2. Models/metriques_xgb.rds")
+saveRDS(xgb_model, "2. Dades/2. Models/model_xgb.rds")
 
 # --- Guardar probabilitats i bbdd ---
 predictors_ok <- predictors[predictors %in% names(dades_xgb)]

@@ -421,12 +421,14 @@ print(
   ggplot(imp_a %>% slice_head(n = 15),
          aes(x = reorder(variable, importancia), y = importancia, fill = importancia)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(importancia, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importancia variables — RF-A (factors EFA)",
          subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
          x = "", y = "Importancia (permutacio)") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -436,12 +438,14 @@ print(
   ggplot(imp_b %>% slice_head(n = 15),
          aes(x = reorder(variable, importancia), y = importancia, fill = importancia)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(importancia, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importancia variables — RF-B (Likert originals)",
          subtitle = "Top 15 | mesura: disminucio accuracy per permutacio",
          x = "", y = "Importancia (permutacio)") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -510,12 +514,14 @@ print(
          aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
              fill = mean_abs_shap)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(mean_abs_shap, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importancia SHAP — RF-A (factors EFA)",
          subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importancia SHAP") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -527,12 +533,14 @@ print(
          aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
              fill = mean_abs_shap)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(mean_abs_shap, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importancia SHAP — RF-B (Likert originals)",
          subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importancia SHAP") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -625,7 +633,7 @@ for (v in top5_a) {
     labs(title = sprintf("SHAP Dependence Plot RF-A — %s", v),
          subtitle = "Linia taronja = tendencia LOESS | y > 0 augmenta P(Regular)",
          x = v, y = "Valor SHAP") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -688,7 +696,6 @@ saveRDS(met_rfa_test, "2. Dades/2. Models/metriques_rf_a.rds")
 saveRDS(met_rfb_test, "2. Dades/2. Models/metriques_rf_b.rds")
 saveRDS(rf_a,¡ "2. Dades/2. Models/model_rf_a.rds")
 saveRDS(rf_b,¡ "2. Dades/2. Models /model_rf_b.rds")
-cat("-> metriques_rf_a/b.rds i model_rf_a/b.rds guardats\n")
 
 # --- Guardar probabilitats i bbdd encadenada ---
 vars_rfa_ok <- vars_rfa[vars_rfa %in% names(dades_rf)]

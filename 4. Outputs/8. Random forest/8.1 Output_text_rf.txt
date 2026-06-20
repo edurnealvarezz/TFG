@@ -289,6 +289,5 @@ Top 15 SHAP RF-B:
          6. TAULA COMPARATIVA FINAL   
 ======================================
 
--> metriques_rf_a/b.rds i model_rf_a/b.rds guardats
 Llindar aplicat per pred_rf_b: 0.6037 (PR, no 0.5)
 

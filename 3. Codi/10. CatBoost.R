@@ -25,17 +25,15 @@ if (!require("catboost", character.only = TRUE)) {
 }
 
 setwd("C:/Users/edurn/Downloads/TFG")
-
 load("2. Dades/9. Dades XGBoost.RData")
-
 source("3. Codi/Funcions models.R")
 
 motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
 ia_vars <- readRDS("2. Dades/ia_vars.rds")
 
-sink("4. Outputs/10.1 Output_text_catboost.txt")
-pdf("4. Outputs/10.2 Output_grafics_catboost.pdf", width = 10, height = 8)
+sink("4. Outputs/10. CatBoost/10.1 Output_text_catboost.txt")
+png("4. Outputs/10. CatBoost/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 
 #### ============================================================ ####
 ####                   0. PREPARACIÓ DE DADES                     ####
@@ -268,12 +266,14 @@ print(
          aes(x = reorder(variable, importancia),
              y = importancia, fill = importancia)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(importancia, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importancia de variables — CatBoost",
          subtitle = "Top 20 | Mesura: FeatureImportance (%)",
          x = "", y = "Importancia (%)") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -309,12 +309,14 @@ print(
          aes(x = reorder(variable, mean_abs_shap),
              y = mean_abs_shap, fill = mean_abs_shap)) +
     geom_col(alpha = 0.9) +
+    geom_text(aes(label = round(mean_abs_shap, 2)), hjust = -0.1, size = 3.5) +
     coord_flip() +
     scale_fill_gradient(low = "#A9DFBF", high = "#1E8449", guide = "none") +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
     labs(title = "Importancia SHAP — CatBoost",
          subtitle = "Top 20 | mean(|SHAP|) sobre conjunt test",
          x = "", y = "Importancia SHAP") +
-    theme_minimal(base_size = 13) +
+    theme_minimal(base_size = 12) +
     theme(axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
@@ -519,10 +521,8 @@ print(
 )
 
 
-dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
-saveRDS(metriques_cat,    "4. Outputs/Metriques i models/metriques_catboost.rds")
-saveRDS(catboost_model,   "4. Outputs/Metriques i models/model_catboost.rds")
-cat("-> metriques_catboost.rds i model_catboost.rds guardats\n")
+saveRDS(metriques_cat, "4. Outputs/2. Models/metriques_catboost.rds")
+saveRDS(catboost_model, "4. Outputs/2. Models/model_catboost.rds")
 
 # --- Guardar probabilitats i bbdd  ---
 predictors_ok_cat <- predictors[predictors %in% names(dades_cat)]
