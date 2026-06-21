@@ -1,6 +1,7 @@
 # ============================================================
 #  app.R — Predicció Absentisme Universitari (TFG FEE/UB)
-#  2 pestanyes: Alumnat nou (16 vars) | Alumnat antic (+ EFA)
+#  Tab 1: Alumnat nou  → KNN fuzzy P(Irregular) + LDA (u1)
+#  Tab 2: Alumnat antic → RF-A
 # ============================================================
 
 suppressPackageStartupMessages({
@@ -19,27 +20,17 @@ COL_REG <- "#27AE60"
 COL_IRR <- "#E74C3C"
 
 THRESH_RF <- 0.572
-K_VEINS   <- 11
 
 # ── Localitzar directori base del TFG ───────────────────────
-# Busca el directori que conté "2. Dades/fuzzy_clustering_model_complet.RData"
-# des de múltiples candidats: wd actual, pare del wd, o ruta absoluta
 find_tfg_dir <- function() {
-  target <- file.path("2. Dades", "fuzzy_clustering_model_complet.RData")
-  dirs <- c(
-    getwd(),
-    dirname(getwd()),
-    "C:/Users/Edurne/Downloads/TFG"
-  )
-  for (d in dirs) {
-    if (file.exists(file.path(d, target))) return(normalizePath(d))
-  }
+  target <- file.path("2. Dades", "2. Models", "fuzzy_clustering_model_complet.RData")
+  dirs <- c(getwd(), dirname(getwd()), "C:/Users/Edurne/Downloads/TFG")
+  for (d in dirs) if (file.exists(file.path(d, target))) return(normalizePath(d))
   getwd()
 }
-TFG_DIR      <- find_tfg_dir()
-PATH_RDATA   <- file.path(TFG_DIR, "2. Dades", "fuzzy_clustering_model_complet.RData")
-PATH_RF      <- file.path(TFG_DIR, "2. Dades", "model_rf_a.rds")
-PATH_MET_DIR <- file.path(TFG_DIR, "2. Dades")
+TFG_DIR    <- find_tfg_dir()
+PATH_RDATA <- file.path(TFG_DIR, "2. Dades", "2. Models", "fuzzy_clustering_model_complet.RData")
+PATH_RF    <- file.path(TFG_DIR, "2. Dades", "2. Models", "model_rf_a.rds")
 
 # ── Carregar RData principal ─────────────────────────────────
 env_m   <- new.env()
@@ -51,43 +42,16 @@ DATA_OK <- tryCatch({
 if (DATA_OK) { for (nm in ls(env_m)) assign(nm, get(nm, envir = env_m)) }
 rm(env_m)
 
-# ── Índexos X_train → dades_def ─────────────────────────────
-idx_global_train <- NULL
-if (DATA_OK && requireNamespace("caret", quietly = TRUE)) {
-  tryCatch({
-    df_tmp <- dades_def %>% transmute(
-      EDAT = as.numeric(EDAT), DESPL = as.numeric(DESPL),
-      N_ASSIG = as.numeric(N_ASSIG), NOTA_num = as.numeric(NOTA),
-      T_AVAL_num = as.integer(T_AVAL == "Continuada"),
-      CURS_1R = as.integer(CURS == "1r"),
-      GENERE_Home = as.integer(GENERE == "Home"),
-      DOBLE_GRAU_EST = as.integer(GRAU %in% c("Estadística","Doble Eco+Est",
-        "Doble ADE+Soc","Doble ADE+Mat","Doble ADE+Dret","Doble ADE+Qui")),
-      TREB_INTENS = as.integer(DEDIC %in% c("T.Parcial","T.Complet")),
-      IA_HABIT = as.integer(IA_HABIT), IA_COMPR = as.integer(IA_COMPR),
-      IA_REND = as.integer(IA_REND),   IA_PDFS = as.integer(IA_PDFS),
-      IA_SUBST = as.integer(IA_SUBST), IA_ATENC = as.integer(IA_ATENC),
-      IA_CONF = as.integer(IA_CONF),   GRUP_ASSIST = as.character(GRUP_ASSIST)
-    )
-    cc <- complete.cases(df_tmp[, vars_clust])
-    set.seed(1234)
-    idx_part <- caret::createDataPartition(df_tmp$GRUP_ASSIST[cc], p = 0.80, list = FALSE)
-    idx_global_train <- which(cc)[idx_part]
-  }, error = function(e) {
-    idx_global_train <<- seq_len(nrow(X_train))
-    message("Fallback idx: ", e$message)
-  })
-} else if (DATA_OK) {
-  idx_global_train <- seq_len(nrow(X_train))
-}
+# Llindars carregats del RData (amb fallback si el RData és antic)
+THRESH_LDA_U1  <- if (DATA_OK && exists("thresh_lda_u1")) thresh_lda_u1 else 0.368
+THRESH_KNN_IRR <- if (DATA_OK && exists("knn_model")) (1 - knn_model$thresh_pr) * 100 else 43.5
 
-# ── Model RF (opcional) ──────────────────────────────────────
+# ── Model RF-A (opcional) ────────────────────────────────────
 rf_model <- if (requireNamespace("ranger", quietly = TRUE) && file.exists(PATH_RF)) {
   tryCatch(readRDS(PATH_RF), error = function(e) NULL)
 } else NULL
 
-# ── Estructura factors EFA (EFA definitiva) ──────────────────
-# Ítems i pesos (λ ≥ 0.30 per al factor primari, EFA oblimin final)
+# ── Estructura factors EFA ────────────────────────────────────
 efa_factors <- list(
   MOT_DESMOTIVACIO  = c(M_PASSIU = 0.867, M_TEOR = 0.854, M_AVORR = 0.702,
                          M_PROF   = 0.561, M_AMICS = 0.485),
@@ -115,49 +79,39 @@ efa_labels <- c(
   IA_EINA_ESTUDI    = "IA com a eina d'estudi"
 )
 
-# Direcció de risc (signe rho Spearman amb GRUP_ASSIST = Regular)
-# -1 = factor de risc (alt → irregular)  |  +1 = protector o ns
 efa_risc_dir <- c(
-  MOT_DESMOTIVACIO  = -1,
-  MOT_AUTOGESTIO    = -1,
-  MOT_FORCA_MAJOR   = +1,
-  EST_QUALITAT_DOC  = +1,
-  EST_AVALUACIO_AC  = +1,
-  EST_TEMPS_CLASSE  = +1,
-  EST_GRUPS_REDUITS = +1,
-  IA_EINA_ESTUDI    = -1
+  MOT_DESMOTIVACIO  = -1, MOT_AUTOGESTIO    = -1, MOT_FORCA_MAJOR   = +1,
+  EST_QUALITAT_DOC  = +1, EST_AVALUACIO_AC  = +1, EST_TEMPS_CLASSE  = +1,
+  EST_GRUPS_REDUITS = +1, IA_EINA_ESTUDI    = -1
 )
 
-items_mot  <- unique(unlist(lapply(
+items_mot <- unique(unlist(lapply(
   efa_factors[c("MOT_DESMOTIVACIO","MOT_AUTOGESTIO","MOT_FORCA_MAJOR")], names)))
-items_est  <- unique(unlist(lapply(
+items_est <- unique(unlist(lapply(
   efa_factors[c("EST_QUALITAT_DOC","EST_AVALUACIO_AC","EST_TEMPS_CLASSE","EST_GRUPS_REDUITS")], names)))
 
-vars_nou   <- if (DATA_OK) vars_clust else character(0)
-# IA items ja estan a vars_clust → no cal duplicar-los a vars_antic
+vars_nou         <- if (DATA_OK) vars_clust else character(0)
 vars_antic_extra <- if (DATA_OK) c(items_mot, items_est) else character(0)
 vars_antic       <- if (DATA_OK) c(vars_clust, vars_antic_extra) else character(0)
 
-# Columnes RAW que l'usuari omple a la plantilla Excel (secció blava)
 vars_nou_raw <- c("EDAT","DESPL","N_ASSIG","NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC",
                   "IA_HABIT","IA_COMPR","IA_REND","IA_PDFS","IA_SUBST","IA_ATENC","IA_CONF")
 grau_doble_vals <- c("Estadística","Doble Eco+Est","Doble ADE+Soc",
                      "Doble ADE+Mat","Doble ADE+Dret","Doble ADE+Qui")
 
-# Transforma les columnes RAW de la plantilla a les variables model
+# Transforma columnes RAW de la plantilla a les variables del model
 preparar_df <- function(df) {
-  if (all(c("NOTA_num","T_AVAL_num","CURS_1R","TREB_INTENS") %in% names(df))) return(df)
-  df$NOTA_num       <- suppressWarnings(as.numeric(df$NOTA))
-  df$T_AVAL_num     <- as.integer(!is.na(df$T_AVAL) & df$T_AVAL == "Continuada")
-  df$CURS_1R        <- as.integer(!is.na(df$CURS)   & df$CURS   == "1r")
-  df$GENERE_Home    <- as.integer(!is.na(df$GENERE) & df$GENERE == "Home")
-  df$DOBLE_GRAU_EST <- as.integer(!is.na(df$GRAU)   & df$GRAU   %in% grau_doble_vals)
-  df$TREB_INTENS    <- as.integer(!is.na(df$DEDIC)  & df$DEDIC  %in% c("T.Parcial","T.Complet"))
+  if (all(c("NOTA_num","T_AVAL_num","CURS_1R","TREB_INTENS_num") %in% names(df))) return(df)
+  df$NOTA_num        <- suppressWarnings(as.numeric(df$NOTA))
+  df$T_AVAL_num      <- as.integer(!is.na(df$T_AVAL) & df$T_AVAL == "Continuada")
+  df$CURS_1R         <- as.integer(!is.na(df$CURS)   & df$CURS   == "1r")
+  df$GENERE_Home     <- as.integer(!is.na(df$GENERE) & df$GENERE == "Home")
+  df$DOBLE_GRAU_EST  <- as.integer(!is.na(df$GRAU)   & df$GRAU   %in% grau_doble_vals)
+  df$TREB_INTENS_num <- as.integer(!is.na(df$DEDIC)  & df$DEDIC  %in% c("T.Parcial","T.Complet"))
   df
 }
 
-# ── Funció: calcular scores EFA ponderats ────────────────────
-# Mitjana ponderada pels pesos (λ) dels ítems disponibles
+# ── Càlcul scores EFA ponderats ──────────────────────────────
 calcular_scores_efa <- function(fila) {
   sapply(names(efa_factors), function(fn) {
     items <- efa_factors[[fn]]
@@ -169,7 +123,7 @@ calcular_scores_efa <- function(fila) {
   })
 }
 
-# ── Funcions predicció ───────────────────────────────────────
+# ── Funcions de predicció ────────────────────────────────────
 pred_rf <- function(av) {
   if (is.null(rf_model)) return(NULL)
   x_df <- as.data.frame(matrix(av[vars_clust], nrow = 1,
@@ -189,37 +143,49 @@ pred_knn <- function(av) {
   tryCatch(predict_nou_alumne(av), error = function(e) NULL)
 }
 
-# ── Helper: processar batch CSV ──────────────────────────────
+# ── Processar batch CSV ──────────────────────────────────────
 processar_batch <- function(df, mode = c("nou","antic")) {
   mode <- match.arg(mode)
   n    <- nrow(df)
   withProgress(message = "Processant alumnes…", value = 0, {
     rows <- lapply(seq_len(n), function(i) {
       incProgress(1 / n)
-      av    <- setNames(as.numeric(unlist(df[i, vars_clust])), vars_clust)
-      rf_r  <- tryCatch(pred_rf(av),  error = function(e) NULL)
-      knn_r <- tryCatch(pred_knn(av), error = function(e) NULL)
+      av <- setNames(as.numeric(unlist(df[i, vars_clust])), vars_clust)
 
-      base <- data.frame(
-        Alumne    = if ("id" %in% names(df)) df[i, "id"] else i,
-        Prediccio = if (!is.null(rf_r)) rf_r$pred
-                    else if (!is.null(knn_r)) knn_r$prediccio
-                    else NA_character_,
-        Prob_pct  = if (!is.null(rf_r)) round(rf_r$prob * 100, 1)
-                    else if (!is.null(knn_r)) round(knn_r$prob_regular * 100, 1)
-                    else NA_real_,
-        u1_pct    = if (!is.null(knn_r)) round(knn_r$u1 * 100, 1) else NA_real_,
-        u2_pct    = if (!is.null(knn_r)) round(knn_r$u2 * 100, 1) else NA_real_,
-        Cluster   = if (!is.null(knn_r)) knn_r$cluster_dominant else NA_integer_,
-        stringsAsFactors = FALSE
-      )
+      if (mode == "nou") {
+        # KNN fuzzy → P(Irregular)  |  LDA sobre u1 → classificació binària
+        knn_r    <- tryCatch(pred_knn(av), error = function(e) NULL)
+        u1_val   <- if (!is.null(knn_r)) knn_r$u1 else NA_real_
+        lda_pred <- if (!is.null(knn_r))
+          ifelse(u1_val >= THRESH_LDA_U1, "Regular", "Irregular")
+        else NA_character_
 
-      if (mode == "antic") {
+        data.frame(
+          Alumne          = if ("id" %in% names(df)) df[i, "id"] else i,
+          Prediccio       = lda_pred,
+          P_Irregular_pct = if (!is.null(knn_r))
+            round((1 - knn_r$prob_regular) * 100, 1) else NA_real_,
+          u1_pct  = if (!is.null(knn_r)) round(u1_val * 100, 1) else NA_real_,
+          u2_pct  = if (!is.null(knn_r)) round(knn_r$u2 * 100, 1) else NA_real_,
+          Cluster = if (!is.null(knn_r)) knn_r$cluster_dominant else NA_integer_,
+          stringsAsFactors = FALSE
+        )
+
+      } else {
+        # RF-A → predicció  |  + scores EFA
+        rf_r     <- tryCatch(pred_rf(av), error = function(e) NULL)
         fila_raw <- setNames(as.numeric(unlist(df[i, ])), names(df))
         scores   <- calcular_scores_efa(fila_raw)
+
+        base <- data.frame(
+          Alumne        = if ("id" %in% names(df)) df[i, "id"] else i,
+          Prediccio     = if (!is.null(rf_r)) rf_r$pred else NA_character_,
+          P_Regular_pct = if (!is.null(rf_r)) round(rf_r$prob * 100, 1) else NA_real_,
+          stringsAsFactors = FALSE
+        )
         for (nm in names(scores)) base[[nm]] <- scores[[nm]]
+        base
       }
-      base
     })
   })
   do.call(rbind, rows)
@@ -243,7 +209,8 @@ ui <- navbarPage(
                   buttonLabel = "Triar fitxer…",
                   placeholder = "Cap fitxer seleccionat"),
         tags$p(tags$em(
-          "CSV exportat de la plantilla Excel (secció blava). Les transformacions es calculen automàticament."
+          "Dades pre-curs (sense enquesta). El model KNN fuzzy calcula P(Irregular)",
+          " i la classificació es fa via LDA sobre el grau de pertinença al Cluster 1 (u1)."
         )),
         tags$details(style = "margin-bottom: 10px;",
           tags$summary("Columnes requerides (16)"),
@@ -279,7 +246,8 @@ ui <- navbarPage(
                   buttonLabel = "Triar fitxer…",
                   placeholder = "Cap fitxer seleccionat"),
         tags$p(tags$em(
-          "CSV exportat de la plantilla Excel (secció blava) incloent ítems de motius (M_*) i estratègies (E_*)."
+          "Dades pre-curs + enquesta de motius (M_*) i estratègies (E_*).",
+          " La predicció s'obté del model RF-A."
         )),
         tags$details(style = "margin-bottom: 10px;",
           tags$summary("Columnes requerides"),
@@ -315,21 +283,16 @@ ui <- navbarPage(
   )
 )
 
-# ── Lector CSV robust (gestiona ; vs , i files de capçalera) ─
+# ── Lector CSV robust ────────────────────────────────────────
 llegir_csv_plantilla <- function(filepath) {
   raw <- tryCatch(readLines(filepath, n = 20, warn = FALSE),
                   error = function(e) return(NULL))
   if (is.null(raw)) return(NULL)
-
-  # Detectar separador: compte de ; vs ,
   n_semi  <- sum(nchar(raw) - nchar(gsub(";", "", raw, fixed = TRUE)))
   n_comma <- sum(nchar(raw) - nchar(gsub(",", "", raw, fixed = TRUE)))
   sep <- if (n_semi > n_comma) ";" else ","
-
-  # Trobar la fila que conté "EDAT" (la fila real de capçaleres)
   header_idx <- which(sapply(raw, function(l) grepl("\\bEDAT\\b", l)))[1]
   skip_n <- if (is.na(header_idx) || header_idx <= 1) 0 else header_idx - 1
-
   tryCatch(
     read.csv(filepath, sep = sep, skip = skip_n,
              stringsAsFactors = FALSE, check.names = TRUE),
@@ -373,16 +336,21 @@ server <- function(input, output, session) {
 
   output$nou_resum <- renderUI({
     df <- res_nou(); if (is.null(df)) return(NULL)
-    n <- nrow(df); n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
+    n <- nrow(df)
+    n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
     tags$div(class = "alert alert-info", style = "margin-top:10px;",
-      tags$strong(sprintf("%d alumnes analitzats | %d en risc irregular (%.1f%%)",
+      tags$strong(sprintf(
+        "%d alumnes analitzats | %d en risc irregular (%.1f%%) — classificació LDA (u1)",
         n, n_irr, n_irr / n * 100)))
   })
 
   output$nou_taula <- DT::renderDataTable({
     df <- req(res_nou())
-    cols <- intersect(c("Alumne","Prediccio","Prob_pct","u1_pct","u2_pct","Cluster"), names(df))
-    etq  <- c("Alumne","Predicció","P(Regular)%","u1 Cl.1 %","u2 Cl.2 %","Cluster")[seq_along(cols)]
+    cols <- intersect(
+      c("Alumne","Prediccio","P_Irregular_pct","u1_pct","u2_pct","Cluster"),
+      names(df))
+    etq <- c("Alumne","Predicció (LDA)","P(Irregular)%",
+             "u1 Cluster 1 %","u2 Cluster 2 %","Cluster dom.")[seq_along(cols)]
     DT::datatable(df[, cols], rownames = FALSE, colnames = etq,
                   options = list(pageLength = 15, scrollX = TRUE)) |>
       DT::formatStyle("Prediccio",
@@ -392,18 +360,19 @@ server <- function(input, output, session) {
 
   output$nou_grafic <- renderPlot({
     df <- req(res_nou())
-    ggplot(df, aes(x = Prob_pct, fill = Prediccio)) +
+    ggplot(df, aes(x = P_Irregular_pct, fill = Prediccio)) +
       geom_histogram(bins = 20, color = "white", alpha = 0.85) +
-      geom_vline(xintercept = THRESH_RF * 100, linetype = "dashed",
+      geom_vline(xintercept = THRESH_KNN_IRR, linetype = "dashed",
                  color = "grey30", linewidth = 0.9) +
-      annotate("text", x = THRESH_RF * 100 + 1, y = Inf,
-               label = sprintf("Llindar %.0f%%", THRESH_RF * 100),
+      annotate("text", x = THRESH_KNN_IRR + 1, y = Inf,
+               label = sprintf("Llindar KNN %.0f%%", THRESH_KNN_IRR),
                vjust = 2, hjust = 0, color = "grey30", size = 3.5) +
       scale_fill_manual(
         values = c("Regular" = COL_REG, "Irregular" = COL_IRR),
         na.value = "grey70", name = NULL) +
-      labs(title = "Distribució de probabilitats — Alumnat nou",
-           x = "P(Regular) %", y = "Alumnes") +
+      labs(title = "Distribució de P(Irregular) — Alumnat nou (KNN fuzzy)",
+           subtitle = sprintf("Classificació per LDA (tall u1 = %.3f)", THRESH_LDA_U1),
+           x = "P(Irregular) %", y = "Alumnes") +
       theme_minimal(base_size = 12) + theme(legend.position = "top")
   })
 
@@ -455,18 +424,20 @@ server <- function(input, output, session) {
 
   output$antic_resum <- renderUI({
     df <- res_antic(); if (is.null(df)) return(NULL)
-    n <- nrow(df); n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
+    n <- nrow(df)
+    n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
     tags$div(class = "alert alert-info", style = "margin-top:10px;",
-      tags$strong(sprintf("%d alumnes analitzats | %d en risc irregular (%.1f%%)",
+      tags$strong(sprintf(
+        "%d alumnes analitzats | %d en risc irregular (%.1f%%) — RF-A",
         n, n_irr, n_irr / n * 100)))
   })
 
   output$antic_taula <- DT::renderDataTable({
     df <- req(res_antic())
     efa_cols  <- intersect(names(efa_factors), names(df))
-    base_cols <- intersect(c("Alumne","Prediccio","Prob_pct","u1_pct","u2_pct"), names(df))
+    base_cols <- intersect(c("Alumne","Prediccio","P_Regular_pct"), names(df))
     cols_show <- c(base_cols, efa_cols)
-    col_noms  <- c("Alumne","Predicció","P(Regular)%","u1 Cl.1%","u2 Cl.2%",
+    col_noms  <- c("Alumne","Predicció (RF-A)","P(Regular)%",
                    efa_labels[efa_cols])[seq_along(cols_show)]
     DT::datatable(df[, cols_show], rownames = FALSE, colnames = col_noms,
                   options = list(pageLength = 15, scrollX = TRUE)) |>
@@ -492,11 +463,7 @@ server <- function(input, output, session) {
       filter(!is.na(score)) |>
       group_by(factor, Prediccio) |>
       summarise(m = mean(score, na.rm = TRUE), .groups = "drop") |>
-      mutate(
-        etiqueta = factor(efa_labels[factor],
-                          levels = rev(efa_labels[efa_cols])),
-        color_bar = ifelse(efa_risc_dir[factor] == -1, COL_IRR, COL_C1)
-      )
+      mutate(etiqueta = factor(efa_labels[factor], levels = rev(efa_labels[efa_cols])))
 
     ggplot(df_long, aes(x = etiqueta, y = m, fill = Prediccio)) +
       geom_col(position = position_dodge(0.65), width = 0.55, alpha = 0.85) +

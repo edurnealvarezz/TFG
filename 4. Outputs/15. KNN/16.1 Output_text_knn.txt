@@ -1,0 +1,122 @@
+================= 0. PREPARACIO =================
+
+Obs completes per KNN: 342 / 342
+
+Train: 275 obs | Test: 67 obs
+Train Y: Regular=156 (56.7%) | Irregular=119 (43.3%)
+Train Cluster 1: 128 obs | Cluster 2: 147 obs
+
+============ 1. CV 5-FOLD — SELECCIO DE k =================
+
+  k AUC_CV SD_AUC
+  3 0.7107 0.0676
+  5 0.7118 0.0552
+  7 0.7297 0.0551
+  9 0.7351 0.0565
+ 11 0.7396 0.0626
+
+>>> k optim: k=11  (AUC-CV = 0.7396 +/- 0.0626)
+
+============ 2. OOF — CALIBRACIO PLATT + LLINDAR PR =================
+
+AUC OOF (raw): 0.7306
+AUC OOF (calibrat): 0.7306
+Llindar PR (OOF calibrat, MIN_RECALL=0.60): 0.565
+  Precision OOF: 0.7351 | Recall OOF: 0.7115 | AUPRC: 0.7647
+
+
+ ============ 3. METRIQUES TEST (llindar PR)=============
+
+
+--- Metriques: KNN fuzzy train OOF (k=11) ---
+n = 275 | Llindar PR (OOF) = 0.565
+AUC (CV 5-fold):  0.7396 +/- 0.0626
+AUC:  0.7306
+Accuracy: 0.6909
+Precision (PPV):  0.7351  <- metrica prioritaria
+Recall (Sens): 0.7115
+Especificitat: 0.6639
+F1: 0.7231
+Balanced Acc:  0.6877
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           79         40
+  Regular(1)             45        111
+
+--- Metriques: KNN fuzzy test (k=11) ---
+n = 67 | Llindar PR (OOF) = 0.565
+AUC (CV 5-fold):  0.7396 +/- 0.0626
+AUC:  0.6833
+Accuracy: 0.6119
+Precision (PPV):  0.6579  <- metrica prioritaria
+Recall (Sens): 0.6579
+Especificitat: 0.5517
+F1: 0.6579
+Balanced Acc:  0.6048
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           16         13
+  Regular(1)             13         25
+================= 4. GUARDAR =================
+
+--- 7.1 Funcio predict_nou_alumne ---
+
+--- 7.2 Exemple: alumne fictici ---
+
+Alumne fictici (mitjanes del train):
+           EDAT           DESPL         N_ASSIG        NOTA_num      T_AVAL_num 
+         22.251          49.542           9.873           2.516           0.938 
+        CURS_1R     GENERE_Home  DOBLE_GRAU_EST TREB_INTENS_num        IA_HABIT 
+          0.218           0.462           0.320           0.389           4.662 
+       IA_COMPR         IA_REND         IA_PDFS        IA_SUBST        IA_ATENC 
+          5.080           4.149           4.636           2.836           2.556 
+        IA_CONF 
+          2.295 
+
+Resultat de predict_nou_alumne():
+  u1 (Cluster 1):   0.3775
+  u2 (Cluster 2):   0.6225
+  Cluster dominant: 2
+  P(Regular) cal.:  0.5315
+  Prediccio:        Irregular
+  Veins cluster 1 (idx train): 12, 35, 212, 228, 4, 25, 158, 215, 262, 254, 205
+  Veins cluster 2 (idx train): 44, 167, 96, 64, 155, 260, 82, 84, 18, 261, 208
+
+================= 7b. BASELINE LDA SOBRE u1 =================
+
+Avaluem si el grau de pertinenca fuzzy u1 (Cluster 1, alta assistencia)
+es suficient com a classificador lineal, sense necessitat del KNN.
+
+--- 7b.1 Grafic densitat u1 per GRUP_ASSIST ---
+
+--- 7b.2 LDA 1D: ajust sobre train ---
+
+Punt de tall LDA: u1 = 0.3681
+Mitjana u1 Irregulars (train): 0.4018
+Mitjana u1 Regulars   (train): 0.5241
+
+--- 7b.3 Prediccions sobre test ---
+
+--- Metriques LDA-u1 (test) ---
+Threshold u1: 0.3681
+AUC:          0.5844
+Accuracy:     0.6119
+Precision:    0.6579
+Recall:       0.6579
+F1:           0.6579
+Balanced Acc: 0.6048
+
+Matriu de confusio:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           16         13
+  Regular(1)             13         25
+
+--- 7b.4 Grafic densitat amb tall LDA marcat ---
+
+null device 
+          1 

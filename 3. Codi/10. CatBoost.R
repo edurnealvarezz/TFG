@@ -54,7 +54,7 @@ ia_vars <- c("IA_SUBST_num", "IA_ATENC_num", "IA_CONF_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
              "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
-vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST" )
+vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST", "TREB_INTENS")
 vars_pers <- c("EDAT", "DESPL")
 
 predictors <- c(ia_vars, vars_fa, vars_acad, vars_pers)
@@ -79,10 +79,10 @@ Y_train <- dades_train_cat$Y
 Y_test  <- dades_test_cat$Y
 
 X_train_df <- as.data.frame(apply(dades_train_cat[, predictors], 2, as.numeric))
-X_test_df  <- as.data.frame(apply(dades_test_cat[, predictors],  2, as.numeric))
+X_test_df <- as.data.frame(apply(dades_test_cat[, predictors],  2, as.numeric))
 
 train_pool_cat <- catboost.load_pool(data = X_train_df, label = Y_train)
-test_pool_cat  <- catboost.load_pool(data = X_test_df,  label = Y_test)
+test_pool_cat <- catboost.load_pool(data = X_test_df,  label = Y_test)
 
 cat(sprintf("Particio: Train = %d | Test = %d\n", length(Y_train), length(Y_test)))
 cat(sprintf("  Train — Regular: %.1f%% | Irregular: %.1f%%\n",
@@ -119,20 +119,20 @@ folds_grid   <- caret::createFolds(Y_train, k = 5, list = TRUE)
 
 for (i in seq_len(nrow(grid))) {
   params_i <- list(
-    loss_function   = "Logloss",
-    eval_metric     = "AUC",
-    iterations      = 500,
-    learning_rate   = grid$learning_rate[i],
-    depth           = grid$depth[i],
-    l2_leaf_reg     = grid$l2_leaf_reg[i],
+    loss_function = "Logloss",
+    eval_metric = "AUC",
+    iterations = 500,
+    learning_rate = grid$learning_rate[i],
+    depth = grid$depth[i],
+    l2_leaf_reg = grid$l2_leaf_reg[i],
     random_strength = grid$random_strength[i],
-    random_seed     = 1234,
-    logging_level   = "Silent"
+    random_seed = 1234,
+    logging_level = "Silent"
   )
 
   aucs_folds <- numeric(5)
   for (fi in seq_along(folds_grid)) {
-    vi   <- folds_grid[[fi]]
+    vi <- folds_grid[[fi]]
     p_tr <- catboost.load_pool(as.data.frame(X_train_df[-vi, ]), Y_train[-vi])
     p_va <- catboost.load_pool(as.data.frame(X_train_df[vi,  ]), Y_train[vi])
     m_fi <- tryCatch(
@@ -152,12 +152,12 @@ for (i in seq_len(nrow(grid))) {
   auc_i <- mean(aucs_folds, na.rm = TRUE)
 
   grid_results[[i]] <- data.frame(
-    depth           = grid$depth[i],
-    learning_rate   = grid$learning_rate[i],
-    l2_leaf_reg     = grid$l2_leaf_reg[i],
+    depth = grid$depth[i],
+    learning_rate = grid$learning_rate[i],
+    l2_leaf_reg = grid$l2_leaf_reg[i],
     random_strength = grid$random_strength[i],
-    cv_auc          = round(auc_i, 4),
-    best_iter       = 500L,
+    cv_auc = round(auc_i, 4),
+    best_iter = 500L,
     stringsAsFactors = FALSE
   )
 
@@ -186,17 +186,17 @@ cat(sprintf("  CV AUC = %.4f | best_iter = %d\n\n", best_row$cv_auc, best_row$be
 cat(" =============== MODEL FINAL CatBoost ================ \n")
 
 best_params_cat <- list(
-  loss_function   = "Logloss",
-  eval_metric     = "AUC",
-  iterations      = 1000, # màxim; early stopping ho aturarà abans
-  od_type         = "Iter", # early stopping per iteracions sense millora
-  od_wait         = 50, # para si 50 iteracions sense millorar AUC
-  learning_rate   = best_row$learning_rate,
-  depth           = best_row$depth,
-  l2_leaf_reg     = best_row$l2_leaf_reg,
+  loss_function = "Logloss",
+  eval_metric = "AUC",
+  iterations = 1000, # màxim; early stopping ho aturarà abans
+  od_type = "Iter", # early stopping per iteracions sense millora
+  od_wait = 50, # para si 50 iteracions sense millorar AUC
+  learning_rate = best_row$learning_rate,
+  depth = best_row$depth,
+  l2_leaf_reg = best_row$l2_leaf_reg,
   random_strength = best_row$random_strength,
-  random_seed     = 1234,
-  logging_level   = "Silent"
+  random_seed = 1234,
+  logging_level = "Silent"
 )
 
 set.seed(1234)
@@ -208,7 +208,7 @@ catboost_model <- catboost.train(
 cat(sprintf("Iteracions del model final: %d\n\n", best_row$best_iter))
 
 # Prediccions sobre train i test
-prob_test_raw  <- catboost.predict(catboost_model, test_pool_cat,  prediction_type = "Probability")
+prob_test_raw <- catboost.predict(catboost_model, test_pool_cat,  prediction_type = "Probability")
 prob_train_raw <- catboost.predict(catboost_model, train_pool_cat, prediction_type = "Probability")
 
 prob_test_cat  <- extreure_prob_cat(prob_test_raw)
@@ -216,7 +216,7 @@ prob_train_cat <- extreure_prob_cat(prob_train_raw)
 
 roc_test_cat  <- pROC::roc(Y_test,  prob_test_cat,  quiet = TRUE)
 roc_train_cat <- pROC::roc(Y_train, prob_train_cat, quiet = TRUE)
-auc_test_cat  <- as.numeric(pROC::auc(roc_test_cat))
+auc_test_cat <- as.numeric(pROC::auc(roc_test_cat))
 auc_train_cat <- as.numeric(pROC::auc(roc_train_cat))
 cat(sprintf("AUC train (in-sample): %.4f | AUC test: %.4f\n\n", auc_train_cat, auc_test_cat))
 
@@ -249,7 +249,8 @@ cat(" ============ IMPORTANCIA DE VARIABLES ============ \n")
 imp_cat <- catboost.get_feature_importance(
   model = catboost_model,
   pool = train_pool_cat,
-  type = "FeatureImportance"
+  type = "FeatureImportance",
+  plot = FALSE
 )
 
 imp_df <- tibble(
@@ -288,7 +289,8 @@ cat(" =============== SHAP VALUES =============== \n")
 shap_raw <- catboost.get_feature_importance(
   model = catboost_model,
   pool = test_pool_cat,
-  type = "ShapValues"
+  type = "ShapValues",
+  plot = FALSE
 )
 # ShapValues: matriu nrow=n_obs, ncol=n_features + 1 (última col = bias)
 shap_df <- as.data.frame(shap_raw[, -ncol(shap_raw)])
@@ -395,15 +397,15 @@ for (fi in seq_along(folds_cat_oof)) {
     as.data.frame(X_train_df[vi, ]),  Y_train[vi])
   
   params_oof <- best_params_cat
-  params_oof$iterations    <- 500        # màxim permès
-  params_oof$od_type       <- "Iter"     # early stopping per iteracions sense millora
-  params_oof$od_wait       <- 20         # para si 20 iter sense millorar AUC val
-  params_oof$eval_metric   <- "AUC"
+  params_oof$iterations <- 500 # max permes
+  params_oof$od_type <- "Iter" # early stopping per iteracions sense millora
+  params_oof$od_wait <- 20 # para si 20 iter sense millorar AUC validacio
+  params_oof$eval_metric <- "AUC"
   
   m_f <- catboost.train(
     learn_pool = pool_tr_f,
-    test_pool  = pool_va_f,             # ← eval set del fold
-    params     = params_oof
+    test_pool = pool_va_f,       
+    params = params_oof
   )
   
   oof_probs_cat[vi] <- extreure_prob_cat(
@@ -455,15 +457,40 @@ mostrar_metriques_cat(metriques_cat_train)
 # Taula resum overfitting
 cat("\n--- Resum overfitting: train vs test ---\n\n")
 df_ov_cat <- data.frame(
-  Conjunt      = c("Train", "Test"),
-  AUC          = c(metriques_cat_train$AUC,          metriques_cat$AUC),
-  Precision    = c(metriques_cat_train$precision,     metriques_cat$precision),
-  Recall       = c(metriques_cat_train$recall,        metriques_cat$recall),
-  F1           = c(metriques_cat_train$F1,            metriques_cat$F1),
+  Conjunt = c("Train", "Test"),
+  AUC = c(metriques_cat_train$AUC, metriques_cat$AUC),
+  Precision = c(metriques_cat_train$precision, metriques_cat$precision),
+  Recall = c(metriques_cat_train$recall, metriques_cat$recall),
+  F1 = c(metriques_cat_train$F1, metriques_cat$F1),
   Balanced_Acc = c(metriques_cat_train$balanced_accuracy, metriques_cat$balanced_accuracy)
 )
 print(df_ov_cat, row.names = FALSE)
 cat("\n")
+
+metriques_noms_ov <- c("AUC", "Precision", "Recall", "F1", "Balanced_Acc")
+df_ov_long <- df_ov_cat %>%
+  tidyr::pivot_longer(cols = all_of(metriques_noms_ov),
+                      names_to = "Metrica", values_to = "Valor") %>%
+  mutate(Metrica = factor(Metrica, levels = metriques_noms_ov))
+
+print(
+  ggplot(df_ov_long, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+    geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+    geom_text(aes(label = round(Valor, 2)),
+              position = position_dodge(width = 0.65),
+              vjust = -0.4, size = 3.5, fontface = "bold") +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = c("Train" = "#4A90B8", "Test" = "#E07B54")) +
+    scale_y_continuous(limits = c(0, 1.05)) +
+    labs(title = "CatBoost — Train vs Test",
+         subtitle = sprintf("Llindar: %.4f | MIN_RECALL >= %.2f", thresh_final, MIN_RECALL),
+         x = "", y = "Valor", fill = "Conjunt") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
 
 #### ============================================================ ####
 ####         6. COMPARACIÓ GLOBAL DE MODELS                       ####
@@ -521,8 +548,8 @@ print(
 )
 
 
-saveRDS(metriques_cat, "4. Outputs/2. Models/metriques_catboost.rds")
-saveRDS(catboost_model, "4. Outputs/2. Models/model_catboost.rds")
+saveRDS(metriques_cat, "2. Dades/2. Models/metriques_catboost.rds")
+saveRDS(catboost_model, "2. Dades/2. Models/model_catboost.rds")
 
 # --- Guardar probabilitats i bbdd  ---
 predictors_ok_cat <- predictors[predictors %in% names(dades_cat)]

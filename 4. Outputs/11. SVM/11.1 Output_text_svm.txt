@@ -1,0 +1,195 @@
+ =============== 0. PREPARACIÓ DE DADES ===============
+Observacions totals: 342 | Predictors originals: 18 | Columnes codificades: 18
+Particio: Train = 274 | Test = 68
+ Train — Regular: 55.8% | Irregular: 44.2%
+ Test  — Regular: 60.3% | Irregular: 39.7%
+
+ ============= 1. ESCALAT DE VARIABLES ============= 
+IMPORTANT: mu i sd calculats EXCLUSIVAMENT sobre train.
+Test s'escala amb els mateixos parametres (evitar leakage).
+
+Variables amb sd=0 (substituida per 1): 0
+Rang X_train_sc: [-5.847, 6.689]
+
+ =================== 2. GRID SEARCH MANUAL (5-fold CV, AUC) =================== 
+  cost=0.100 | gamma=0.0010 | AUC_CV=0.7681 (SD=0.0677)
+  cost=1.000 | gamma=0.0010 | AUC_CV=0.7662 (SD=0.0707)
+  cost=5.000 | gamma=0.0010 | AUC_CV=0.7752 (SD=0.0703)
+  cost=10.000 | gamma=0.0010 | AUC_CV=0.7754 (SD=0.0605)
+  cost=50.000 | gamma=0.0010 | AUC_CV=0.7775 (SD=0.0513)
+  cost=0.100 | gamma=0.0100 | AUC_CV=0.7755 (SD=0.0718)
+  cost=1.000 | gamma=0.0100 | AUC_CV=0.7798 (SD=0.0624)
+  cost=5.000 | gamma=0.0100 | AUC_CV=0.7815 (SD=0.0638)
+  cost=10.000 | gamma=0.0100 | AUC_CV=0.7723 (SD=0.0690)
+  cost=50.000 | gamma=0.0100 | AUC_CV=0.7464 (SD=0.0949)
+  cost=0.100 | gamma=0.1000 | AUC_CV=0.7717 (SD=0.0750)
+  cost=1.000 | gamma=0.1000 | AUC_CV=0.7787 (SD=0.0859)
+  cost=5.000 | gamma=0.1000 | AUC_CV=0.7407 (SD=0.0976)
+  cost=10.000 | gamma=0.1000 | AUC_CV=0.7396 (SD=0.0928)
+  cost=50.000 | gamma=0.1000 | AUC_CV=0.7377 (SD=0.0913)
+  cost=0.100 | gamma=0.5000 | AUC_CV=0.7325 (SD=0.0917)
+  cost=1.000 | gamma=0.5000 | AUC_CV=0.7402 (SD=0.0860)
+  cost=5.000 | gamma=0.5000 | AUC_CV=0.7398 (SD=0.0856)
+  cost=10.000 | gamma=0.5000 | AUC_CV=0.7398 (SD=0.0856)
+  cost=50.000 | gamma=0.5000 | AUC_CV=0.7398 (SD=0.0856)
+  cost=0.100 | gamma=1.0000 | AUC_CV=0.6800 (SD=0.0843)
+  cost=1.000 | gamma=1.0000 | AUC_CV=0.6809 (SD=0.0839)
+  cost=5.000 | gamma=1.0000 | AUC_CV=0.6817 (SD=0.0842)
+  cost=10.000 | gamma=1.0000 | AUC_CV=0.6817 (SD=0.0842)
+  cost=50.000 | gamma=1.0000 | AUC_CV=0.6817 (SD=0.0842)
+
+Millors hiperparametres: cost = 5.000 | gamma = 0.0100
+AUC CV (5-fold, millor combinacio): 0.7815
+
+Grid complet (ordenat per AUC CV):
+ cost gamma AUC_CV_mean AUC_CV_sd
+  5.0 0.010      0.7815    0.0638
+  1.0 0.010      0.7798    0.0624
+  1.0 0.100      0.7787    0.0859
+ 50.0 0.001      0.7775    0.0513
+  0.1 0.010      0.7755    0.0718
+ 10.0 0.001      0.7754    0.0605
+  5.0 0.001      0.7752    0.0703
+ 10.0 0.010      0.7723    0.0690
+  0.1 0.100      0.7717    0.0750
+  0.1 0.001      0.7681    0.0677
+  1.0 0.001      0.7662    0.0707
+ 50.0 0.010      0.7464    0.0949
+  5.0 0.100      0.7407    0.0976
+  1.0 0.500      0.7402    0.0860
+  5.0 0.500      0.7398    0.0856
+ 10.0 0.500      0.7398    0.0856
+ 50.0 0.500      0.7398    0.0856
+ 10.0 0.100      0.7396    0.0928
+ 50.0 0.100      0.7377    0.0913
+  0.1 0.500      0.7325    0.0917
+  5.0 1.000      0.6817    0.0842
+ 10.0 1.000      0.6817    0.0842
+ 50.0 1.000      0.6817    0.0842
+  1.0 1.000      0.6809    0.0839
+  0.1 1.000      0.6800    0.0843
+
+ =================== 3. MODEL SVM FINAL AMB PLATT SCALING ===================
+=================================================================
+
+El SVM base produeix valors de decisio (distancia al hiperplan),
+no probabilitats. Platt Scaling ajusta una regressio logistica
+sobre aquests valors per obtenir P(Regular|x) calibrades.
+e1071::svm amb probability=TRUE fa Platt Scaling intern (5-fold CV).
+
+Case weights: Irregular=1.132 | Regular=0.895
+
+Resum del model SVM final:
+
+Call:
+svm.default(x = X_train_sc, y = factor(Y_train, levels = c(0, 1)), 
+    kernel = "radial", gamma = best_gamma, cost = best_cost, class.weights = c(`0` = w_irr, 
+        `1` = w_reg), probability = TRUE)
+
+
+Parameters:
+   SVM-Type:  C-classification 
+ SVM-Kernel:  radial 
+       cost:  5 
+
+Number of Support Vectors:  179
+
+
+Vectors de suport: 179 (65.3% del train)
+
+AUC train (in-sample): 0.8819 | AUC test: 0.8437
+
+ =============== 4. LLINDAR PR =============== 
+AUPRC (OOF CV): 0.7998
+Llindar seleccionat: 0.6669 | recall_ok (>= 0.60): SI
+
+=============== 5. SHAP VALUES =============== 
+Top 15 SHAP SVM-RBF:
+# A tibble: 15 × 2
+   variable           mean_abs_shap
+   <chr>                      <dbl>
+ 1 EST_AVALUACIO_AC          0.0735
+ 2 IA_SUBST_num              0.0702
+ 3 MOT_DESMOTIVACIO          0.0532
+ 4 CURS_1R_num               0.0436
+ 5 NOTA_num                  0.0429
+ 6 IA_ATENC_num              0.0391
+ 7 DOBLE_GRAU_EST_num        0.0390
+ 8 TREB_INTENS_num           0.0326
+ 9 EST_QUALITAT_DOC          0.0319
+10 MOT_AUTOGESTIO            0.0296
+11 T_AVAL_num                0.0276
+12 MOT_FORCA_MAJOR           0.0260
+13 N_ASSIG                   0.0247
+14 DESPL                     0.0123
+15 EST_GRUPS_REDUITS         0.0112
+=============== 6. MÈTRIQUES DE CLASSIFICACIÓ =============== 
+--- 6a Metriques sobre conjunt test ---
+
+--- Mètriques: SVM-RBF ---
+n = 68 | Llindar PR = 0.667
+AUC: 0.8437
+Accuracy: 0.7206
+Precision (PPV): 0.9231
+Recall (Sensibilitat): 0.5854
+Especificitat: 0.9259
+F1: 0.7164
+Balanced Accuracy: 0.7556
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)           25          2
+  Regular(1)             17         24
+
+--- 6b Metriques sobre train (in-sample) ---
+
+
+--- Mètriques: SVM-RBF (train in-sample) ---
+n = 274 | Llindar PR = 0.667
+AUC: 0.8819
+Accuracy: 0.7810
+Precision (PPV): 0.8908
+Recall (Sensibilitat): 0.6928
+Especificitat: 0.8926
+F1: 0.7794
+Balanced Accuracy: 0.7927
+
+Matriu de confusió:
+              Predit
+Observat       Irregular(0) Regular(1)
+  Irregular(0)          108         13
+  Regular(1)             47        106
+
+--- Resum overfitting: train vs test ---
+
+           Conjunt    AUC Accuracy Precision Recall     F1 Balanced_Acc
+ Train (in-sample) 0.8819   0.7810    0.8908 0.6928 0.7794       0.7927
+              Test 0.8437   0.7206    0.9231 0.5854 0.7164       0.7556
+
+=============== 7. COMPARACIÓ GLOBAL DE MODELS =============== 
+Taula comparativa de models (sobre conjunt test):
+
+           Model           AUC_CV AUC_test Accuracy Precision Recall     F1
+ Logit Predictiu  0.7932 ± 0.0839   0.8329   0.7059    0.9200 0.5610 0.6970
+     RF-A (test) OOB err = 0.1966   0.9115   0.8088    0.9667 0.7073 0.8169
+     RF-B (test) OOB err = 0.1862   0.8076   0.6324    0.8333 0.4878 0.6154
+         XGBoost                —   0.8663   0.7500    0.9286 0.6341 0.7536
+         SVM-RBF                —   0.8437   0.7206    0.9231 0.5854 0.7164
+ Balanced_Acc
+       0.7435
+       0.8351
+       0.6698
+       0.7800
+       0.7556
+
+Millor model per metrica:
+ AUC_test      : RF-A (test) (0.9115)
+ Accuracy      : RF-A (test) (0.8088)
+ Precision     : RF-A (test) (0.9667)
+ Recall        : RF-A (test) (0.7073)
+ F1            : RF-A (test) (0.8169)
+ Balanced_Acc  : RF-A (test) (0.8351)
+
+Llindar aplicat per pred_svm: 0.6669
+

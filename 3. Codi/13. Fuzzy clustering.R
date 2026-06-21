@@ -16,8 +16,8 @@ setwd("C:/Users/edurn/Downloads/TFG")
 #setwd("C:/Users/Edurne/Downloads/TFG")
 load("2. Dades/5. Dades Logit.RData")
 
-sink("4. Outputs/14.1 Output_text_fuzzy.txt", split = TRUE)
-pdf("4. Outputs/14.2 Output_grafics_fuzzy.pdf", width = 10, height = 7)
+sink("4. Outputs/13. Fuzzy clustering/14.1 Output_text_fuzzy.txt", split = TRUE)
+png("4. Outputs/13. Fuzzy clustering/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 
 # -----------------------------------------------------------------------
 # FUNCIONS AUXILIARS
@@ -97,9 +97,9 @@ norm01 <- function(x, invert = FALSE) {
   if (invert) 1 - r else r
 }
 
-# ================================================================= #
-#                       1. PREPROCESSAMENT                          # 
-# ================================================================= #
+#### ================================================================= ####
+####                       1. PREPROCESSAMENT                          ####
+#### ================================================================= ####
 
 cat("================ 1. PREPROCESSAMENT ================\n")
 
@@ -108,26 +108,26 @@ cat("================ 1. PREPROCESSAMENT ================\n")
 df_raw <- dades_def %>%
   transmute(
     # Grup A: sociodemogràfiques i acadèmiques
-    EDAT           = as.numeric(EDAT),
-    DESPL          = as.numeric(DESPL),
-    N_ASSIG        = as.numeric(N_ASSIG),
-    NOTA_num       = as.numeric(NOTA),          # ordered factor [5-5.9]…[≥9] → 1-5
-    T_AVAL_num     = as.integer(T_AVAL == "Continuada"),
-    CURS_1R        = as.integer(CURS_1R),
-    GENERE_Home    = as.integer(GENERE == "Home"),
+    EDAT = as.numeric(EDAT),
+    DESPL = as.numeric(DESPL),
+    N_ASSIG = as.numeric(N_ASSIG),
+    NOTA_num = as.numeric(NOTA),
+    T_AVAL_num = as.integer(T_AVAL == "Continuada"),
+    CURS_1R = as.integer(CURS_1R),
+    GENERE_Home = as.integer(GENERE == "Home"),
     DOBLE_GRAU_EST = as.integer(DOBLE_GRAU_EST),
-    DEDIC_num      = as.integer(DEDIC),         # ordered factor E.Complet…T.Complet → 1-4
+    TREB_INTENS_num = as.integer(TREB_INTENS),
     # Grup B: ús de la IA (Likert 1-6)
-    IA_HABIT       = as.integer(IA_HABIT),
-    IA_COMPR       = as.integer(IA_COMPR),
-    IA_REND        = as.integer(IA_REND),
-    IA_PDFS        = as.integer(IA_PDFS),
-    IA_SUBST       = as.integer(IA_SUBST),
-    IA_ATENC       = as.integer(IA_ATENC),
-    IA_CONF        = as.integer(IA_CONF),
+    IA_HABIT = as.integer(IA_HABIT),
+    IA_COMPR = as.integer(IA_COMPR),
+    IA_REND = as.integer(IA_REND),
+    IA_PDFS = as.integer(IA_PDFS),
+    IA_SUBST = as.integer(IA_SUBST),
+    IA_ATENC = as.integer(IA_ATENC),
+    IA_CONF = as.integer(IA_CONF),
     # Variables de validació (NO entren al clustering)
-    GRUP_ASSIST    = GRUP_ASSIST,
-    P_ASSIST       = as.numeric(P_ASSIST)
+    GRUP_ASSIST = GRUP_ASSIST,
+    P_ASSIST = as.numeric(P_ASSIST)
   ) %>%
   filter(complete.cases(.))
 
@@ -137,7 +137,7 @@ cat(sprintf("Observacions completes: %d (eliminats %d per NAs)\n\n",
 
 vars_clust <- c(
   "EDAT", "DESPL", "N_ASSIG", "NOTA_num", "T_AVAL_num", "CURS_1R",
-  "GENERE_Home", "DOBLE_GRAU_EST", "DEDIC_num",
+  "GENERE_Home", "DOBLE_GRAU_EST", "TREB_INTENS_num",
   "IA_HABIT", "IA_COMPR", "IA_REND", "IA_PDFS", "IA_SUBST", "IA_ATENC", "IA_CONF"
 )
 
@@ -154,16 +154,16 @@ cat("Paràmetres d'escala guardats (mean i sd per variable):\n")
 print(round(rbind(mean = scale_params$mean, sd = scale_params$sd), 3))
 cat("\n")
 
-# 1.3 Partició estratificada train (80%) / test (20%)
+# Partició estratificada train (80%) / test (20%)
 set.seed(1234)
 idx_train <- caret::createDataPartition(df_raw$GRUP_ASSIST, p = 0.80, list = FALSE)
 X_train <- X_sc[idx_train, ]
 X_test  <- X_sc[-idx_train, ]
 
-y_valid_train  <- df_raw$GRUP_ASSIST[idx_train]
-y_valid_test   <- df_raw$GRUP_ASSIST[-idx_train]
+y_valid_train <- df_raw$GRUP_ASSIST[idx_train]
+y_valid_test <- df_raw$GRUP_ASSIST[-idx_train]
 p_assist_train <- df_raw$P_ASSIST[idx_train]
-p_assist_test  <- df_raw$P_ASSIST[-idx_train]
+p_assist_test <- df_raw$P_ASSIST[-idx_train]
 
 cat(sprintf("Partició: Train = %d obs | Test = %d obs\n", nrow(X_train), nrow(X_test)))
 cat(sprintf("  Train — Regular: %.1f%% | Irregular: %.1f%%\n",
@@ -192,39 +192,39 @@ print(
     ) +
     theme_minimal(base_size = 10) +
     theme(
-      axis.text.x  = element_text(angle = 45, hjust = 1, size = 12),
-      axis.text.y  = element_text(size = 12),
-      plot.title   = element_text(face = "bold"),
+      axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+      axis.text.y = element_text(size = 12),
+      plot.title = element_text(face = "bold"),
       legend.position = "right",
       legend.text = element_text(size = 12)
     )
 )
 
-# ========================================================== #
-#           2. DETERMINACIÓ DEL NOMBRE ÒPTIM DE CLUSTERS (c)
-# ========================================================== #
+#### ========================================================== ####
+####           2. DETERMINACIÓ DEL NOMBRE ÒPTIM DE CLUSTERS (c) ####
+#### ========================================================== ####
 
 cat(" =========== 2. SELECCIÓ NOMBRE DE CLUSTERS ===========\n")
 
 c_vals <- 2:5
 resultats_c <- tibble(
-  c          = integer(),
-  PC         = numeric(),
-  PE         = numeric(),
+  c = integer(),
+  PC = numeric(),
+  PE = numeric(),
   Silhouette = numeric(),
-  XB         = numeric()
+  XB = numeric()
 )
 
 set.seed(1234)
 for (c_i in c_vals) {
   cat(sprintf("Calculant criteris per c=%d...\n", c_i))
-  fit_i   <- fcm_best(X_train, c_num = c_i, m = 2, nstart = 25)
-  U_i     <- fit_i$membership
-  hard_i  <- apply(U_i, 1, which.max)
+  fit_i <- fcm_best(X_train, c_num = c_i, m = 2, nstart = 25)
+  U_i <- fit_i$membership
+  hard_i <- apply(U_i, 1, which.max)
 
-  pc_i  <- calc_pc(U_i)
-  pe_i  <- calc_pe(U_i)
-  xb_i  <- calc_xb(X_train, U_i, fit_i$centers, m = 2)
+  pc_i <- calc_pc(U_i)
+  pe_i <- calc_pe(U_i)
+  xb_i <- calc_xb(X_train, U_i, fit_i$centers, m = 2)
   sil_i <- if (length(unique(hard_i)) > 1) {
     mean(cluster::silhouette(hard_i, dist(X_train))[, "sil_width"])
   } else NA_real_
@@ -254,12 +254,12 @@ cat(sprintf(">>> c òptim seleccionat: c=%d (per majoria de criteris)\n\n", c_fi
 
 # Criteris normalitzats vs c
 plot_df_c <- tibble(
-  c       = rep(c_vals, 4),
-  valor   = c(
+  c = rep(c_vals, 4),
+  valor = c(
     norm01(resultats_c$PC),
-    norm01(resultats_c$PE,         invert = TRUE),
+    norm01(resultats_c$PE, invert = TRUE),
     norm01(resultats_c$Silhouette),
-    norm01(resultats_c$XB,         invert = TRUE)
+    norm01(resultats_c$XB, invert = TRUE)
   ),
   criteri = rep(
     c("PC (↑)", "PE (↓, inv.)", "Silhouette (↑)", "XB (↓, inv.)"),
@@ -295,15 +295,16 @@ print(
     )
 )
 
-# ============================================================== #
-#                    3. FUZZY C-MEANS FINAL
-# ============================================================== #
+#### ============================================================== ####
+####                    3. FUZZY C-MEANS FINAL                      ####
+#### ============================================================== ####
 
 cat(" ============= 3. FUZZY C-MEANS FINAL ============= \n")
 
-# 3.1 Sensibilitat al fuzziness exponent m
+#### --------- 3.1 Sensibilitat al fuzziness exponent m --------- ####
 # mesura quant de difús pot ser un cluster, conforme més gran sigui els individus 
 # poden pertànyer a més clusters
+
 
 cat("--- 3.1 Selecció de m (fuzziness exponent) ---\n")
 m_vals <- c(1.5, 2.0, 2.5, 3)
@@ -312,9 +313,9 @@ resultats_m <- tibble(m = numeric(), PC = numeric(), PE = numeric(), XB = numeri
 set.seed(1234)
 for (m_i in m_vals) {
   fit_i <- fcm_best(X_train, c_num = c_final, m = m_i, nstart = 25)
-  pc_i  <- calc_pc(fit_i$membership)
-  pe_i  <- calc_pe(fit_i$membership)
-  xb_i  <- calc_xb(X_train, fit_i$membership, fit_i$centers, m_i)
+  pc_i <- calc_pc(fit_i$membership)
+  pe_i <- calc_pe(fit_i$membership)
+  xb_i <- calc_xb(X_train, fit_i$membership, fit_i$centers, m_i)
   resultats_m <- add_row(resultats_m, m = m_i, PC = pc_i, PE = pe_i, XB = xb_i)
   cat(sprintf("m=%.1f | PC=%.4f | PE=%.4f | XB=%.4f\n", m_i, pc_i, pe_i, xb_i))
 }
@@ -322,12 +323,13 @@ for (m_i in m_vals) {
 m_final <- resultats_m$m[which.max(resultats_m$PC)]
 cat(sprintf("\n>>> m òptim seleccionat: m=%.1f (màxim PC)\n\n", m_final))
 
-# 3.2 Model FCM final (millor de 25 arrencades)
+##### --------- 3.2 Model FCM final (millor de 25 arrencades) --------- ####
+
 cat("--- 3.2 Model FCM final ---\n")
 set.seed(1234)
 fcm_final <- fcm_best(X_train, c_num = c_final, m = m_final, nstart = 25)
 
-U_train    <- fcm_final$membership
+U_train <- fcm_final$membership
 hard_train <- apply(U_train, 1, which.max) # assignació dura
 max_u_train <- apply(U_train, 1, max)
 
@@ -360,8 +362,8 @@ print(round(t(centers_orig), 2))
 cat("\n")
 
 # Projecció del test sobre centroides del train
-U_test     <- proj_test(X_test, fcm_final$centers, m_final)
-hard_test  <- apply(U_test, 1, which.max)
+U_test <- proj_test(X_test, fcm_final$centers, m_final)
+hard_test <- apply(U_test, 1, which.max)
 max_u_test <- apply(U_test, 1, max)
 
 cat("Distribució per cluster (test — projecció sobre centroides train):\n")
@@ -377,8 +379,8 @@ u_df <- as.data.frame(U_train) %>%
   setNames(paste0("Cluster_", seq_len(c_final))) %>%
   mutate(cluster_hard = factor(paste0("Hard: ", hard_train))) %>%
   pivot_longer(
-    cols      = starts_with("Cluster_"),
-    names_to  = "cluster_k",
+    cols = starts_with("Cluster_"),
+    names_to = "cluster_k",
     values_to = "u"
   )
 
@@ -390,14 +392,14 @@ print(
     facet_grid(cluster_k ~ cluster_hard) +
     scale_fill_manual(values = colors_clust) +
     labs(
-      title    = "Distribució de probabilitats de pertinença u_ik (train)",
+      title = "Distribució de probabilitats de pertinença u_ik (train)",
       subtitle = "Files: cluster k analitzat · Columnes: cluster hard assignat",
       x = "u_ik (probabilitat de pertinença)", y = "Comptatge",
       fill = "Cluster k"
     ) +
     theme_minimal(base_size = 12) +
     theme(
-      plot.title      = element_text(face = "bold"),
+      plot.title = element_text(face = "bold"),
       legend.position = "none",
       axis.text.y = element_text(size = 12),
       axis.text.x = element_text(size = 12)
@@ -407,10 +409,10 @@ print(
 # PCA 2D colorejat per cluster hard (transparència = nitidesa)
 pca_res <- prcomp(X_train, center = FALSE, scale. = FALSE)
 pca_df  <- data.frame(
-  PC1     = pca_res$x[, 1],
-  PC2     = pca_res$x[, 2],
+  PC1 = pca_res$x[, 1],
+  PC2 = pca_res$x[, 2],
   cluster = factor(paste0("Cluster ", hard_train)),
-  max_u   = max_u_train
+  max_u = max_u_train
 )
 var_exp <- round(summary(pca_res)$importance[2, 1:2] * 100, 1)
 
@@ -422,7 +424,7 @@ print(
     scale_color_manual(values = colors_clust) +
     scale_alpha_continuous(range = c(0.25, 1.0), guide = "none") +
     labs(
-      title    = "PCA 2D — assignació FCM (train)",
+      title = "PCA 2D — assignació FCM (train)",
       subtitle = sprintf(
         "PC1 %.1f%% | PC2 %.1f%% variança · Transparència proporcional a max(u_ik)",
         var_exp[1], var_exp[2]
@@ -433,7 +435,7 @@ print(
     ) +
     theme_minimal(base_size = 13) +
     theme(
-      plot.title      = element_text(face = "bold"),
+      plot.title = element_text(face = "bold"),
       legend.position = "right",
       axis.text.y = element_text(size = 12),
       axis.text.x = element_text(size = 12),
@@ -441,10 +443,9 @@ print(
     )
 )
 
-# ========================================================= #
-#                           GUARDAR MODEL
-# ========================================================= #
-
+#### ========================================================= ####
+####                        4. GUARDAR MODEL                   ####
+#### ========================================================= ####
 
 save(
   fcm_final, scale_params, c_final, m_final,
@@ -454,10 +455,8 @@ save(
   p_assist_train, p_assist_test,
   vars_clust, resultats_c, resultats_m,
   centers_orig,
-  file = "2. Dades/fuzzy_clustering_model.RData"
+  file = "2. Dades/2. Models/fuzzy_clustering_model.RData"
 )
-
-
 
 
 dev.off()

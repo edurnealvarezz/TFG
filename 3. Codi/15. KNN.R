@@ -12,11 +12,11 @@ rm(packages)
 setwd("C:/Users/Edurne/Downloads/TFG")
 source("3. Codi/Funcions models.R")
 
-load("2. Dades/fuzzy_clustering_model.RData")
+load("2. Dades/2. Models/fuzzy_clustering_model.RData")
 load("2. Dades/4. Dades EFA.RData")
 
-sink("4. Outputs/16.1 Output_text_knn.txt", split = TRUE)
-pdf("4. Outputs/16.2 Output_grafics_knn.pdf", width = 10, height = 8)
+sink("4. Outputs/15. KNN/16.1 Output_text_knn.txt", split = TRUE)
+png("4. Outputs/15. KNN/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 
 col_clusters <- c("1" = "#4A90B8", "2" = "#E07B54")
 MIN_RECALL <- 0.60
@@ -27,10 +27,10 @@ MIN_RECALL <- 0.60
 
 # proj_test() s'utilitza per fer prediccions per un nou alumne
 proj_test <- function(X_test, centers, m) {
-  n     <- nrow(X_test)
+  n <- nrow(X_test)
   c_num <- nrow(centers)
   exp_v <- 2 / (m - 1)
-  D     <- matrix(0, nrow = n, ncol = c_num)
+  D <- matrix(0, nrow = n, ncol = c_num)
   for (k in seq_len(c_num)) {
     D[, k] <- sqrt(rowSums(
       (X_test - matrix(centers[k, ], nrow = n, ncol = ncol(X_test), byrow = TRUE))^2
@@ -158,7 +158,7 @@ df_all <- dades_def %>%
  CURS_1R  = as.integer(CURS_1R),
  GENERE_Home = as.integer(GENERE == "Home"),
  DOBLE_GRAU_EST = as.integer(DOBLE_GRAU_EST),
- TREB_INTENS = as.integer(TREB_INTENS),
+ TREB_INTENS_num = as.integer(TREB_INTENS),
  IA_HABIT = as.integer(IA_HABIT),
  IA_COMPR = as.integer(IA_COMPR),
  IA_REND  = as.integer(IA_REND),
@@ -175,8 +175,7 @@ cat(sprintf("Obs completes per KNN: %d / %d\n\n", sum(cc_all), nrow(df_all)))
 
 # Assignació directa des de fuzzy_clustering_model.RData.
 # X_train / X_test ja estan escalats amb scale_params (script 14).
-# U_train / U_test / hard_train / hard_test ja estan calculats; evitem
-# recalcular amb proj_test() sobre tots els individus.
+# U_train / U_test / hard_train / hard_test ja estan calculats del clustering
 X_knn_tr <- X_train
 X_knn_te <- X_test
 U_train_knn <- U_train
@@ -262,7 +261,7 @@ print(
   geom_errorbar(aes(ymin = AUC_CV - SD_AUC, ymax = AUC_CV + SD_AUC),
   width = 0.3, color = "#4A90B8", alpha = 0.5) +
   geom_vline(xintercept = k_optim, linetype = "dashed", color = "#E07B54") +
-  annotate("text", x = k_optim + 0.3, y = min(cv_results$AUC_CV) + 0.002,
+  ggplot2::annotate("text", x = k_optim + 0.3, y = min(cv_results$AUC_CV) + 0.002,
   label = paste0("k=", k_optim), color = "#E07B54", size = 4) +
   scale_x_continuous(breaks = k_vals) +
   labs(title = "Seleccio de k — KNN fuzzy-aware (CV 5-fold)",
@@ -320,12 +319,11 @@ if (!pr_oof$recall_ok)
 cat("\n")
 
 #### ============================================================ ####
-####                   3. MODEL FINAL                             ####
+####                  3. METRIQUES TEST                           ####
 #### ============================================================ ####
 
-cat("================= 3. MODEL FINAL — PREDICCIONS TEST =================\n\n")
+cat("\n ============ 3. METRIQUES TEST (llindar PR)=============\n\n")
 
-# Probabilitats test (raw + calibrades)
 prob_test_raw <- knn_fuzzy_probs(
   X_tr = X_knn_tr,
   Y_tr = Y_train_knn,
@@ -338,248 +336,30 @@ prob_test_cal <- as.numeric(
   predict(platt_model, newdata = data.frame(prob = prob_test_raw), type = "response")
 )
 
-# Probabilitats train in-sample (per comparar overfitting)
-prob_train_raw <- knn_fuzzy_probs(
-  X_tr = X_knn_tr,
-  Y_tr = Y_train_knn,
-  hard_tr = hard_train_knn,
-  X_te = X_knn_tr,
-  U_te = U_train_knn,
-  k = k_optim
-)
-prob_train_cal <- as.numeric(
-  predict(platt_model, newdata = data.frame(prob = prob_train_raw), type = "response")
-)
-
-auc_train <- as.numeric(pROC::auc(pROC::roc(Y_train_knn, prob_train_cal, quiet = TRUE)))
-auc_test  <- as.numeric(pROC::auc(pROC::roc(Y_test_knn,  prob_test_cal,  quiet = TRUE)))
-
-cat(sprintf("AUC train (in-sample):  %.4f  [nota: optimista per KNN]\n", auc_train))
-cat(sprintf("AUC CV 5-fold (OOF): %.4f +/- %.4f\n", auc_cv_opt, sd_cv_opt))
-cat(sprintf("AUC test: %.4f\n\n", auc_test))
-
-#### ============================================================ ####
-####                      4. METRIQUES                            ####
-#### ============================================================ ####
-
-cat("================= 4. METRIQUES =================\n")
-
+# Mètriques train via OOF (calibrades a secció 2) — evita bias in-bag
 met_knn_train <- calcular_metriques_knn(
-  prob_train_cal, Y_train_knn,
-  nom_model = sprintf("KNN fuzzy train (k=%d, in-sample)", k_optim),
-  auc_cv_mean = auc_cv_opt,
-  auc_cv_sd = sd_cv_opt,
+  oof_probs_cal, Y_train_knn,
+  nom_model = sprintf("KNN fuzzy train OOF (k=%d)", k_optim),
+  auc_cv_mean = auc_cv_opt, auc_cv_sd = sd_cv_opt,
+  thresh_override = thresh_knn
+)
+met_knn_test <- calcular_metriques_knn(
+  prob_test_cal, Y_test_knn,
+  nom_model = sprintf("KNN fuzzy test (k=%d)", k_optim),
+  auc_cv_mean = auc_cv_opt, auc_cv_sd = sd_cv_opt,
   thresh_override = thresh_knn
 )
 mostrar_metriques_knn(met_knn_train)
-cat("\n")
-
-met_knn_test <- calcular_metriques_knn(
-  prob_test_cal, Y_test_knn,
-  nom_model = sprintf("KNN fuzzy (k=%d)", k_optim),
-  auc_cv_mean = auc_cv_opt,
-  auc_cv_sd = sd_cv_opt,
-  thresh_override = thresh_knn
-)
 mostrar_metriques_knn(met_knn_test)
-cat("\n")
-
-cat("--- Diferencial train vs test (sobreajust) ---\n")
-cat(sprintf("  Delta AUC: %.4f\n",  met_knn_train$AUC - met_knn_test$AUC))
-cat(sprintf("  Delta Precision: %.4f\n",  met_knn_train$precision - met_knn_test$precision))
-cat(sprintf("  Delta Recall: %.4f\n\n", met_knn_train$recall - met_knn_test$recall))
 
 #### ============================================================ ####
-####                       5. GRAFICS                             ####
+####                          4. GUARDAR                          ####
 #### ============================================================ ####
 
-cat("================= 5. GRÀFICS =================\n\n")
-
-# --- 5.1 Corba ROC (test) ---
-roc_obj_knn <- pROC::roc(Y_test_knn, prob_test_cal, quiet = TRUE)
-roc_df_knn  <- data.frame(
-  spec_inv = 1 - roc_obj_knn$specificities,
-  sens  = roc_obj_knn$sensitivities
-)
-youden_idx <- which.max(roc_obj_knn$sensitivities + roc_obj_knn$specificities - 1)
-
-print(
-  ggplot(roc_df_knn, aes(x = spec_inv, y = sens)) +
-  geom_path(color = "#4A90B8", linewidth = 1.2) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-  geom_point(
-    data = data.frame(
-      spec_inv = 1 - roc_obj_knn$specificities[youden_idx],
-      sens  = roc_obj_knn$sensitivities[youden_idx]),
-      color = "#E07B54", size = 4, shape = 17) +
-      annotate("text", x = 0.55, y = 0.10,
-      label = sprintf("AUC = %.4f", auc_test),
-      color = "#4A90B8", size = 4) +
-      labs(title = sprintf("Corba ROC — KNN fuzzy (k=%d, test)", k_optim),
-      subtitle = "Triangle: llindar Youden | probabilitats calibrades (Platt)",
-      x = "1 - Especificitat", y = "Sensibilitat") +
-      theme_minimal(base_size = 13) +
-      theme(axis.text.y = element_text(size = 12),
-            axis.text.x = element_text(size = 12),
-            legend.text = element_text(size = 12))
-)
-
-# --- 5.2 Corba Precisio-Recall (test) ---
-pr_test <- seleccionar_llindar_pr(prob_test_cal, Y_test_knn, MIN_RECALL)
-
-print(
-  ggplot(pr_test$pr_curve, aes(x = recall, y = precision)) +
-  geom_path(color = "#4A90B8", linewidth = 1) +
-  geom_vline(xintercept = MIN_RECALL, linetype = "dashed", color = "red", linewidth = 0.8) +
-  geom_point(
-    data = data.frame(recall = met_knn_test$recall,
-    precision = met_knn_test$precision),
-    color = "#E07B54", size = 3, shape = 17) +
-    labs(title = sprintf("Corba Precisio-Recall — KNN fuzzy (k=%d, test)", k_optim),
-    subtitle = sprintf("AUPRC = %.4f | Llindar OOF = %.3f", pr_test$auprc, thresh_knn),
-    x = "Recall", y = "Precisio (PPV)") +
-    theme_minimal(base_size = 13) +
-    theme(axis.text.y = element_text(size = 12),
-          axis.text.x = element_text(size = 12),
-          legend.text = element_text(size = 12))
-)
-
-# --- 5.3 Matriu de confusio ---
-print(grafic_cm(met_knn_test, sprintf("KNN fuzzy (k=%d, test)", k_optim)))
-
-# --- 5.4 Reliability diagram (calibracio Platt) ---
-brier_raw <- mean((prob_test_raw - Y_test_knn)^2)
-brier_cal <- mean((prob_test_cal - Y_test_knn)^2)
-ece_raw <- ece_fn(prob_test_raw, Y_test_knn)
-ece_cal <- ece_fn(prob_test_cal, Y_test_knn)
-
-cat(sprintf("Brier  — brut: %.4f | calibrat (Platt OOF): %.4f\n", brier_raw, brier_cal))
-cat(sprintf("ECE — brut: %.4f | calibrat (Platt OOF): %.4f\n\n", ece_raw, ece_cal))
-
-n_bins <- 10
-breaks <- seq(0, 1, length.out = n_bins + 1)
-
-make_rel_df <- function(probs, Y, label) {
-  bins <- cut(probs, breaks = breaks, include.lowest = TRUE)
-  data.frame(prob = probs, Y = Y, bin = bins) %>%
- group_by(bin) %>%
- summarise(conf = mean(prob), acc = mean(Y), n = n(), .groups = "drop") %>%
- filter(n > 0) %>%
- mutate(tipus = label)
-}
-
-rel_df <- rbind(
-  make_rel_df(prob_test_raw, Y_test_knn, "Brut"),
-  make_rel_df(prob_test_cal, Y_test_knn, "Platt")
-)
-
-print(
-  ggplot(rel_df, aes(x = conf, y = acc, color = tipus, size = n)) +
-  geom_abline(slope = 1, intercept = 0, linetype = "dashed", color = "grey50") +
-  geom_line(aes(group = tipus), linewidth = 0.8) +
-  geom_point(alpha = 0.85) +
-  scale_color_manual(values = c("Brut" = "#4A90B8", "Platt" = "#E07B54")) +
-  scale_size_continuous(range = c(2, 6), guide = "none") +
-  coord_cartesian(xlim = c(0, 1), ylim = c(0, 1)) +
-  annotate("text", x = 0.65, y = 0.05,
-  label = sprintf("ECE brut=%.3f | ECE Platt=%.3f", ece_raw, ece_cal),
-  size = 3.5, color = "grey30") +
-  labs(title = sprintf("Reliability Diagram — KNN fuzzy (k=%d, test)", k_optim),
-  subtitle = sprintf("%d bins | Brier brut=%.4f | Brier Platt=%.4f",
-  n_bins, brier_raw, brier_cal),
-  x = "Probabilitat predicta (bin)", y = "Proporcio observada Regular",
-  color = "Prob.") +
-  theme_minimal(base_size = 13) +
-  theme(legend.position = "top",
-        axis.text.y = element_text(size = 12),
-        axis.text.x = element_text(size = 12),
-        legend.text = element_text(size = 12))
-)
-
-# --- 5.5 Dispersio: u1 vs prob_cal, per cluster i per resultat ---
-df_scatter <- data.frame(
-  u1 = U_test_knn[, 1],
-  u2 = U_test_knn[, 2],
-  prob_cal = prob_test_cal,
-  cluster_hard = factor(hard_test_knn),
-  GRUP_real = ifelse(Y_test_knn == 1, "Regular", "Irregular")
-)
-
-print(
-  ggplot(df_scatter, aes(x = u1, y = prob_cal,
-  color = cluster_hard, shape = GRUP_real)) +
- geom_point(size = 2.5, alpha = 0.75) +
- geom_hline(yintercept = thresh_knn, linetype = "dashed", color = "grey40") +
- scale_color_manual(values = col_clusters,
-  labels = c("1" = "Cluster 1", "2" = "Cluster 2"),
-  name = "Cluster") +
- scale_shape_manual(values = c("Regular" = 16, "Irregular" = 17), name = "Y real") +
- annotate("text", x = 0.05, y = thresh_knn + 0.025,
- label = sprintf("thresh=%.3f", thresh_knn),
- size = 3.5, color = "grey40", hjust = 0) +
- labs(title = sprintf("KNN fuzzy-aware (k=%d) — test", k_optim),
- subtitle = "x = u1 (pertinenca Cluster 1) | y = P(Regular) calibrada (Platt)",
- x = "u1", y = "P(Regular) calibrada") +
- theme_minimal(base_size = 13) +
- theme(legend.position = "right",
-       axis.text.y = element_text(size = 12),
-       axis.text.x = element_text(size = 12),
-       legend.text = element_text(size = 12))
-)
-
-# --- 5.6 Densitat P(Regular) per cluster ---
-print(
-  ggplot(df_scatter, aes(x = prob_cal, fill = cluster_hard)) +
- geom_density(alpha = 0.50) +
- geom_vline(xintercept = thresh_knn, linetype = "dashed", color = "grey30") +
- scale_fill_manual(values = col_clusters, name = "Cluster") +
- labs(title = sprintf("Distribucio P(Regular) calibrada per cluster — KNN (k=%d)",
- k_optim),
- subtitle = "Test set | linia puntejada: llindar PR (OOF)",
- x = "P(Regular) calibrada", y = "Densitat") +
- theme_minimal(base_size = 13) +
- theme(axis.text.y = element_text(size = 12),
-       axis.text.x = element_text(size = 12),
-       legend.text = element_text(size = 12))
-)
-
-#### ============================================================ ####
-####                  6. COMPARACIO AMB ALTRES MODELS             ####
-#### ============================================================ ####
-
-cat("================= 6. COMPARACIO AMB ALTRES MODELS =================\n\n")
-
-fitxers_met <- list(
-  "Logit pred" = "4. Outputs/Metriques i models/metriques_logit_pred.rds",
-  "RF-A"       = "4. Outputs/Metriques i models/metriques_rf_a.rds",
-  "RF-B"       = "4. Outputs/Metriques i models/metriques_rf_b.rds",
-  "XGBoost"    = "4. Outputs/Metriques i models/metriques_xgb.rds",
-  "CatBoost"   = "4. Outputs/Metriques i models/metriques_catboost.rds",
-  "SVM"        = "4. Outputs/Metriques i models/metriques_svm.rds"
-)
-
-rows_comp <- do.call(rbind, lapply(names(fitxers_met), function(nm) {
-  f <- fitxers_met[[nm]]
-  if (!file.exists(f)) return(NULL)
-  tryCatch(extreure_fila(readRDS(f)), error = function(e) NULL)
-}))
-
-rows_comp <- rbind(rows_comp, extreure_fila(met_knn_test))
-rows_comp <- rows_comp[order(-rows_comp$AUC_test), ]
-
-print(rows_comp, row.names = FALSE)
-cat("\n")
-
-#### ============================================================ ####
-####                  7. GUARDAR ####
-#### ============================================================ ####
-
-cat("================= 7. GUARDAR =================\n\n")
+cat("================= 4. GUARDAR =================\n\n")
 
 metriques_knn <- met_knn_test
-dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
-saveRDS(metriques_knn, "4. Outputs/Metriques i models/metriques_knn.rds")
-cat("-> metriques_knn.rds guardat\n")
+saveRDS(metriques_knn, "2. Dades/2. Models/metriques_knn.rds")
 
 knn_model <- list(
   k = k_optim,
@@ -591,7 +371,8 @@ knn_model <- list(
   thresh_pr = thresh_knn
 )
 
-cat("================= 7b. FUNCIO PREDICT_NOU_ALUMNE =================\n\n")
+#### --------- 7.1 Funcio predict_nou_alumne --------- ####
+cat("--- 7.1 Funcio predict_nou_alumne ---\n\n")
 
 # Captura les dependències en l'entorn local perquè la funció funcioni
 # de forma autònoma un cop desada al knn_model (sense necessitat de
@@ -615,25 +396,25 @@ predict_nou_alumne <- local({
 
     # 2. Calcular pertinences fuzzy
     U_mat <- .proj_test(X_mat, .fcm_centers, .fcm_m)
-    u1    <- U_mat[1, 1]
-    u2    <- U_mat[1, 2]
+    u1 <- U_mat[1, 1]
+    u2 <- U_mat[1, 2]
     cluster_dominant <- ifelse(u1 >= u2, 1L, 2L)
 
     # 3. Probabilitat bruta via KNN fuzzy-aware
     prob_raw <- .knn_fuzzy_probs(
-      X_tr    = .knn_model$X_train,
-      Y_tr    = .knn_model$Y_train,
+      X_tr = .knn_model$X_train,
+      Y_tr = .knn_model$Y_train,
       hard_tr = .knn_model$hard_train,
-      X_te    = X_mat,
-      U_te    = U_mat,
-      k       = .knn_model$k
+      X_te = X_mat,
+      U_te = U_mat,
+      k = .knn_model$k
     )
 
     # 4. Calibracio Platt
     prob_cal <- as.numeric(predict(
       .knn_model$platt_model,
       newdata = data.frame(prob = prob_raw),
-      type    = "response"
+      type = "response"
     ))
 
     # 5. Classificacio
@@ -645,21 +426,21 @@ predict_nou_alumne <- local({
       idx_c <- which(.knn_model$hard_train == cl_id)
       if (length(idx_c) < 1) return(integer(0))
       k_eff <- min(.knn_model$k, length(idx_c))
-      Xc    <- .knn_model$X_train[idx_c, , drop = FALSE]
-      nn    <- FNN::knn.index(data = Xc, query = X_mat, k = k_eff)
+      Xc <- .knn_model$X_train[idx_c, , drop = FALSE]
+      nn <- FNN::get.knnx(data = Xc, query = X_mat, k = k_eff)$nn.index
       idx_c[nn[1, ]]
     }
     veins_c1 <- get_veins_cluster(1)
     veins_c2 <- get_veins_cluster(2)
 
     list(
-      u1               = round(u1, 4),
-      u2               = round(u2, 4),
+      u1 = round(u1, 4),
+      u2 = round(u2, 4),
       cluster_dominant = cluster_dominant,
-      prob_regular     = round(prob_cal, 4),
-      prediccio        = prediccio,
-      veins_cluster1   = veins_c1,
-      veins_cluster2   = veins_c2
+      prob_regular = round(prob_cal, 4),
+      prediccio = prediccio,
+      veins_cluster1 = veins_c1,
+      veins_cluster2 = veins_c2
     )
   }
 })
@@ -667,7 +448,8 @@ predict_nou_alumne <- local({
 # Adjuntar la funció al model per poder-la carregar amb el .RData
 knn_model$predict_nou_alumne <- predict_nou_alumne
 
-# --- Exemple d'ús: alumne fictici amb les mitjanes del train ---
+#### --------- 7.2 Exemple: alumne fictici --------- ####
+cat("--- 7.2 Exemple: alumne fictici ---\n\n")
 alumne_fictici <- setNames(
   colMeans(X_knn_tr) * scale_params$sd + scale_params$mean,
   names(scale_params$mean)
@@ -710,10 +492,18 @@ cat("es suficient com a classificador lineal, sense necessitat del KNN.\n\n")
 u1_tr <- U_train_knn[, 1]
 u1_te <- U_test_knn[, 1]
 
-# --- Grafic densitat u1 per GRUP_ASSIST (tots els obs. complets) ---
-df_u1_dens <- dades_def %>%
-  filter(!is.na(u1), !is.na(GRUP_ASSIST)) %>%
-  mutate(Grup = ifelse(GRUP_ASSIST == 1, "Regular", "Irregular"))
+#### --------- 7b.1 Grafic densitat u1 per grup --------- ####
+cat("--- 7b.1 Grafic densitat u1 per GRUP_ASSIST ---\n\n")
+
+# Y_all_cc: 1=Regular, 0=Irregular, per a totes les obs amb casos complets
+Y_all_cc <- integer(n_all)
+Y_all_cc[idx_knn]  <- Y_train_knn
+Y_all_cc[-idx_knn] <- Y_test_knn
+
+df_u1_dens <- data.frame(
+  u1   = U_all[, 1],
+  Grup = ifelse(Y_all_cc == 1, "Regular", "Irregular")
+)
 
 print(
   ggplot(df_u1_dens, aes(x = u1, fill = Grup, color = Grup)) +
@@ -721,7 +511,7 @@ print(
     scale_fill_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
     scale_color_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
     labs(
-      title    = "Distribucio de u1 per grup d'assistencia",
+      title = "Distribucio de u1 per grup d'assistencia",
       subtitle = "u1 = grau de pertinenca al Cluster 1 (alta assistencia)",
       x = "u1 (pertinenca Cluster 1)", y = "Densitat",
       fill = NULL, color = NULL
@@ -733,7 +523,8 @@ print(
           legend.text = element_text(size = 12))
 )
 
-# --- LDA 1D: ajust sobre train ---
+#### --------- 7b.2 LDA 1D: ajust sobre train --------- ####
+cat("--- 7b.2 LDA 1D: ajust sobre train ---\n\n")
 df_lda_tr <- data.frame(
   u1 = u1_tr,
   y  = factor(Y_train_knn, levels = c(0, 1), labels = c("Irregular", "Regular"))
@@ -749,7 +540,8 @@ cat(sprintf("Punt de tall LDA: u1 = %.4f\n", thresh_lda_u1))
 cat(sprintf("Mitjana u1 Irregulars (train): %.4f\n", mean(u1_tr[Y_train_knn == 0])))
 cat(sprintf("Mitjana u1 Regulars   (train): %.4f\n\n", mean(u1_tr[Y_train_knn == 1])))
 
-# --- Prediccions sobre test ---
+#### --------- 7b.3 Prediccions sobre test --------- ####
+cat("--- 7b.3 Prediccions sobre test ---\n\n")
 prob_lda_te <- predict(lda_u1,
                        newdata = data.frame(u1 = u1_te))$posterior[, "Regular"]
 pred_lda_te <- as.integer(prob_lda_te >= 0.5)
@@ -770,17 +562,17 @@ f1_lda   <- ifelse(!is.na(prec_lda) & !is.na(rec_lda) & (prec_lda + rec_lda) > 0
 bacc_lda <- (rec_lda + spec_lda) / 2
 
 metriques_lda_u1 <- list(
-  model             = "LDA-u1",
-  n_test            = length(Y_test_knn),
-  threshold         = round(thresh_lda_u1, 4),
-  AUC               = round(auc_lda, 4),
-  AUC_cv_mean       = NA_real_,
-  AUC_cv_sd         = NA_real_,
-  accuracy          = round(acc_lda, 4),
-  precision         = round(prec_lda, 4),
-  recall            = round(rec_lda, 4),
-  specificity       = round(spec_lda, 4),
-  F1                = round(f1_lda, 4),
+  model = "LDA-u1",
+  n_test = length(Y_test_knn),
+  threshold = round(thresh_lda_u1, 4),
+  AUC = round(auc_lda, 4),
+  AUC_cv_mean = NA_real_,
+  AUC_cv_sd = NA_real_,
+  accuracy = round(acc_lda, 4),
+  precision = round(prec_lda, 4),
+  recall = round(rec_lda, 4),
+  specificity = round(spec_lda, 4),
+  F1 = round(f1_lda, 4),
   balanced_accuracy = round(bacc_lda, 4),
   TP = TP_l, TN = TN_l, FP = FP_l, FN = FN_l
 )
@@ -800,48 +592,22 @@ cat("Matriu de confusio:\n")
 print(cm_lda)
 cat("\n")
 
-# --- Comparacio LDA-u1 vs KNN fuzzy-aware ---
-cat("--- Comparacio LDA-u1 vs KNN fuzzy-aware (test) ---\n")
-df_comp_lda <- data.frame(
-  Model     = c("KNN fuzzy-aware", "LDA-u1"),
-  AUC       = c(met_knn_test$AUC,              metriques_lda_u1$AUC),
-  Precision = c(met_knn_test$precision,         metriques_lda_u1$precision),
-  Recall    = c(met_knn_test$recall,            metriques_lda_u1$recall),
-  F1        = c(met_knn_test$F1,                metriques_lda_u1$F1),
-  Bal_Acc   = c(met_knn_test$balanced_accuracy, metriques_lda_u1$balanced_accuracy)
-)
-print(df_comp_lda, row.names = FALSE)
-
-delta_auc <- met_knn_test$AUC - metriques_lda_u1$AUC
-delta_f1  <- met_knn_test$F1  - metriques_lda_u1$F1
-cat(sprintf("\nDelta AUC (KNN - LDA): %+.4f\n", delta_auc))
-cat(sprintf("Delta F1  (KNN - LDA): %+.4f\n\n", delta_f1))
-
-if (abs(delta_auc) < 0.02 && abs(delta_f1) < 0.03) {
-  cat("Conclusio: el KNN fuzzy-aware NO aporta millora substancial sobre el tall LDA en u1.\n")
-  cat("La pertinenca fuzzy u1 captura practicament tota la informacio discriminant.\n\n")
-} else if (delta_auc > 0 || delta_f1 > 0) {
-  cat("Conclusio: el KNN fuzzy-aware SUPERA el tall LDA en u1.\n")
-  cat("El KNN afegeix valor real per sobre d'usar directament u1 com a criteri.\n\n")
-} else {
-  cat("Conclusio: el tall LDA en u1 supera el KNN en alguna metrica.\n\n")
-}
-
-# --- Grafic densitat amb tall LDA marcat ---
+#### --------- 7b.4 Grafic densitat amb tall LDA --------- ####
+cat("--- 7b.4 Grafic densitat amb tall LDA marcat ---\n\n")
 print(
   ggplot(df_u1_dens, aes(x = u1, fill = Grup, color = Grup)) +
     geom_density(alpha = 0.40, linewidth = 0.8) +
     geom_vline(xintercept = thresh_lda_u1, linetype = "dashed",
                color = "grey30", linewidth = 1) +
-    annotate("text", x = thresh_lda_u1 + 0.02, y = Inf, vjust = 1.5, hjust = 0,
+    ggplot2::annotate("text", x = thresh_lda_u1 + 0.02, y = Inf, vjust = 1.5, hjust = 0,
              label = sprintf("Tall LDA\nu1=%.3f", thresh_lda_u1),
              size = 3.8, color = "grey30") +
     scale_fill_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
     scale_color_manual(values = c("Regular" = "#4A90B8", "Irregular" = "#E07B54")) +
     labs(
-      title    = "Distribucio de u1 per grup — tall LDA marcat",
-      subtitle = sprintf("Tall LDA = %.4f | AUC LDA = %.4f | AUC KNN = %.4f",
-                          thresh_lda_u1, auc_lda, met_knn_test$AUC),
+      title = "Distribucio de u1 per grup — tall LDA marcat",
+      subtitle = sprintf("Tall LDA = %.4f | AUC LDA = %.4f",
+                          thresh_lda_u1, auc_lda),
       x = "u1 (pertinenca Cluster 1)", y = "Densitat",
       fill = NULL, color = NULL
     ) +
@@ -852,8 +618,7 @@ print(
           legend.text = element_text(size = 12))
 )
 
-saveRDS(metriques_lda_u1, "4. Outputs/Metriques i models/metriques_lda_u1.rds")
-cat("-> metriques_lda_u1.rds guardat\n\n")
+saveRDS(metriques_lda_u1, "2. Dades/2. Models/metriques_lda_u1.rds")
 
 save(
   fcm_final, scale_params, c_final, m_final,
@@ -866,9 +631,9 @@ save(
   knn_model, k_optim, platt_model,
   predict_nou_alumne,
   metriques_knn,
-  metriques_lda_u1,
+  lda_u1, thresh_lda_u1, metriques_lda_u1,
   dades_def,
-  file = "2. Dades/fuzzy_clustering_model_complet.RData"
+  file = "2. Dades/2. Models/fuzzy_clustering_model_complet.RData"
 )
 
 dev.off()

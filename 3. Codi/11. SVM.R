@@ -19,8 +19,8 @@ motius_vars <- readRDS("2. Dades/motius_vars.rds")
 estrategies_vars <- readRDS("2. Dades/estrategies_vars.rds")
 ia_vars <- readRDS("2. Dades/ia_vars.rds")
 
-sink("4. Outputs/11.1 Output_text_svm.txt")
-pdf("4. Outputs/11.2 Output_grafics_svm.pdf", width = 10, height = 8)
+sink("4. Outputs/11. SVM/11.1 Output_text_svm.txt")
+png("4. Outputs/11. SVM/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 
 MIN_RECALL <- 0.60
 
@@ -38,7 +38,9 @@ dades_svm <- dades_def %>%
  IA_SUBST_num = as.numeric(IA_SUBST),
  IA_ATENC_num = as.numeric(IA_ATENC),
  T_AVAL_num = as.integer(T_AVAL == "Continuada"),
- CURS_1R_num = as.integer(CURS_1R)
+ CURS_1R_num = as.integer(CURS_1R),
+ TREB_INTENS_num = as.integer(TREB_INTENS),
+ DOBLE_GRAU_EST_num = as.integer(DOBLE_GRAU_EST)
  ) %>%
  filter(!is.na(Y))
 
@@ -47,8 +49,8 @@ ia_vars <- c("IA_SUBST_num", "IA_ATENC_num", "IA_CONF_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
              "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
-vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST")
-vars_pers <- c("EDAT", "DESPL")
+vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST_num")
+vars_pers <- c("EDAT", "DESPL", "TREB_INTENS_num")
 
 
 predictors <- c(ia_vars, vars_fa, vars_acad, vars_pers)
@@ -332,7 +334,9 @@ ggplot(shap_imp_svm %>% slice_head(n = 15),
  aes(x = reorder(variable, mean_abs_shap), y = mean_abs_shap,
  fill = mean_abs_shap)) +
  geom_col(alpha = 0.9) + coord_flip() +
+ geom_text(aes(label = round(mean_abs_shap, 3)), hjust = -0.1, size = 3.5) +
  scale_fill_gradient(low = "#AED6F1", high = "#1A5276", guide = "none") +
+ scale_y_continuous(expand = expansion(mult = c(0, 0.18))) +
  labs(title = "Importancia SHAP — SVM-RBF",
  subtitle = "Top 15 | mean(|SHAP|) sobre conjunt test",
  x = "", y = "Importancia SHAP") +
@@ -422,16 +426,42 @@ mostrar_metriques_svm(metriques_svm_train)
 # Taula resum overfitting
 cat("\n--- Resum overfitting: train vs test ---\n\n")
 df_ov_svm <- data.frame(
- Conjunt      = c("Train (in-sample)", "Test"),
- AUC          = c(metriques_svm_train$AUC,          metriques_svm$AUC),
- Accuracy     = c(metriques_svm_train$accuracy,      metriques_svm$accuracy),
- Precision    = c(metriques_svm_train$precision,     metriques_svm$precision),
- Recall       = c(metriques_svm_train$recall,        metriques_svm$recall),
- F1           = c(metriques_svm_train$F1,            metriques_svm$F1),
+ Conjunt = c("Train (in-sample)", "Test"),
+ AUC = c(metriques_svm_train$AUC, metriques_svm$AUC),
+ Accuracy = c(metriques_svm_train$accuracy, metriques_svm$accuracy),
+ Precision = c(metriques_svm_train$precision, metriques_svm$precision),
+ Recall = c(metriques_svm_train$recall, metriques_svm$recall),
+ F1 = c(metriques_svm_train$F1, metriques_svm$F1),
  Balanced_Acc = c(metriques_svm_train$balanced_accuracy, metriques_svm$balanced_accuracy)
 )
 print(df_ov_svm, row.names = FALSE)
 cat("\n")
+
+metriques_noms_ov_svm <- c("AUC", "Precision", "Recall", "F1", "Balanced_Acc")
+df_ov_svm_long <- df_ov_svm %>%
+ tidyr::pivot_longer(cols = all_of(metriques_noms_ov_svm),
+                     names_to = "Metrica", values_to = "Valor") %>%
+ mutate(Metrica = factor(Metrica, levels = metriques_noms_ov_svm),
+        Conjunt = factor(Conjunt, levels = c("Train (in-sample)", "Test")))
+
+print(
+ ggplot(df_ov_svm_long, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+  geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+  geom_text(aes(label = round(Valor, 2)),
+            position = position_dodge(width = 0.65),
+            vjust = -0.4, size = 3.5, fontface = "bold") +
+  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+  scale_fill_manual(values = c("Train (in-sample)" = "#4A90B8", "Test" = "#E07B54")) +
+  scale_y_continuous(limits = c(0, 1.05)) +
+  labs(title = "SVM-RBF — Train vs Test",
+       subtitle = sprintf("Llindar: %.4f | MIN_RECALL >= %.2f", thresh_svm, MIN_RECALL),
+       x = "", y = "Valor", fill = "Conjunt") +
+  theme_minimal(base_size = 13) +
+  theme(legend.position = "top",
+        axis.text.y = element_text(size = 12),
+        axis.text.x = element_text(size = 12),
+        legend.text = element_text(size = 12))
+)
 
 # Corba ROC test
 roc_svm_test <- pROC::roc(Y_test, prob_test_svm, quiet = TRUE)
@@ -456,12 +486,10 @@ ggplot(roc_df_test, aes(x = spec_inv, y = sens)) +
 cat("=============== 7. COMPARACIÓ GLOBAL DE MODELS =============== \n")
 
 fitxers <- c(
- Logit = "2. Dades/metriques_logit.rds",
- `Logit Millorat` = "2. Dades/metriques_logit_millorat.rds",
- `RF-A` = "4. Outputs/Metriques i models/metriques_rf_a.rds",
- `RF-B` = "4. Outputs/Metriques i models/metriques_rf_b.rds",
- XGBoost = "4. Outputs/Metriques i models/metriques_xgb.rds",
- CatBoost = "4. Outputs/Metriques i models/metriques_catboost.rds"
+ `Logit Pred` = "2. Dades/2. Models/metriques_logit_pred.rds",
+ `RF-A` = "2. Dades/2. Models/metriques_rf_a.rds",
+ `RF-B` = "2. Dades/2. Models/metriques_rf_b.rds",
+ XGBoost = "2. Dades/2. Models/metriques_xgb.rds"
 )
 
 models_llista <- list()
@@ -501,11 +529,14 @@ colors_models <- c("#4A90B8", "#5DADE2", "#E07B54", "#F0B27A",
 
 print(ggplot(df_comp_long, aes(x = metrica, y = valor, fill = Model,
  alpha = es_svm)) +
- geom_col(position = "dodge") +
+ geom_col(position = position_dodge(width = 0.9), width = 0.9) +
+ geom_text(aes(label = round(valor, 2)),
+           position = position_dodge(width = 0.9),
+           vjust = 0.5, hjust = -0.1, angle = 90, size = 3, fontface = "bold") +
  geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
  scale_fill_manual(values = colors_models) +
  scale_alpha_manual(values = c("FALSE" = 0.70, "TRUE" = 1.00), guide = "none") +
- scale_y_continuous(limits = c(0, 1)) +
+ scale_y_continuous(limits = c(0, 1.10)) +
  labs(title = "Comparacio de models",
  x = "", y = "Valor") +
  theme_minimal(base_size = 13) +
@@ -523,7 +554,7 @@ df_lollipop <- df_comp %>%
  es_svm = Model == "SVM-RBF") %>%
  pivot_longer(c(AUC_test, Balanced_Acc), names_to = "metrica", values_to = "valor")
 
-ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) +
+print(ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) +
  geom_segment(data = df_lollipop %>%
  tidyr::pivot_wider(names_from = metrica, values_from = valor),
  aes(x = AUC_test, xend = Balanced_Acc, y = Model, yend = Model),
@@ -540,16 +571,14 @@ ggplot(df_lollipop, aes(x = valor, y = Model, color = metrica, shape = es_svm)) 
  theme(legend.position = "top",
  axis.text.y = element_text(size = 12),
  axis.text.x = element_text(size = 12),
- legend.text = element_text(size = 12))
+ legend.text = element_text(size = 12)))
 
 #### ============================================================ ####
 ####                   8. GUARDAR MÈTRIQUES I BBDD                ####
 #### ============================================================ ####
 
-dir.create("4. Outputs/Metriques i models", showWarnings = FALSE, recursive = TRUE)
-saveRDS(metriques_svm, "4. Outputs/Metriques i models/metriques_svm.rds")
-saveRDS(svm_model,     "4. Outputs/Metriques i models/model_svm.rds")
-cat("-> metriques_svm.rds i model_svm.rds guardats\n\n")
+saveRDS(metriques_svm, "2. Dades/2. Models/metriques_svm.rds")
+saveRDS(svm_model, "2. Dades/2. Models/model_svm.rds")
 
 # Guardar probabilitats a dades_def (tots els obs de dades_svm)
 X_all_svm <- preparar_matriu_svm(dades_svm, predictors)
