@@ -7,13 +7,13 @@ library(openxlsx)
 
 # ── Valors vàlids ────────────────────────────────────────────
 t_aval_vals  <- c("Continuada", "Única")
-curs_vals    <- c("1r", "2n", "3r", "4t", "5è", "6è")
-genere_vals  <- c("Home", "Dona", "Altre")
+curs_vals    <- c("1r", "2n", "3r", "4t", "5è", "6è+")
+genere_vals  <- c("Home", "Dona", "No binari", "Prefereixo no respondre")
 grau_doble   <- c("Estadística", "Doble Eco+Est", "Doble ADE+Soc",
                   "Doble ADE+Mat", "Doble ADE+Dret", "Doble ADE+Qui")
-grau_simples <- c("ADE", "ADE (EP)", "Economia", "Economia (EP)", "GE")
+grau_simples <- c("ADE", "Economia", "Emp.Int", "Sociologia")
 grau_vals    <- c(grau_simples, grau_doble)
-dedic_vals   <- c("Estudiant a TC", "Treballa ocasionalment", "T.Parcial", "T.Complet")
+dedic_vals   <- c("E.Complet", "T.Ocasional", "T.Parcial", "T.Complet")
 
 # ── Dimensions ───────────────────────────────────────────────
 N_ROWS       <- 50   # files de dades buides
@@ -334,17 +334,17 @@ instruccions <- data.frame(Text = c(
   "T_AVAL (tipus d'avaluació de les assignatures):",
   "  Continuada = avaluació continuada   |   Única = examen únic",
   "",
-  "CURS: 1r / 2n / 3r / 4t / 5è / 6è",
+  "CURS: 1r / 2n / 3r / 4t / 5è / 6è+",
   "",
-  "GENERE: Home / Dona / Altre",
+  "GENERE: Home / Dona / No binari / Prefereixo no respondre",
   "",
   "GRAU (afecta DOBLE_GRAU_EST=1 si és un dels dobles graus):",
   paste0("  Dobles grau: ", paste(grau_doble, collapse = " | ")),
   paste0("  Graus simples: ", paste(grau_simples, collapse = " | ")),
   "",
   "DEDIC (dedicació laboral):",
-  "  Estudiant a TC = estudia a temps complet, no treballa",
-  "  Treballa ocasionalment = feina esporàdica",
+  "  E.Complet = estudia a temps complet, no treballa",
+  "  T.Ocasional = treballa ocasionalment",
   "  T.Parcial = treballa a temps parcial (TREB_INTENS = 1)",
   "  T.Complet = treballa a temps complet (TREB_INTENS = 1)",
   "",

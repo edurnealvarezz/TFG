@@ -461,6 +461,56 @@ df_ov_xgb <- data.frame(
 print(df_ov_xgb, row.names = FALSE)
 cat("\n")
 
+# Grafic: Train (OOF) vs Test per metrica
+oof_probs_xgb_plot <- if (exists("oof_probs_xgb")) oof_probs_xgb else prob_train_xgb
+met_xgb_oof_plot <- calcular_metriques_xgb(oof_probs_xgb_plot, Y_train,
+                                            "XGBoost (OOF train)", thresh_override = thresh_pr_xgb)
+metriques_noms_ord_xgb <- c("AUC", "AUPRC", "Balanced_Acc", "F1", "Precision", "Recall")
+train_vals_xgb <- c(
+  AUC          = met_xgb_oof_plot$AUC,
+  AUPRC        = round(pr_xgb$auprc, 4),
+  Balanced_Acc = met_xgb_oof_plot$balanced_accuracy,
+  F1           = met_xgb_oof_plot$F1,
+  Precision    = met_xgb_oof_plot$precision,
+  Recall       = met_xgb_oof_plot$recall
+)
+test_vals_xgb <- c(
+  AUC          = metriques_xgb$AUC,
+  AUPRC        = round(pr_test_xgb$auprc, 4),
+  Balanced_Acc = metriques_xgb$balanced_accuracy,
+  F1           = metriques_xgb$F1,
+  Precision    = metriques_xgb$precision,
+  Recall       = metriques_xgb$recall
+)
+df_comp_train_test_xgb <- data.frame(
+  Metrica   = metriques_noms_ord_xgb,
+  Train_OOF = round(train_vals_xgb[metriques_noms_ord_xgb], 4),
+  Test      = round(test_vals_xgb[metriques_noms_ord_xgb], 4),
+  stringsAsFactors = FALSE
+)
+df_comp_long_xgb <- tidyr::pivot_longer(df_comp_train_test_xgb,
+                                         cols = c(Train_OOF, Test),
+                                         names_to = "Conjunt", values_to = "Valor") %>%
+  mutate(Metrica = factor(Metrica, levels = metriques_noms_ord_xgb))
+print(
+  ggplot(df_comp_long_xgb, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+    geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+    geom_text(aes(label = round(Valor, 2)),
+              position = position_dodge(width = 0.65),
+              vjust = -0.4, size = 3.5, fontface = "bold") +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = c("Train_OOF" = "#4A90B8", "Test" = "#E07B54")) +
+    scale_y_continuous(limits = c(0, 1.05)) +
+    labs(title = "XGBoost — Train (OOF) vs Test",
+         subtitle = sprintf("Threshold PR: %.3f | MIN_RECALL >= %.2f", thresh_pr_xgb, MIN_RECALL),
+         x = "", y = "Valor", fill = "Conjunt") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
+
 #### ============================================================ ####
 ####              6. COMPARACIÓ GLOBAL DE MODELS                  ####
 #### ============================================================ ####

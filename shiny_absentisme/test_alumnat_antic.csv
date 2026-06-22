@@ -1,0 +1,21 @@
+"EDAT","DESPL","N_ASSIG","NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC","IA_HABIT","IA_COMPR","IA_REND","IA_PDFS","IA_SUBST","IA_ATENC","IA_CONF","MOT_DESMOTIVACIO","MOT_AUTOGESTIO","MOT_FORCA_MAJOR","EST_QUALITAT_DOC","EST_AVALUACIO_AC","EST_TEMPS_CLASSE","EST_GRUPS_REDUITS","IA_EINA_ESTUDI","IA_SUBST_num","T_AVAL_num","CURS_1R_num","NOTA_num","DOBLE_GRAU_EST","TREB_INTENS"
+19,10,6,5,"Continuada","1r","Dona","ADE","E.Complet",5,5,4,4,1,2,1,1.8,4.9,1.3,4.9,4.8,5,4.8,4.8,0,1,1,5,0,0
+20,15,5,4,"Continuada","2n","Home","Economia","E.Complet",4,4,4,3,2,2,2,2.1,4.6,1.5,4.5,4.4,4.6,4.5,4.5,0,1,0,4,0,0
+21,5,6,4,"Continuada","1r","Dona","ADE","E.Complet",5,5,5,4,1,1,1,1.6,5.1,1.2,5,4.9,5.1,5,4.9,0,1,1,4,0,0
+22,20,4,3,"Continuada","3r","Home","Sociologia","T.Ocasional",4,4,4,4,2,2,2,2.4,4.4,1.8,4.3,4.2,4.4,4.3,4.4,0,1,0,3,0,0
+20,8,6,5,"Continuada","1r","Dona","Doble ADE+Dret","E.Complet",5,5,5,4,1,1,1,1.5,5.2,1.2,4.8,4.7,4.9,4.9,4.9,0,1,1,5,1,0
+19,12,5,4,"Continuada","2n","Dona","ADE","E.Complet",4,5,4,3,1,2,1,1.9,4.8,1.4,4.6,4.5,4.7,4.7,4.6,0,1,0,4,0,0
+23,25,4,4,"Continuada","2n","Home","Economia","T.Ocasional",5,4,4,4,2,2,2,2.3,4.5,1.7,4.4,4.3,4.5,4.4,4.7,0,1,0,4,0,0
+21,18,5,3,"Continuada","1r","Dona","ADE","E.Complet",4,5,5,4,1,1,1,1.7,5,1.3,5,4.8,5,4.9,4.8,0,1,1,3,0,0
+20,10,6,5,"Continuada","3r","Home","Estadística","E.Complet",5,4,4,3,2,2,2,2,4.7,1.5,4.5,4.4,4.6,4.5,4.5,0,1,0,5,1,0
+22,15,5,4,"Continuada","2n","Dona","Economia","T.Ocasional",4,5,4,4,1,2,1,2.2,4.6,1.6,4.6,4.5,4.7,4.6,4.6,0,1,0,4,0,0
+24,60,5,2,"Única","3r","Home","ADE","T.Parcial",2,2,2,2,6,6,5,5.3,1.7,4.8,1.7,1.8,1.9,2,2.1,1,0,0,2,0,1
+27,80,6,1,"Única","4t","Dona","Economia","T.Complet",2,1,2,1,5,5,5,5.6,1.5,5.3,1.5,1.6,1.7,1.8,1.8,1,0,0,1,0,1
+23,55,5,2,"Única","2n","Home","ADE","T.Parcial",3,2,2,2,5,5,4,5.1,1.9,4.5,1.9,2,2.1,2.2,2.3,1,0,0,2,0,1
+26,75,4,1,"Única","3r","Dona","Economia","T.Complet",2,2,1,2,6,6,6,5.5,1.6,5,1.6,1.7,1.8,1.9,2,1,0,0,1,0,1
+28,90,6,1,"Única","4t","Home","Sociologia","T.Parcial",2,1,2,1,6,6,5,5.7,1.4,5.5,1.4,1.5,1.6,1.7,1.7,1,0,0,1,0,1
+25,50,5,2,"Única","3r","Dona","ADE","T.Complet",3,2,2,2,5,5,5,5.2,1.8,4.7,1.8,1.9,2,2.1,2.2,1,0,0,2,0,1
+24,65,6,1,"Única","4t","Home","Economia","T.Parcial",2,1,2,1,5,6,5,5.4,1.6,5.1,1.6,1.7,1.8,1.9,1.9,1,0,0,1,0,1
+23,45,5,2,"Única","2n","Dona","Emp.Int","T.Parcial",3,2,2,2,6,5,4,5,2,4.4,2,2.1,2.2,2.3,2.4,1,0,0,2,0,1
+26,70,4,1,"Única","3r","Home","ADE","T.Complet",2,2,1,2,6,6,5,5.6,1.5,5.2,1.5,1.6,1.7,1.8,1.8,1,0,0,1,0,1
+25,60,5,2,"Única","2n","Dona","Economia","T.Parcial",2,2,2,2,5,5,4,5.2,1.8,4.6,1.8,1.9,2,2.1,2.1,1,0,0,2,0,1

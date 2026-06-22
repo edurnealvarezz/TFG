@@ -437,24 +437,46 @@ df_ov_svm <- data.frame(
 print(df_ov_svm, row.names = FALSE)
 cat("\n")
 
-metriques_noms_ov_svm <- c("AUC", "Precision", "Recall", "F1", "Balanced_Acc")
-df_ov_svm_long <- df_ov_svm %>%
- tidyr::pivot_longer(cols = all_of(metriques_noms_ov_svm),
-                     names_to = "Metrica", values_to = "Valor") %>%
- mutate(Metrica = factor(Metrica, levels = metriques_noms_ov_svm),
-        Conjunt = factor(Conjunt, levels = c("Train (in-sample)", "Test")))
-
+met_svm_oof_plot <- calcular_metriques_svm(oof_probs_svm, Y_train,
+                                            "SVM-RBF (OOF train)", thresh_override = thresh_svm)
+metriques_noms_ord_svm <- c("AUC", "AUPRC", "Balanced_Acc", "F1", "Precision", "Recall")
+train_vals_svm <- c(
+ AUC          = met_svm_oof_plot$AUC,
+ AUPRC        = round(pr_svm$auprc, 4),
+ Balanced_Acc = met_svm_oof_plot$balanced_accuracy,
+ F1           = met_svm_oof_plot$F1,
+ Precision    = met_svm_oof_plot$precision,
+ Recall       = met_svm_oof_plot$recall
+)
+test_vals_svm <- c(
+ AUC          = metriques_svm$AUC,
+ AUPRC        = round(pr_test_svm$auprc, 4),
+ Balanced_Acc = metriques_svm$balanced_accuracy,
+ F1           = metriques_svm$F1,
+ Precision    = metriques_svm$precision,
+ Recall       = metriques_svm$recall
+)
+df_comp_train_test_svm <- data.frame(
+ Metrica   = metriques_noms_ord_svm,
+ Train_OOF = round(train_vals_svm[metriques_noms_ord_svm], 4),
+ Test      = round(test_vals_svm[metriques_noms_ord_svm], 4),
+ stringsAsFactors = FALSE
+)
+df_comp_long_svm <- tidyr::pivot_longer(df_comp_train_test_svm,
+                                         cols = c(Train_OOF, Test),
+                                         names_to = "Conjunt", values_to = "Valor") %>%
+ mutate(Metrica = factor(Metrica, levels = metriques_noms_ord_svm))
 print(
- ggplot(df_ov_svm_long, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+ ggplot(df_comp_long_svm, aes(x = Metrica, y = Valor, fill = Conjunt)) +
   geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
   geom_text(aes(label = round(Valor, 2)),
             position = position_dodge(width = 0.65),
             vjust = -0.4, size = 3.5, fontface = "bold") +
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
-  scale_fill_manual(values = c("Train (in-sample)" = "#4A90B8", "Test" = "#E07B54")) +
+  scale_fill_manual(values = c("Train_OOF" = "#4A90B8", "Test" = "#E07B54")) +
   scale_y_continuous(limits = c(0, 1.05)) +
-  labs(title = "SVM-RBF — Train vs Test",
-       subtitle = sprintf("Llindar: %.4f | MIN_RECALL >= %.2f", thresh_svm, MIN_RECALL),
+  labs(title = "SVM-RBF — Train (OOF) vs Test",
+       subtitle = sprintf("Threshold PR: %.3f | MIN_RECALL >= %.2f", thresh_svm, MIN_RECALL),
        x = "", y = "Valor", fill = "Conjunt") +
   theme_minimal(base_size = 13) +
   theme(legend.position = "top",

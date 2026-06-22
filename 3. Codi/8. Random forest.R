@@ -261,6 +261,53 @@ print(
           legend.text = element_text(size = 12))
 )
 
+# Grafic: Train (OOB) vs Test per metrica
+metriques_noms_ord_a <- c("AUC", "AUPRC", "Balanced_Acc", "F1", "Precision", "Recall")
+train_vals_a <- c(
+  AUC          = met_rfa_train$AUC,
+  AUPRC        = round(pr_rfa$auprc, 4),
+  Balanced_Acc = met_rfa_train$balanced_accuracy,
+  F1           = met_rfa_train$F1,
+  Precision    = met_rfa_train$precision,
+  Recall       = met_rfa_train$recall
+)
+test_vals_a <- c(
+  AUC          = met_rfa_test$AUC,
+  AUPRC        = round(pr_test_rfa$auprc, 4),
+  Balanced_Acc = met_rfa_test$balanced_accuracy,
+  F1           = met_rfa_test$F1,
+  Precision    = met_rfa_test$precision,
+  Recall       = met_rfa_test$recall
+)
+df_comp_train_test_a <- data.frame(
+  Metrica   = metriques_noms_ord_a,
+  Train_OOB = round(train_vals_a[metriques_noms_ord_a], 4),
+  Test      = round(test_vals_a[metriques_noms_ord_a], 4),
+  stringsAsFactors = FALSE
+)
+df_comp_long_a <- tidyr::pivot_longer(df_comp_train_test_a,
+                                      cols = c(Train_OOB, Test),
+                                      names_to = "Conjunt", values_to = "Valor") %>%
+  mutate(Metrica = factor(Metrica, levels = metriques_noms_ord_a))
+print(
+  ggplot(df_comp_long_a, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+    geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+    geom_text(aes(label = round(Valor, 2)),
+              position = position_dodge(width = 0.65),
+              vjust = -0.4, size = 3.5, fontface = "bold") +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = c("Train_OOB" = "#4A90B8", "Test" = "#E07B54")) +
+    scale_y_continuous(limits = c(0, 1.05)) +
+    labs(title = "RF-A — Train (OOB) vs Test",
+         subtitle = sprintf("Threshold PR: %.3f | MIN_RECALL >= %.2f", thresh_pr_a, MIN_RECALL),
+         x = "", y = "Valor", fill = "Conjunt") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
+
 #### ============================================================ ####
 ####                   2. RANDOM FOREST B                         ####
 #### ============================================================ ####
@@ -387,6 +434,53 @@ print(
          x = "Recall", y = "Precisio (PPV)") +
     theme_minimal(base_size = 13) +
     theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
+
+# Grafic: Train (OOB) vs Test per metrica
+metriques_noms_ord_b <- c("AUC", "AUPRC", "Balanced_Acc", "F1", "Precision", "Recall")
+train_vals_b <- c(
+  AUC          = met_rfb_train$AUC,
+  AUPRC        = round(pr_rfb$auprc, 4),
+  Balanced_Acc = met_rfb_train$balanced_accuracy,
+  F1           = met_rfb_train$F1,
+  Precision    = met_rfb_train$precision,
+  Recall       = met_rfb_train$recall
+)
+test_vals_b <- c(
+  AUC          = met_rfb_test$AUC,
+  AUPRC        = round(pr_test_rfb$auprc, 4),
+  Balanced_Acc = met_rfb_test$balanced_accuracy,
+  F1           = met_rfb_test$F1,
+  Precision    = met_rfb_test$precision,
+  Recall       = met_rfb_test$recall
+)
+df_comp_train_test_b <- data.frame(
+  Metrica   = metriques_noms_ord_b,
+  Train_OOB = round(train_vals_b[metriques_noms_ord_b], 4),
+  Test      = round(test_vals_b[metriques_noms_ord_b], 4),
+  stringsAsFactors = FALSE
+)
+df_comp_long_b <- tidyr::pivot_longer(df_comp_train_test_b,
+                                      cols = c(Train_OOB, Test),
+                                      names_to = "Conjunt", values_to = "Valor") %>%
+  mutate(Metrica = factor(Metrica, levels = metriques_noms_ord_b))
+print(
+  ggplot(df_comp_long_b, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+    geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+    geom_text(aes(label = round(Valor, 2)),
+              position = position_dodge(width = 0.65),
+              vjust = -0.4, size = 3.5, fontface = "bold") +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = c("Train_OOB" = "#4A90B8", "Test" = "#E07B54")) +
+    scale_y_continuous(limits = c(0, 1.05)) +
+    labs(title = "RF-B — Train (OOB) vs Test",
+         subtitle = sprintf("Threshold PR: %.3f | MIN_RECALL >= %.2f", thresh_pr_b, MIN_RECALL),
+         x = "", y = "Valor", fill = "Conjunt") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
 )
@@ -694,8 +788,8 @@ if (file.exists("2. Dades/metriques_logit.rds")) {
 
 saveRDS(met_rfa_test, "2. Dades/2. Models/metriques_rf_a.rds")
 saveRDS(met_rfb_test, "2. Dades/2. Models/metriques_rf_b.rds")
-saveRDS(rf_a,¡ "2. Dades/2. Models/model_rf_a.rds")
-saveRDS(rf_b,¡ "2. Dades/2. Models /model_rf_b.rds")
+saveRDS(rf_a, "2. Dades/2. Models/model_rf_a.rds")
+saveRDS(rf_b, "2. Dades/2. Models/model_rf_b.rds")
 
 # --- Guardar probabilitats i bbdd encadenada ---
 vars_rfa_ok <- vars_rfa[vars_rfa %in% names(dades_rf)]

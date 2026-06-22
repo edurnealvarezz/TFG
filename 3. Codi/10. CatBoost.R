@@ -467,23 +467,46 @@ df_ov_cat <- data.frame(
 print(df_ov_cat, row.names = FALSE)
 cat("\n")
 
-metriques_noms_ov <- c("AUC", "Precision", "Recall", "F1", "Balanced_Acc")
-df_ov_long <- df_ov_cat %>%
-  tidyr::pivot_longer(cols = all_of(metriques_noms_ov),
-                      names_to = "Metrica", values_to = "Valor") %>%
-  mutate(Metrica = factor(Metrica, levels = metriques_noms_ov))
-
+met_cat_oof_plot <- calcular_metriques_cat(oof_probs_cat, Y_train,
+                                           "CatBoost (OOF train)", thresh_override = thresh_final)
+metriques_noms_ord_cat <- c("AUC", "AUPRC", "Balanced_Acc", "F1", "Precision", "Recall")
+train_vals_cat <- c(
+  AUC          = met_cat_oof_plot$AUC,
+  AUPRC        = round(pr_cat_oof$auprc, 4),
+  Balanced_Acc = met_cat_oof_plot$balanced_accuracy,
+  F1           = met_cat_oof_plot$F1,
+  Precision    = met_cat_oof_plot$precision,
+  Recall       = met_cat_oof_plot$recall
+)
+test_vals_cat <- c(
+  AUC          = metriques_cat$AUC,
+  AUPRC        = round(pr_cat_test$auprc, 4),
+  Balanced_Acc = metriques_cat$balanced_accuracy,
+  F1           = metriques_cat$F1,
+  Precision    = metriques_cat$precision,
+  Recall       = metriques_cat$recall
+)
+df_comp_train_test_cat <- data.frame(
+  Metrica   = metriques_noms_ord_cat,
+  Train_OOF = round(train_vals_cat[metriques_noms_ord_cat], 4),
+  Test      = round(test_vals_cat[metriques_noms_ord_cat], 4),
+  stringsAsFactors = FALSE
+)
+df_comp_long_cat <- tidyr::pivot_longer(df_comp_train_test_cat,
+                                         cols = c(Train_OOF, Test),
+                                         names_to = "Conjunt", values_to = "Valor") %>%
+  mutate(Metrica = factor(Metrica, levels = metriques_noms_ord_cat))
 print(
-  ggplot(df_ov_long, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+  ggplot(df_comp_long_cat, aes(x = Metrica, y = Valor, fill = Conjunt)) +
     geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
     geom_text(aes(label = round(Valor, 2)),
               position = position_dodge(width = 0.65),
               vjust = -0.4, size = 3.5, fontface = "bold") +
     geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
-    scale_fill_manual(values = c("Train" = "#4A90B8", "Test" = "#E07B54")) +
+    scale_fill_manual(values = c("Train_OOF" = "#4A90B8", "Test" = "#E07B54")) +
     scale_y_continuous(limits = c(0, 1.05)) +
-    labs(title = "CatBoost — Train vs Test",
-         subtitle = sprintf("Llindar: %.4f | MIN_RECALL >= %.2f", thresh_final, MIN_RECALL),
+    labs(title = "CatBoost — Train (OOF) vs Test",
+         subtitle = sprintf("Threshold PR: %.3f | MIN_RECALL >= %.2f", thresh_final, MIN_RECALL),
          x = "", y = "Valor", fill = "Conjunt") +
     theme_minimal(base_size = 13) +
     theme(legend.position = "top",

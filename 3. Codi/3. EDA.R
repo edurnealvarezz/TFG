@@ -143,7 +143,7 @@ ggplot(df_v_long, aes(Var1, Var2, fill = value)) +
   labs(title = "Cramér's V entre variables categòriques",
        x = "", y = "") +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 12),
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 16),
         axis.text.y = element_text(size = 12))
 
 ##### --------- 1.2. SOLUCIÓ FREQÜÈNCIES ESPERADES < 5 --------- #####

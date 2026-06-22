@@ -352,6 +352,54 @@ met_knn_test <- calcular_metriques_knn(
 mostrar_metriques_knn(met_knn_train)
 mostrar_metriques_knn(met_knn_test)
 
+# Grafic: Train (OOF) vs Test per metrica
+pr_test_knn_plot <- seleccionar_llindar_pr(prob_test_cal, Y_test_knn, MIN_RECALL)
+metriques_noms_ord_knn <- c("AUC", "AUPRC", "Balanced_Acc", "F1", "Precision", "Recall")
+train_vals_knn <- c(
+  AUC          = met_knn_train$AUC,
+  AUPRC        = round(pr_oof$auprc, 4),
+  Balanced_Acc = met_knn_train$balanced_accuracy,
+  F1           = met_knn_train$F1,
+  Precision    = met_knn_train$precision,
+  Recall       = met_knn_train$recall
+)
+test_vals_knn <- c(
+  AUC          = met_knn_test$AUC,
+  AUPRC        = round(pr_test_knn_plot$auprc, 4),
+  Balanced_Acc = met_knn_test$balanced_accuracy,
+  F1           = met_knn_test$F1,
+  Precision    = met_knn_test$precision,
+  Recall       = met_knn_test$recall
+)
+df_comp_train_test_knn <- data.frame(
+  Metrica   = metriques_noms_ord_knn,
+  Train_OOF = round(train_vals_knn[metriques_noms_ord_knn], 4),
+  Test      = round(test_vals_knn[metriques_noms_ord_knn], 4),
+  stringsAsFactors = FALSE
+)
+df_comp_long_knn <- tidyr::pivot_longer(df_comp_train_test_knn,
+                                         cols = c(Train_OOF, Test),
+                                         names_to = "Conjunt", values_to = "Valor") %>%
+  mutate(Metrica = factor(Metrica, levels = metriques_noms_ord_knn))
+print(
+  ggplot(df_comp_long_knn, aes(x = Metrica, y = Valor, fill = Conjunt)) +
+    geom_col(position = position_dodge(width = 0.65), alpha = 0.85, width = 0.65) +
+    geom_text(aes(label = round(Valor, 2)),
+              position = position_dodge(width = 0.65),
+              vjust = -0.4, size = 3.5, fontface = "bold") +
+    geom_hline(yintercept = 0.5, linetype = "dashed", color = "grey50") +
+    scale_fill_manual(values = c("Train_OOF" = "#4A90B8", "Test" = "#E07B54")) +
+    scale_y_continuous(limits = c(0, 1.05)) +
+    labs(title = sprintf("KNN Fuzzy (k=%d) — Train (OOF) vs Test", k_optim),
+         subtitle = sprintf("Threshold PR: %.3f | MIN_RECALL >= %.2f", thresh_knn, MIN_RECALL),
+         x = "", y = "Valor", fill = "Conjunt") +
+    theme_minimal(base_size = 13) +
+    theme(legend.position = "top",
+          axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 12))
+)
+
 #### ============================================================ ####
 ####                          4. GUARDAR                          ####
 #### ============================================================ ####

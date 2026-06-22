@@ -19,7 +19,7 @@ COL_C2  <- "#E07B54"
 COL_REG <- "#27AE60"
 COL_IRR <- "#E74C3C"
 
-THRESH_RF <- 0.572
+THRESH_RF <- 0.5687   # thresh_pr_a RF-A: P(Regular) >= 0.5687 → Regular
 
 # ── Localitzar directori base del TFG ───────────────────────
 find_tfg_dir <- function() {
@@ -123,15 +123,26 @@ calcular_scores_efa <- function(fila) {
   })
 }
 
+# Variables RF-A (ha de coincidir amb vars_rfa del script 8. Random forest.R)
+vars_rfa <- c(
+  "MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
+  "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
+  "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI",
+  "IA_SUBST_num",
+  "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num",
+  "DOBLE_GRAU_EST", "TREB_INTENS", "DESPL", "N_ASSIG"
+)
+
 # ── Funcions de predicció ────────────────────────────────────
-pred_rf <- function(av) {
+pred_rf <- function(av_rf) {
   if (is.null(rf_model)) return(NULL)
-  x_df <- as.data.frame(matrix(av[vars_clust], nrow = 1,
-                                dimnames = list(NULL, vars_clust)))
+  x_df <- as.data.frame(as.list(av_rf))
   tryCatch({
     preds <- predict(rf_model, data = x_df)$predictions
     if (is.matrix(preds)) {
-      col_r <- grep("Regular", colnames(preds), fixed = FALSE)[1]
+      cn    <- colnames(preds)
+      col_r <- grep("Regular|^1$", cn)[1]   # "Regular" o "1" (Y=1=Regular en codificació numèrica)
+      if (is.na(col_r)) col_r <- 1          # fallback: primera columna
       prob  <- preds[1, col_r]
     } else prob <- as.numeric(preds[1])
     list(prob = round(as.numeric(prob), 4),
@@ -153,18 +164,19 @@ processar_batch <- function(df, mode = c("nou","antic")) {
       av <- setNames(as.numeric(unlist(df[i, vars_clust])), vars_clust)
 
       if (mode == "nou") {
-        # KNN fuzzy → P(Irregular)  |  LDA sobre u1 → classificació binària
-        knn_r    <- tryCatch(pred_knn(av), error = function(e) NULL)
-        u1_val   <- if (!is.null(knn_r)) knn_r$u1 else NA_real_
-        lda_pred <- if (!is.null(knn_r))
-          ifelse(u1_val >= THRESH_LDA_U1, "Regular", "Irregular")
+        # KNN fuzzy → P(Irregular)  |  llindar PR KNN → classificació binària
+        knn_r     <- tryCatch(pred_knn(av), error = function(e) NULL)
+        u1_val    <- if (!is.null(knn_r)) knn_r$u1 else NA_real_
+        p_irr_pct <- if (!is.null(knn_r))
+          round((1 - knn_r$prob_regular) * 100, 1) else NA_real_
+        knn_pred  <- if (!is.null(knn_r))
+          ifelse(p_irr_pct >= THRESH_KNN_IRR, "Irregular", "Regular")
         else NA_character_
 
         data.frame(
           Alumne          = if ("id" %in% names(df)) df[i, "id"] else i,
-          Prediccio       = lda_pred,
-          P_Irregular_pct = if (!is.null(knn_r))
-            round((1 - knn_r$prob_regular) * 100, 1) else NA_real_,
+          Prediccio       = knn_pred,
+          P_Irregular_pct = p_irr_pct,
           u1_pct  = if (!is.null(knn_r)) round(u1_val * 100, 1) else NA_real_,
           u2_pct  = if (!is.null(knn_r)) round(knn_r$u2 * 100, 1) else NA_real_,
           Cluster = if (!is.null(knn_r)) knn_r$cluster_dominant else NA_integer_,
@@ -172,10 +184,10 @@ processar_batch <- function(df, mode = c("nou","antic")) {
         )
 
       } else {
-        # RF-A → predicció  |  + scores EFA
-        rf_r     <- tryCatch(pred_rf(av), error = function(e) NULL)
-        fila_raw <- setNames(as.numeric(unlist(df[i, ])), names(df))
-        scores   <- calcular_scores_efa(fila_raw)
+        # RF-A: el CSV de la plantilla ja té els factor scores calculats
+        rfa_avail <- intersect(vars_rfa, names(df))
+        av_rf <- setNames(as.numeric(unlist(df[i, rfa_avail])), rfa_avail)
+        rf_r  <- tryCatch(pred_rf(av_rf), error = function(e) NULL)
 
         base <- data.frame(
           Alumne        = if ("id" %in% names(df)) df[i, "id"] else i,
@@ -183,7 +195,9 @@ processar_batch <- function(df, mode = c("nou","antic")) {
           P_Regular_pct = if (!is.null(rf_r)) round(rf_r$prob * 100, 1) else NA_real_,
           stringsAsFactors = FALSE
         )
-        for (nm in names(scores)) base[[nm]] <- scores[[nm]]
+        # Factor scores del CSV directament (per al gràfic EFA)
+        for (nm in intersect(names(efa_factors), names(df)))
+          base[[nm]] <- suppressWarnings(as.numeric(df[i, nm]))
         base
       }
     })
@@ -210,7 +224,7 @@ ui <- navbarPage(
                   placeholder = "Cap fitxer seleccionat"),
         tags$p(tags$em(
           "Dades pre-curs (sense enquesta). El model KNN fuzzy calcula P(Irregular)",
-          " i la classificació es fa via LDA sobre el grau de pertinença al Cluster 1 (u1)."
+          " i la classificació es fa per llindar PR del KNN sobre P(Irregular)."
         )),
         tags$details(style = "margin-bottom: 10px;",
           tags$summary("Columnes requerides (16)"),
@@ -230,6 +244,11 @@ ui <- navbarPage(
         uiOutput("nou_validacio"),
         uiOutput("nou_resum"),
         DT::dataTableOutput("nou_taula"),
+        tags$details(style = "margin-top:12px; margin-bottom:8px;",
+          tags$summary(style = "cursor:pointer; font-weight:bold; color:#666;",
+            "Comprova les variables computades pel model"),
+          DT::dataTableOutput("nou_vars_debug_dt")
+        ),
         plotOutput("nou_grafic", height = "260px")
       )
     )
@@ -274,6 +293,11 @@ ui <- navbarPage(
         uiOutput("antic_validacio"),
         uiOutput("antic_resum"),
         DT::dataTableOutput("antic_taula"),
+        tags$details(style = "margin-top:12px; margin-bottom:8px;",
+          tags$summary(style = "cursor:pointer; font-weight:bold; color:#666;",
+            "Comprova les variables computades pel model"),
+          DT::dataTableOutput("antic_vars_debug_dt")
+        ),
         tags$hr(),
         uiOutput("antic_efa_title"),
         plotOutput("antic_efa_grafic", height = "320px"),
@@ -334,13 +358,32 @@ server <- function(input, output, session) {
     processar_batch(df, mode = "nou")
   })
 
+  df_nou_prep <- eventReactive(input$btn_nou, {
+    req(df_nou(), DATA_OK)
+    preparar_df(df_nou())
+  })
+
+  output$nou_vars_debug_dt <- DT::renderDataTable({
+    df <- df_nou_prep()
+    raw_show  <- intersect(c("NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC"), names(df))
+    comp_show <- intersect(c("NOTA_num","T_AVAL_num","CURS_1R","GENERE_Home",
+                             "DOBLE_GRAU_EST","TREB_INTENS_num"), names(df))
+    id_col <- if ("id" %in% names(df)) df$id else seq_len(nrow(df))
+    out <- cbind(data.frame(Alumne = id_col),
+                 df[, raw_show, drop = FALSE],
+                 df[, comp_show, drop = FALSE])
+    DT::datatable(out, rownames = FALSE,
+      caption = "Variables raw → computades (entrada real al model)",
+      options = list(pageLength = 15, scrollX = TRUE, dom = "tip"))
+  })
+
   output$nou_resum <- renderUI({
     df <- res_nou(); if (is.null(df)) return(NULL)
     n <- nrow(df)
     n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
     tags$div(class = "alert alert-info", style = "margin-top:10px;",
       tags$strong(sprintf(
-        "%d alumnes analitzats | %d en risc irregular (%.1f%%) — classificació LDA (u1)",
+        "%d alumnes analitzats | %d en risc irregular (%.1f%%) — classificació KNN (llindar PR)",
         n, n_irr, n_irr / n * 100)))
   })
 
@@ -349,11 +392,13 @@ server <- function(input, output, session) {
     cols <- intersect(
       c("Alumne","Prediccio","P_Irregular_pct","u1_pct","u2_pct","Cluster"),
       names(df))
-    etq <- c("Alumne","Predicció (LDA)","P(Irregular)%",
+    etq <- c("Alumne","Predicció (KNN)","P(Irregular)%",
              "u1 Cluster 1 %","u2 Cluster 2 %","Cluster dom.")[seq_along(cols)]
-    DT::datatable(df[, cols], rownames = FALSE, colnames = etq,
+    df_show <- df[, cols, drop = FALSE]
+    names(df_show) <- etq
+    DT::datatable(df_show, rownames = FALSE,
                   options = list(pageLength = 15, scrollX = TRUE)) |>
-      DT::formatStyle("Prediccio",
+      DT::formatStyle("Predicció (KNN)",
         backgroundColor = DT::styleEqual(
           c("Regular","Irregular"), c("#d4edda","#f8d7da")))
   })
@@ -371,7 +416,7 @@ server <- function(input, output, session) {
         values = c("Regular" = COL_REG, "Irregular" = COL_IRR),
         na.value = "grey70", name = NULL) +
       labs(title = "Distribució de P(Irregular) — Alumnat nou (KNN fuzzy)",
-           subtitle = sprintf("Classificació per LDA (tall u1 = %.3f)", THRESH_LDA_U1),
+           subtitle = sprintf("Classificació per llindar KNN PR (tall P(Irregular) = %.0f%%)", THRESH_KNN_IRR),
            x = "P(Irregular) %", y = "Alumnes") +
       theme_minimal(base_size = 12) + theme(legend.position = "top")
   })
@@ -400,18 +445,24 @@ server <- function(input, output, session) {
       return(tags$div(class = "alert alert-danger",
         tags$strong("Variables pre-curs que falten: "),
         paste(manquen_raw, collapse = ", ")))
-    manquen_mot <- setdiff(items_mot, names(df))
-    manquen_est <- setdiff(items_est, names(df))
-    warns <- c(
-      if (length(manquen_mot) > 0) paste("Motius sense dades:", paste(manquen_mot, collapse=", ")),
-      if (length(manquen_est) > 0) paste("Estratègies sense dades:", paste(manquen_est, collapse=", "))
-    )
-    if (length(warns) > 0)
-      return(tags$div(class = "alert alert-warning",
-        tags$strong("Avís — factors parcials: "), tags$br(),
-        paste(warns, collapse = " | ")))
+    efa_noms     <- names(efa_factors)
+    efa_precalc  <- all(efa_noms %in% names(df))
+    if (!efa_precalc) {
+      manquen_mot <- setdiff(items_mot, names(df))
+      manquen_est <- setdiff(items_est, names(df))
+      warns <- c(
+        if (length(manquen_mot) > 0) paste("Motius sense dades:", paste(manquen_mot, collapse=", ")),
+        if (length(manquen_est) > 0) paste("Estratègies sense dades:", paste(manquen_est, collapse=", "))
+      )
+      if (length(warns) > 0)
+        return(tags$div(class = "alert alert-warning",
+          tags$strong("Avís — factors parcials: "), tags$br(),
+          paste(warns, collapse = " | ")))
+    }
     tags$div(class = "alert alert-success",
-      sprintf("✔  Fitxer vàlid: %d alumnes, %d columnes.", nrow(df), ncol(df)))
+      sprintf("✔  Fitxer vàlid: %d alumnes, %d columnes.%s",
+              nrow(df), ncol(df),
+              if (efa_precalc) " | Scores EFA precalculats detectats." else ""))
   })
 
   res_antic <- eventReactive(input$btn_antic, {
@@ -420,6 +471,29 @@ server <- function(input, output, session) {
     validate(need(length(setdiff(vars_clust, names(df))) == 0,
                   "Falten les variables pre-curs al CSV."))
     processar_batch(df, mode = "antic")
+  })
+
+  df_antic_prep <- eventReactive(input$btn_antic, {
+    req(df_antic(), DATA_OK)
+    preparar_df(df_antic())
+  })
+
+  output$antic_vars_debug_dt <- DT::renderDataTable({
+    df <- df_antic_prep()
+    raw_show  <- intersect(c("NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC"), names(df))
+    comp_show <- intersect(c("NOTA_num","T_AVAL_num","CURS_1R","GENERE_Home",
+                             "DOBLE_GRAU_EST","TREB_INTENS_num"), names(df))
+    efa_show  <- intersect(names(efa_factors), names(df))
+    id_col <- if ("id" %in% names(df)) df$id else seq_len(nrow(df))
+    out <- cbind(data.frame(Alumne = id_col),
+                 df[, raw_show, drop = FALSE],
+                 df[, comp_show, drop = FALSE],
+                 df[, efa_show, drop = FALSE])
+    dt <- DT::datatable(out, rownames = FALSE,
+      caption = "Variables raw → computades + scores EFA (entrada real al model)",
+      options = list(pageLength = 15, scrollX = TRUE, dom = "tip"))
+    if (length(efa_show) > 0) dt <- DT::formatRound(dt, efa_show, digits = 3)
+    dt
   })
 
   output$antic_resum <- renderUI({
@@ -439,12 +513,16 @@ server <- function(input, output, session) {
     cols_show <- c(base_cols, efa_cols)
     col_noms  <- c("Alumne","Predicció (RF-A)","P(Regular)%",
                    efa_labels[efa_cols])[seq_along(cols_show)]
-    DT::datatable(df[, cols_show], rownames = FALSE, colnames = col_noms,
-                  options = list(pageLength = 15, scrollX = TRUE)) |>
-      DT::formatStyle("Prediccio",
+    df_show <- df[, cols_show, drop = FALSE]
+    names(df_show) <- col_noms
+    dt <- DT::datatable(df_show, rownames = FALSE,
+                        options = list(pageLength = 15, scrollX = TRUE)) |>
+      DT::formatStyle("Predicció (RF-A)",
         backgroundColor = DT::styleEqual(
-          c("Regular","Irregular"), c("#d4edda","#f8d7da"))) |>
-      DT::formatRound(efa_cols, digits = 2)
+          c("Regular","Irregular"), c("#d4edda","#f8d7da")))
+    if (length(efa_cols) > 0)
+      dt <- DT::formatRound(dt, efa_labels[efa_cols], digits = 2)
+    dt
   })
 
   output$antic_efa_title <- renderUI({
