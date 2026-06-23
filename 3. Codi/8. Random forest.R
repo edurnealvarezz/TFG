@@ -33,8 +33,10 @@ dades_rf <- dades_def %>%
     Y = as.integer(GRUP_ASSIST == "Regular (≥80%)"), # creem variable resposta
     NOTA_num = as.numeric(NOTA),
     IA_SUBST_num = as.numeric(IA_SUBST),
+    IA_ATENC_num = as.numeric(IA_ATENC),
     T_AVAL_num = as.integer(T_AVAL == "Continuada"),
-    CURS_1R_num = as.integer(CURS_1R)
+    CURS_1R_num = as.integer(CURS_1R),
+    GENERE_Home = as.integer(GENERE == "Home")
   ) %>%
   filter(!is.na(Y))
 
@@ -44,13 +46,13 @@ vars_rfa <- c(
   # Significatives en el logit
   "MOT_DESMOTIVACIO", "MOT_FORCA_MAJOR",
   "EST_AVALUACIO_AC",
-  "IA_SUBST_num",
+  "IA_SUBST_num", "IA_ATENC_num",
   "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num",
   # Descartades pel logit pero potencialment rellevants
   "MOT_AUTOGESTIO", "DOBLE_GRAU_EST", "TREB_INTENS",
   "EST_QUALITAT_DOC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS",
   "IA_EINA_ESTUDI",
-  "DESPL", "N_ASSIG"
+  "DESPL", "N_ASSIG", "GENERE_Home"
 )
 
 # Predictors RF-B: Likert originals significatives (MW p<0.05) + categòriques

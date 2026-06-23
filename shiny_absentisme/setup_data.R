@@ -6,13 +6,13 @@ dir.create("shiny_absentisme/data", showWarnings = FALSE, recursive = TRUE)
 fitxers <- list(
   "2. Dades/fuzzy_clustering_model_complet.RData" =
     "shiny_absentisme/data/fuzzy_clustering_model_complet.RData",
-  "2. Dades/metriques_logit_pred.rds"  = "shiny_absentisme/data/metriques_logit_pred.rds",
-  "2. Dades/metriques_rf_a.rds"        = "shiny_absentisme/data/metriques_rf_a.rds",
-  "2. Dades/metriques_rf_b.rds"        = "shiny_absentisme/data/metriques_rf_b.rds",
-  "2. Dades/metriques_xgb.rds"         = "shiny_absentisme/data/metriques_xgb.rds",
-  "2. Dades/metriques_catboost.rds"    = "shiny_absentisme/data/metriques_catboost.rds",
-  "2. Dades/metriques_svm.rds"         = "shiny_absentisme/data/metriques_svm.rds",
-  "2. Dades/metriques_knn.rds"         = "shiny_absentisme/data/metriques_knn.rds"
+  "2. Dades/metriques_logit_pred.rds" = "shiny_absentisme/data/metriques_logit_pred.rds",
+  "2. Dades/metriques_rf_a.rds" = "shiny_absentisme/data/metriques_rf_a.rds",
+  "2. Dades/metriques_rf_b.rds" = "shiny_absentisme/data/metriques_rf_b.rds",
+  "2. Dades/metriques_xgb.rds" = "shiny_absentisme/data/metriques_xgb.rds",
+  "2. Dades/metriques_catboost.rds" = "shiny_absentisme/data/metriques_catboost.rds",
+  "2. Dades/metriques_svm.rds" = "shiny_absentisme/data/metriques_svm.rds",
+  "2. Dades/metriques_knn.rds" = "shiny_absentisme/data/metriques_knn.rds"
   # model_rf_a.rds: afegir quan el re-entreneu
 )
 

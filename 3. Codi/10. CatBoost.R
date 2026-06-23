@@ -46,16 +46,17 @@ dades_cat <- dades_def %>%
     IA_SUBST_num = as.numeric(IA_SUBST),
     IA_ATENC_num = as.numeric(IA_ATENC),
     T_AVAL_num = as.integer(T_AVAL == "Continuada"),
-    CURS_1R_num = as.integer(CURS_1R)
+    CURS_1R_num = as.integer(CURS_1R),
+    GENERE_Home = as.integer(GENERE == "Home")
   ) %>%
   filter(!is.na(Y))
 
-ia_vars <- c("IA_SUBST_num", "IA_ATENC_num", "IA_CONF_num")
+ia_vars <- c("IA_SUBST_num", "IA_ATENC_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
-             "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI", "IA_SUBSTITUCIO")
+             "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST", "TREB_INTENS")
-vars_pers <- c("EDAT", "DESPL")
+vars_pers <- c("EDAT", "DESPL", "GENERE_Home")
 
 predictors <- c(ia_vars, vars_fa, vars_acad, vars_pers)
 predictors <- predictors[predictors %in% names(dades_cat)]

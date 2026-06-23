@@ -143,7 +143,7 @@ ggplot(df_v_long, aes(Var1, Var2, fill = value)) +
   labs(title = "Cramér's V entre variables categòriques",
        x = "", y = "") +
   theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 16),
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, vjust = 1, size = 12),
         axis.text.y = element_text(size = 12))
 
 ##### --------- 1.2. SOLUCIÓ FREQÜÈNCIES ESPERADES < 5 --------- #####
@@ -288,6 +288,18 @@ df_resum_mc <- bind_rows(
 cat(sprintf("\nTotal parelles analitzades amb MC: %d\n", nrow(df_resum_mc)))
 cat(sprintf("Parelles amb canvi de significació: %d\n\n",
             sum(df_resum_mc$canvi != "sense canvi")))
+
+# Construir df_plot_mc per als gràfics comparatius
+df_plot_mc <- df_resum_mc %>%
+  pivot_longer(
+    cols      = c(p_valor, p_mc),
+    names_to  = "metode",
+    values_to = "p"
+  ) %>%
+  mutate(
+    metode       = ifelse(metode == "p_valor", "Chi² estàndard", "Monte Carlo"),
+    significatiu = p < 0.05
+  )
 
 # Gràfic comparatiu
 # Chi2 estándar

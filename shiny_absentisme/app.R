@@ -9,6 +9,7 @@ suppressPackageStartupMessages({
   library(shinythemes)
   library(dplyr)
   library(ggplot2)
+  library(plotly)
   library(DT)
   library(tidyr)
 })
@@ -198,6 +199,9 @@ processar_batch <- function(df, mode = c("nou","antic")) {
         # Factor scores del CSV directament (per al gràfic EFA)
         for (nm in intersect(names(efa_factors), names(df)))
           base[[nm]] <- suppressWarnings(as.numeric(df[i, nm]))
+        # Variables clau del model (per al gràfic de variables)
+        for (nm in c("IA_SUBST_num","T_AVAL_num","NOTA_num","TREB_INTENS","CURS_1R_num"))
+          if (nm %in% names(av_rf)) base[[nm]] <- as.numeric(av_rf[nm])
         base
       }
     })
@@ -245,11 +249,13 @@ ui <- navbarPage(
         uiOutput("nou_resum"),
         DT::dataTableOutput("nou_taula"),
         tags$details(style = "margin-top:12px; margin-bottom:8px;",
-          tags$summary(style = "cursor:pointer; font-weight:bold; color:#666;",
-            "Comprova les variables computades pel model"),
+          tags$summary("Comprova les variables computades pel model"),
           DT::dataTableOutput("nou_vars_debug_dt")
         ),
-        plotOutput("nou_grafic", height = "260px")
+        tags$details(style = "margin-top:8px; margin-bottom:8px;",
+          tags$summary("Veure gràfic de distribució"),
+          plotlyOutput("nou_grafic", height = "260px")
+        )
       )
     )
   ),
@@ -294,14 +300,17 @@ ui <- navbarPage(
         uiOutput("antic_resum"),
         DT::dataTableOutput("antic_taula"),
         tags$details(style = "margin-top:12px; margin-bottom:8px;",
-          tags$summary(style = "cursor:pointer; font-weight:bold; color:#666;",
-            "Comprova les variables computades pel model"),
+          tags$summary("Comprova les variables computades pel model"),
           DT::dataTableOutput("antic_vars_debug_dt")
         ),
-        tags$hr(),
-        uiOutput("antic_efa_title"),
-        plotOutput("antic_efa_grafic", height = "320px"),
-        uiOutput("antic_efa_peu")
+        tags$details(style = "margin-top:8px; margin-bottom:8px;",
+          tags$summary("Perfil EFA i variables clau del model"),
+          plotlyOutput("antic_efa_grafic",  height = "340px"),
+          tags$div(style = "margin-top:12px;",
+            plotlyOutput("antic_vars_grafic", height = "230px")
+          ),
+          uiOutput("antic_efa_peu")
+        )
       )
     )
   )
@@ -403,22 +412,39 @@ server <- function(input, output, session) {
           c("Regular","Irregular"), c("#d4edda","#f8d7da")))
   })
 
-  output$nou_grafic <- renderPlot({
+  output$nou_grafic <- renderPlotly({
     df <- req(res_nou())
-    ggplot(df, aes(x = P_Irregular_pct, fill = Prediccio)) +
-      geom_histogram(bins = 20, color = "white", alpha = 0.85) +
-      geom_vline(xintercept = THRESH_KNN_IRR, linetype = "dashed",
-                 color = "grey30", linewidth = 0.9) +
-      annotate("text", x = THRESH_KNN_IRR + 1, y = Inf,
-               label = sprintf("Llindar KNN %.0f%%", THRESH_KNN_IRR),
-               vjust = 2, hjust = 0, color = "grey30", size = 3.5) +
-      scale_fill_manual(
-        values = c("Regular" = COL_REG, "Irregular" = COL_IRR),
-        na.value = "grey70", name = NULL) +
-      labs(title = "Distribució de P(Irregular) — Alumnat nou (KNN fuzzy)",
-           subtitle = sprintf("Classificació per llindar KNN PR (tall P(Irregular) = %.0f%%)", THRESH_KNN_IRR),
-           x = "P(Irregular) %", y = "Alumnes") +
-      theme_minimal(base_size = 12) + theme(legend.position = "top")
+    df_reg <- df[!is.na(df$Prediccio) & df$Prediccio == "Regular", ]
+    df_irr <- df[!is.na(df$Prediccio) & df$Prediccio == "Irregular", ]
+    plot_ly() |>
+      add_histogram(data = df_reg, x = ~P_Irregular_pct, name = "Regular",
+                    nbinsx = 20, opacity = 0.85,
+                    marker = list(color = COL_REG,
+                                  line = list(color = "white", width = 1))) |>
+      add_histogram(data = df_irr, x = ~P_Irregular_pct, name = "Irregular",
+                    nbinsx = 20, opacity = 0.85,
+                    marker = list(color = COL_IRR,
+                                  line = list(color = "white", width = 1))) |>
+      layout(
+        barmode = "stack",
+        title   = list(text = "Probabilitat de ser irregular - alumnat nou\n",
+                       x = 0.05, font = list(size = 14)),
+        xaxis   = list(title = "P(Irregular) %"),
+        yaxis   = list(title = "Alumnes"),
+        legend  = list(orientation = "h", x = 0, y = 1.12),
+        shapes  = list(list(
+          type = "line",
+          x0 = THRESH_KNN_IRR, x1 = THRESH_KNN_IRR,
+          y0 = 0, y1 = 1, yref = "paper",
+          line = list(color = "grey40", width = 1.5, dash = "dash")
+        )),
+        annotations = list(list(
+          x = THRESH_KNN_IRR, y = 1, yref = "paper",
+          text = sprintf("Llindar KNN %.0f%%", THRESH_KNN_IRR),
+          showarrow = FALSE, xanchor = "left", yanchor = "top",
+          font = list(color = "grey40", size = 11)
+        ))
+      )
   })
 
   output$dl_nou <- downloadHandler(
@@ -525,36 +551,107 @@ server <- function(input, output, session) {
     dt
   })
 
-  output$antic_efa_title <- renderUI({
-    req(res_antic())
-    tags$h5("Perfil de factors EFA (mitjana del grup processat)")
-  })
-
-  output$antic_efa_grafic <- renderPlot({
+  output$antic_efa_grafic <- renderPlotly({
     df       <- req(res_antic())
     efa_cols <- intersect(names(efa_factors), names(df))
     if (length(efa_cols) == 0) return(NULL)
 
-    df_long <- df |>
+    df_means <- df |>
       select(Prediccio, all_of(efa_cols)) |>
       pivot_longer(all_of(efa_cols), names_to = "factor", values_to = "score") |>
-      filter(!is.na(score)) |>
+      filter(!is.na(score), !is.na(Prediccio)) |>
       group_by(factor, Prediccio) |>
-      summarise(m = mean(score, na.rm = TRUE), .groups = "drop") |>
-      mutate(etiqueta = factor(efa_labels[factor], levels = rev(efa_labels[efa_cols])))
+      summarise(m = round(mean(score, na.rm = TRUE), 2), .groups = "drop") |>
+      pivot_wider(names_from = Prediccio, values_from = m)
 
-    ggplot(df_long, aes(x = etiqueta, y = m, fill = Prediccio)) +
-      geom_col(position = position_dodge(0.65), width = 0.55, alpha = 0.85) +
-      coord_flip() +
-      scale_fill_manual(
-        values = c("Regular" = COL_REG, "Irregular" = COL_IRR),
-        na.value = "grey70", name = "Predicció") +
-      labs(title = "Puntuació mitjana dels factors EFA per grup",
-           subtitle = "Valors més alts = el factor afecta més l'alumne",
-           x = NULL, y = "Puntuació ponderada (escala Likert)") +
-      theme_minimal(base_size = 12) +
-      theme(legend.position = "top",
-            axis.text.y = element_text(size = 10))
+    if (!"Regular"   %in% names(df_means)) df_means$Regular   <- NA_real_
+    if (!"Irregular" %in% names(df_means)) df_means$Irregular <- NA_real_
+
+    df_diff <- df_means |>
+      mutate(
+        diff     = coalesce(Regular, 0) - coalesce(Irregular, 0),
+        etiqueta = factor(efa_labels[factor], levels = rev(efa_labels[efa_cols])),
+        col      = ifelse(diff >= 0, COL_REG, COL_IRR),
+        tip      = sprintf("%s<br>Regular: %.2f  |  Irregular: %.2f<br><b>R − I: %+.2f</b>",
+                           efa_labels[factor], coalesce(Regular, 0),
+                           coalesce(Irregular, 0), diff)
+      )
+
+    plot_ly(df_diff, y = ~etiqueta, x = ~diff, type = "bar", orientation = "h",
+            marker = list(color = df_diff$col), opacity = 0.85,
+            text = ~tip, hovertemplate = "%{text}<extra></extra>",
+            showlegend = FALSE) |>
+      layout(
+        title  = list(
+          text = paste0("Diferència de puntuació EFA (Regular − Irregular)<br>",
+                        "<span style='font-size:11px;color:", COL_REG,
+                        "'>█ Regular > Irregular</span>  ",
+                        "<span style='font-size:11px;color:", COL_IRR,
+                        "'>█ Irregular > Regular</span>"),
+          x = 0.02, font = list(size = 13)),
+        xaxis  = list(title = "Regular − Irregular",
+                      zeroline = TRUE, zerolinecolor = "#666", zerolinewidth = 1.5),
+        yaxis  = list(title = NULL, tickfont = list(size = 10)),
+        margin = list(l = 185, t = 80)
+      )
+  })
+
+  output$antic_vars_grafic <- renderPlotly({
+    df <- req(res_antic())
+    key_vars   <- c("IA_SUBST_num","T_AVAL_num","TREB_INTENS","CURS_1R_num","NOTA_num")
+    key_labels <- c(IA_SUBST_num = "IA com a substitut (%)",
+                    T_AVAL_num   = "Avaluació continuada (%)",
+                    TREB_INTENS  = "Treballa intensament (%)",
+                    CURS_1R_num  = "Primer curs (%)",
+                    NOTA_num     = "Nota (÷5 × 100)")
+    key_scale  <- c(IA_SUBST_num = 100, T_AVAL_num = 100,
+                    TREB_INTENS  = 100, CURS_1R_num = 100,
+                    NOTA_num     = 20)
+
+    avail <- intersect(key_vars, names(df))
+    if (length(avail) == 0) return(NULL)
+
+    df_means <- df |>
+      filter(!is.na(Prediccio)) |>
+      select(Prediccio, all_of(avail)) |>
+      pivot_longer(all_of(avail), names_to = "variable", values_to = "val") |>
+      filter(!is.na(val)) |>
+      group_by(variable, Prediccio) |>
+      summarise(m = mean(val, na.rm = TRUE), .groups = "drop") |>
+      mutate(m_scaled = m * key_scale[variable]) |>
+      pivot_wider(names_from = Prediccio, values_from = m_scaled)
+
+    if (!"Regular"   %in% names(df_means)) df_means$Regular   <- NA_real_
+    if (!"Irregular" %in% names(df_means)) df_means$Irregular <- NA_real_
+
+    df_diff <- df_means |>
+      mutate(
+        diff     = coalesce(Regular, 0) - coalesce(Irregular, 0),
+        etiqueta = factor(key_labels[variable], levels = rev(key_labels[avail])),
+        col      = ifelse(diff >= 0, COL_REG, COL_IRR),
+        tip      = sprintf("%s<br>Regular: %.1f  |  Irregular: %.1f<br><b>R − I: %+.1f pp</b>",
+                           key_labels[variable], coalesce(Regular, 0),
+                           coalesce(Irregular, 0), diff)
+      )
+
+    plot_ly(df_diff, y = ~etiqueta, x = ~diff, type = "bar", orientation = "h",
+            marker = list(color = df_diff$col), opacity = 0.85,
+            text = ~tip, hovertemplate = "%{text}<extra></extra>",
+            showlegend = FALSE) |>
+      layout(
+        title  = list(
+          text = paste0("Diferència de variables clau (Regular − Irregular)<br>",
+                        "<span style='font-size:11px;color:", COL_REG,
+                        "'>█ Regular > Irregular</span>  ",
+                        "<span style='font-size:11px;color:", COL_IRR,
+                        "'>█ Irregular > Regular</span>"),
+          x = 0.02, font = list(size = 13)),
+        xaxis  = list(title = "Regular − Irregular (punts %)",
+                      zeroline = TRUE, zerolinecolor = "#666", zerolinewidth = 1.5),
+        yaxis  = list(title = NULL),
+        margin = list(l = 185, t = 80),
+        showlegend = FALSE
+      )
   })
 
   output$antic_efa_peu <- renderUI({

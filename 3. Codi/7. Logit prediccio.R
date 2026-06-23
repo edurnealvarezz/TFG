@@ -55,9 +55,10 @@ cat("============== 1. BACKWARD AIC DES DEL MODEL COMPLET =============\n\n")
 mk_f <- function(...) as.formula(paste("Y ~", paste(c(...), collapse = " + ")))
 
 vars_fa_mot  <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR")
-vars_fa_est  <- c("EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS")
+vars_fa_est  <- c("EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS",
+                  "IA_EINA_ESTUDI")
 vars_cat_full <- c("T_AVAL", "CURS_1R", "GENERE", "DOBLE_GRAU_EST", "TREB_INTENS")
-vars_num_full <- c("EDAT", "DESPL", "NOTA_num")
+vars_num_full <- c("EDAT", "DESPL", "NOTA_num", "N_ASSIG")
 
 # Model complet SENSE interaccio (model final)
 formula_full <- mk_f(vars_fa_mot, vars_fa_est, vars_cat_full, vars_num_full,

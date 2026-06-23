@@ -20,7 +20,7 @@ PROP_MOT     | N respostes: 115 | N missing: 227 | Mitjana paraules: 33.0
 Pregunta:  Experiència d'una assignatura que t'hagi interessat/agradat 
 
 Paraules úniques (sense stopwords, lemmatitzades): 721 
-Total ocurrències: 1390 
+Total ocurrències: 1389 
 
 Top 30 paraules més freqüents (EXP_POS):
 # A tibble: 30 × 2
@@ -51,11 +51,11 @@ Top 30 paraules més freqüents (EXP_POS):
 23 profe             6
 24 contabilidad      5
 25 continúa          5
-26 cordero           5
-27 derecho           5
-28 docente           5
-29 dudas             5
-30 economía          5
+26 derecho           5
+27 docente           5
+28 dudas             5
+29 economía          5
+30 evaluacion        5
 
 Top bigrams (EXP_POS):
 # A tibble: 15 × 2
@@ -81,7 +81,7 @@ Topics LDA (EXP_POS, k=3):
   Distribució de respostes per tema LDA (k=3):
 
             T1: Docència\nparticipativa T2: Qualitat explicativa\ndel professor 
-                                     50                                      40 
+                                     52                                      38 
            T3: Metodologia i\navaluació 
                                      40 
 

@@ -30,3 +30,23 @@ table.dataTable thead { background-color: #2c3e50; color: white; }
 
 /* ── Sidebar ─────────────────────────────────────────── */
 .well { background-color: #f8f9fa; border: 1px solid #dee2e6; box-shadow: none; }
+
+/* ── Desplegables <details> ──────────────────────────── */
+details > summary {
+  list-style: none;       /* amaga el triangle natiu del navegador */
+  cursor: pointer;
+  font-weight: bold;
+  color: #666;
+  user-select: none;
+}
+details > summary::-webkit-details-marker { display: none; } /* Chrome/Safari */
+details > summary::before {
+  content: "▶  ";
+  font-size: 0.85em;
+  color: #888;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+details[open] > summary::before {
+  content: "▼  ";
+}

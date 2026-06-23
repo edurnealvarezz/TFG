@@ -40,17 +40,18 @@ dades_svm <- dades_def %>%
  T_AVAL_num = as.integer(T_AVAL == "Continuada"),
  CURS_1R_num = as.integer(CURS_1R),
  TREB_INTENS_num = as.integer(TREB_INTENS),
- DOBLE_GRAU_EST_num = as.integer(DOBLE_GRAU_EST)
+ DOBLE_GRAU_EST_num = as.integer(DOBLE_GRAU_EST),
+ GENERE_Home = as.integer(GENERE == "Home")
  ) %>%
  filter(!is.na(Y))
 
 
-ia_vars <- c("IA_SUBST_num", "IA_ATENC_num", "IA_CONF_num")
+ia_vars <- c("IA_SUBST_num", "IA_ATENC_num")
 vars_fa <- c("MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
              "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
              "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI")
 vars_acad <- c("NOTA_num", "T_AVAL_num", "CURS_1R_num", "N_ASSIG","DOBLE_GRAU_EST_num")
-vars_pers <- c("EDAT", "DESPL", "TREB_INTENS_num")
+vars_pers <- c("EDAT", "DESPL", "TREB_INTENS_num", "GENERE_Home")
 
 
 predictors <- c(ia_vars, vars_fa, vars_acad, vars_pers)

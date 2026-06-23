@@ -6,454 +6,503 @@ Train = 274 obs | Test = 68 obs
 ============== 1. BACKWARD AIC DES DEL MODEL COMPLET =============
 
 --- Backward AIC model SENSE interaccio (model final) ---
-Start:  AIC=313.55
+Start:  AIC=314.52
 Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
     EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
-    T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST + TREB_INTENS + 
-    EDAT + DESPL + NOTA_num + IA_SUBST_num + IA_ATENC_num
-
-                    Df Deviance    AIC
-- GENERE             3   275.32 309.33
-- DESPL              1   273.63 311.63
-- EST_TEMPS_CLASSE   1   273.64 311.64
-- EST_QUALITAT_DOC   1   273.84 311.84
-- IA_ATENC_num       1   273.88 311.88
-- EST_GRUPS_REDUITS  1   273.97 311.97
-- MOT_AUTOGESTIO     1   274.04 312.04
-- TREB_INTENS        1   275.42 313.42
-<none>                   273.55 313.55
-- DOBLE_GRAU_EST     1   276.11 314.11
-- MOT_DESMOTIVACIO   1   276.82 314.82
-- EDAT               1   277.35 315.35
-- MOT_FORCA_MAJOR    1   277.60 315.60
-- IA_SUBST_num       1   280.08 318.08
-- T_AVAL             1   281.05 319.05
-- CURS_1R            1   281.07 319.07
-- EST_AVALUACIO_AC   1   281.52 319.52
-- NOTA_num           1   284.21 322.21
-
-Step:  AIC=309.33
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
-    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    DESPL + NOTA_num + IA_SUBST_num + IA_ATENC_num
-
-                    Df Deviance    AIC
-- DESPL              1   275.35 307.35
-- EST_TEMPS_CLASSE   1   275.59 307.59
-- IA_ATENC_num       1   275.65 307.65
-- EST_QUALITAT_DOC   1   275.73 307.73
-- MOT_AUTOGESTIO     1   275.76 307.76
-- EST_GRUPS_REDUITS  1   276.05 308.05
-<none>                   275.32 309.33
-- TREB_INTENS        1   277.46 309.46
-- DOBLE_GRAU_EST     1   277.76 309.76
-- MOT_FORCA_MAJOR    1   278.86 310.86
-- MOT_DESMOTIVACIO   1   278.94 310.94
-- EDAT               1   280.26 312.26
-- IA_SUBST_num       1   282.39 314.39
-- CURS_1R            1   282.42 314.42
-- T_AVAL             1   283.14 315.14
-- EST_AVALUACIO_AC   1   283.29 315.29
-- NOTA_num           1   285.63 317.63
-
-Step:  AIC=307.35
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
-    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    NOTA_num + IA_SUBST_num + IA_ATENC_num
-
-                    Df Deviance    AIC
-- EST_TEMPS_CLASSE   1   275.59 305.59
-- IA_ATENC_num       1   275.71 305.71
-- EST_QUALITAT_DOC   1   275.76 305.76
-- MOT_AUTOGESTIO     1   275.81 305.81
-- EST_GRUPS_REDUITS  1   276.08 306.08
-<none>                   275.35 307.35
-- TREB_INTENS        1   277.50 307.50
-- DOBLE_GRAU_EST     1   277.78 307.78
-- MOT_FORCA_MAJOR    1   278.86 308.86
-- MOT_DESMOTIVACIO   1   278.97 308.97
-- EDAT               1   280.47 310.47
-- IA_SUBST_num       1   282.41 312.41
-- CURS_1R            1   282.43 312.43
-- T_AVAL             1   283.21 313.21
-- EST_AVALUACIO_AC   1   283.29 313.29
-- NOTA_num           1   285.95 315.95
-
-Step:  AIC=305.59
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
-    EST_AVALUACIO_AC + EST_GRUPS_REDUITS + T_AVAL + CURS_1R + 
-    DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + IA_SUBST_num + 
+    IA_EINA_ESTUDI + T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST + 
+    TREB_INTENS + EDAT + DESPL + NOTA_num + N_ASSIG + IA_SUBST_num + 
     IA_ATENC_num
 
                     Df Deviance    AIC
-- IA_ATENC_num       1   276.02 304.02
-- MOT_AUTOGESTIO     1   276.06 304.06
-- EST_GRUPS_REDUITS  1   276.12 304.12
-- EST_QUALITAT_DOC   1   276.25 304.25
-<none>                   275.59 305.59
-- TREB_INTENS        1   277.73 305.73
-- DOBLE_GRAU_EST     1   277.95 305.95
-- MOT_FORCA_MAJOR    1   278.88 306.88
-- MOT_DESMOTIVACIO   1   279.32 307.32
-- EDAT               1   280.54 308.54
-- CURS_1R            1   282.43 310.43
-- IA_SUBST_num       1   282.77 310.77
-- T_AVAL             1   283.23 311.23
-- EST_AVALUACIO_AC   1   283.56 311.56
-- NOTA_num           1   286.24 314.24
+- GENERE             3   271.37 309.37
+- EST_TEMPS_CLASSE   1   270.54 312.54
+- IA_EINA_ESTUDI     1   270.56 312.56
+- DESPL              1   270.68 312.68
+- MOT_AUTOGESTIO     1   270.81 312.81
+- EST_GRUPS_REDUITS  1   270.84 312.84
+- IA_ATENC_num       1   270.87 312.87
+- EST_QUALITAT_DOC   1   270.91 312.91
+<none>                   270.52 314.52
+- N_ASSIG            1   273.46 315.46
+- TREB_INTENS        1   273.48 315.48
+- DOBLE_GRAU_EST     1   274.32 316.32
+- MOT_DESMOTIVACIO   1   274.63 316.63
+- MOT_FORCA_MAJOR    1   274.85 316.85
+- IA_SUBST_num       1   274.91 316.91
+- EDAT               1   275.81 317.81
+- CURS_1R            1   277.82 319.82
+- T_AVAL             1   278.09 320.09
+- EST_AVALUACIO_AC   1   279.32 321.32
+- NOTA_num           1   281.06 323.06
 
-Step:  AIC=304.02
+Step:  AIC=309.37
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
+    IA_EINA_ESTUDI + T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + 
+    EDAT + DESPL + NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num
+
+                    Df Deviance    AIC
+- IA_EINA_ESTUDI     1   271.38 307.38
+- EST_TEMPS_CLASSE   1   271.42 307.42
+- DESPL              1   271.47 307.47
+- MOT_AUTOGESTIO     1   271.62 307.62
+- IA_ATENC_num       1   271.77 307.77
+- EST_GRUPS_REDUITS  1   271.86 307.86
+- EST_QUALITAT_DOC   1   271.91 307.91
+<none>                   271.37 309.37
+- TREB_INTENS        1   274.77 310.77
+- N_ASSIG            1   275.30 311.30
+- DOBLE_GRAU_EST     1   275.32 311.32
+- MOT_FORCA_MAJOR    1   275.41 311.41
+- MOT_DESMOTIVACIO   1   275.90 311.90
+- IA_SUBST_num       1   276.12 312.12
+- EDAT               1   277.88 313.88
+- CURS_1R            1   278.37 314.37
+- T_AVAL             1   279.15 315.15
+- EST_AVALUACIO_AC   1   280.34 316.34
+- NOTA_num           1   281.74 317.74
+
+Step:  AIC=307.38
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
+    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
+    DESPL + NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num
+
+                    Df Deviance    AIC
+- EST_TEMPS_CLASSE   1   271.43 305.43
+- DESPL              1   271.48 305.48
+- MOT_AUTOGESTIO     1   271.63 305.63
+- EST_GRUPS_REDUITS  1   271.87 305.87
+- IA_ATENC_num       1   271.88 305.88
+- EST_QUALITAT_DOC   1   271.93 305.93
+<none>                   271.38 307.38
+- TREB_INTENS        1   274.81 308.81
+- N_ASSIG            1   275.32 309.32
+- DOBLE_GRAU_EST     1   275.36 309.36
+- MOT_FORCA_MAJOR    1   275.45 309.45
+- MOT_DESMOTIVACIO   1   275.91 309.91
+- IA_SUBST_num       1   276.94 310.94
+- EDAT               1   278.10 312.10
+- CURS_1R            1   278.39 312.39
+- T_AVAL             1   279.18 313.18
+- EST_AVALUACIO_AC   1   280.34 314.34
+- NOTA_num           1   281.76 315.76
+
+Step:  AIC=305.43
 Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
     EST_AVALUACIO_AC + EST_GRUPS_REDUITS + T_AVAL + CURS_1R + 
-    DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + IA_SUBST_num
+    DOBLE_GRAU_EST + TREB_INTENS + EDAT + DESPL + NOTA_num + 
+    N_ASSIG + IA_SUBST_num + IA_ATENC_num
 
                     Df Deviance    AIC
-- EST_QUALITAT_DOC   1   276.55 302.55
-- EST_GRUPS_REDUITS  1   276.56 302.56
-- MOT_AUTOGESTIO     1   276.64 302.64
-- TREB_INTENS        1   277.90 303.90
-<none>                   276.02 304.02
-- DOBLE_GRAU_EST     1   278.40 304.40
-- MOT_FORCA_MAJOR    1   279.52 305.52
-- MOT_DESMOTIVACIO   1   279.74 305.74
-- EDAT               1   280.99 306.99
-- CURS_1R            1   282.71 308.71
-- T_AVAL             1   283.52 309.52
-- EST_AVALUACIO_AC   1   283.59 309.59
-- NOTA_num           1   286.96 312.96
-- IA_SUBST_num       1   289.17 315.17
+- DESPL              1   271.51 303.51
+- MOT_AUTOGESTIO     1   271.69 303.69
+- EST_GRUPS_REDUITS  1   271.87 303.87
+- IA_ATENC_num       1   271.98 303.98
+- EST_QUALITAT_DOC   1   272.13 304.13
+<none>                   271.43 305.43
+- TREB_INTENS        1   274.88 306.88
+- DOBLE_GRAU_EST     1   275.40 307.40
+- MOT_FORCA_MAJOR    1   275.47 307.47
+- N_ASSIG            1   275.59 307.59
+- MOT_DESMOTIVACIO   1   276.06 308.06
+- IA_SUBST_num       1   277.04 309.04
+- EDAT               1   278.12 310.12
+- CURS_1R            1   278.55 310.55
+- T_AVAL             1   279.19 311.19
+- EST_AVALUACIO_AC   1   280.40 312.40
+- NOTA_num           1   281.91 313.91
 
-Step:  AIC=302.55
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+Step:  AIC=303.51
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_GRUPS_REDUITS + T_AVAL + CURS_1R + 
+    DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + N_ASSIG + 
+    IA_SUBST_num + IA_ATENC_num
+
+                    Df Deviance    AIC
+- MOT_AUTOGESTIO     1   271.80 301.80
+- EST_GRUPS_REDUITS  1   271.99 301.99
+- IA_ATENC_num       1   272.12 302.12
+- EST_QUALITAT_DOC   1   272.19 302.19
+<none>                   271.51 303.51
+- TREB_INTENS        1   274.95 304.95
+- DOBLE_GRAU_EST     1   275.44 305.44
+- MOT_FORCA_MAJOR    1   275.49 305.49
+- N_ASSIG            1   275.59 305.59
+- MOT_DESMOTIVACIO   1   276.11 306.11
+- IA_SUBST_num       1   277.10 307.10
+- EDAT               1   278.47 308.47
+- CURS_1R            1   278.56 308.56
+- T_AVAL             1   279.38 309.38
+- EST_AVALUACIO_AC   1   280.41 310.41
+- NOTA_num           1   282.42 312.42
+
+Step:  AIC=301.8
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + EST_AVALUACIO_AC + 
     EST_GRUPS_REDUITS + T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + 
-    EDAT + NOTA_num + IA_SUBST_num
+    EDAT + NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num
 
                     Df Deviance    AIC
-- EST_GRUPS_REDUITS  1   276.87 300.87
-- MOT_AUTOGESTIO     1   277.31 301.31
-- TREB_INTENS        1   278.27 302.27
-<none>                   276.55 302.55
-- DOBLE_GRAU_EST     1   278.88 302.88
-- MOT_DESMOTIVACIO   1   280.06 304.06
-- MOT_FORCA_MAJOR    1   280.26 304.26
-- EDAT               1   281.47 305.47
-- CURS_1R            1   283.12 307.12
-- EST_AVALUACIO_AC   1   283.63 307.63
-- T_AVAL             1   283.96 307.96
-- NOTA_num           1   287.78 311.78
-- IA_SUBST_num       1   289.45 313.45
+- EST_GRUPS_REDUITS  1   272.31 300.31
+- IA_ATENC_num       1   272.56 300.56
+- EST_QUALITAT_DOC   1   272.61 300.61
+<none>                   271.80 301.80
+- TREB_INTENS        1   275.39 303.39
+- DOBLE_GRAU_EST     1   275.51 303.51
+- MOT_FORCA_MAJOR    1   275.71 303.71
+- N_ASSIG            1   276.06 304.06
+- IA_SUBST_num       1   277.57 305.57
+- EDAT               1   278.48 306.48
+- CURS_1R            1   279.41 307.41
+- T_AVAL             1   279.78 307.78
+- EST_AVALUACIO_AC   1   281.13 309.13
+- MOT_DESMOTIVACIO   1   281.48 309.48
+- NOTA_num           1   282.51 310.51
 
-Step:  AIC=300.87
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
+Step:  AIC=300.31
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + EST_AVALUACIO_AC + 
     T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    NOTA_num + IA_SUBST_num
+    NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num
 
                    Df Deviance    AIC
-- MOT_AUTOGESTIO    1   277.62 299.62
-- TREB_INTENS       1   278.67 300.67
-<none>                  276.87 300.87
-- DOBLE_GRAU_EST    1   279.37 301.37
-- MOT_DESMOTIVACIO  1   280.15 302.15
-- MOT_FORCA_MAJOR   1   280.66 302.66
-- EDAT              1   281.77 303.77
-- CURS_1R           1   283.19 305.19
-- T_AVAL            1   284.29 306.29
-- NOTA_num          1   288.50 310.50
-- IA_SUBST_num      1   289.53 311.53
-- EST_AVALUACIO_AC  1   290.33 312.33
+- EST_QUALITAT_DOC  1   272.85 298.85
+- IA_ATENC_num      1   273.08 299.08
+<none>                  272.31 300.31
+- TREB_INTENS       1   276.01 302.01
+- DOBLE_GRAU_EST    1   276.28 302.28
+- MOT_FORCA_MAJOR   1   276.38 302.38
+- N_ASSIG           1   276.63 302.63
+- IA_SUBST_num      1   277.93 303.93
+- EDAT              1   279.01 305.01
+- CURS_1R           1   279.55 305.55
+- T_AVAL            1   280.25 306.25
+- MOT_DESMOTIVACIO  1   281.51 307.51
+- NOTA_num          1   283.55 309.55
+- EST_AVALUACIO_AC  1   286.51 312.51
 
-Step:  AIC=299.62
+Step:  AIC=298.85
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + T_AVAL + 
     CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + 
-    IA_SUBST_num
+    N_ASSIG + IA_SUBST_num + IA_ATENC_num
 
                    Df Deviance    AIC
-- TREB_INTENS       1   279.47 299.47
-<none>                  277.62 299.62
-- DOBLE_GRAU_EST    1   279.76 299.76
-- MOT_FORCA_MAJOR   1   281.35 301.35
-- EDAT              1   281.98 301.98
-- CURS_1R           1   284.64 304.64
-- T_AVAL            1   285.19 305.19
-- MOT_DESMOTIVACIO  1   286.45 306.45
-- NOTA_num          1   288.97 308.97
-- EST_AVALUACIO_AC  1   291.62 311.62
-- IA_SUBST_num      1   291.82 311.82
+- IA_ATENC_num      1   273.49 297.49
+<none>                  272.85 298.85
+- TREB_INTENS       1   276.32 300.32
+- DOBLE_GRAU_EST    1   276.68 300.68
+- MOT_FORCA_MAJOR   1   277.15 301.15
+- N_ASSIG           1   277.16 301.16
+- IA_SUBST_num      1   278.81 302.81
+- EDAT              1   279.44 303.44
+- CURS_1R           1   280.16 304.16
+- T_AVAL            1   280.76 304.76
+- MOT_DESMOTIVACIO  1   282.29 306.29
+- NOTA_num          1   284.34 308.34
+- EST_AVALUACIO_AC  1   288.57 312.57
 
-Step:  AIC=299.47
+Step:  AIC=297.49
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + T_AVAL + 
-    CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num
+    CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + 
+    N_ASSIG + IA_SUBST_num
 
                    Df Deviance    AIC
-<none>                  279.47 299.47
-- DOBLE_GRAU_EST    1   281.96 299.96
-- MOT_FORCA_MAJOR   1   283.69 301.69
-- EDAT              1   284.48 302.48
-- T_AVAL            1   286.70 304.70
-- CURS_1R           1   287.37 305.37
-- MOT_DESMOTIVACIO  1   288.19 306.19
-- NOTA_num          1   289.99 307.99
-- EST_AVALUACIO_AC  1   293.23 311.23
-- IA_SUBST_num      1   293.68 311.68
+<none>                  273.49 297.49
+- TREB_INTENS       1   276.59 298.59
+- DOBLE_GRAU_EST    1   277.23 299.23
+- N_ASSIG           1   277.62 299.62
+- MOT_FORCA_MAJOR   1   278.04 300.04
+- EDAT              1   279.97 301.97
+- CURS_1R           1   280.64 302.64
+- T_AVAL            1   281.26 303.26
+- MOT_DESMOTIVACIO  1   283.50 305.50
+- NOTA_num          1   285.24 307.24
+- IA_SUBST_num      1   285.43 307.43
+- EST_AVALUACIO_AC  1   288.71 310.71
 
-AIC final (sense interaccio): 299.47 | n params: 10
+AIC final (sense interaccio): 297.49 | n params: 12
 Formula:
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + T_AVAL + 
-    CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num
-<environment: 0x0000018ef42076d0>
+    CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + 
+    N_ASSIG + IA_SUBST_num
+<environment: 0x000002dd8d348bd8>
 
 
 Call:
 glm(formula = Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num, 
-    family = binomial, data = dades_train)
+    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
+    NOTA_num + N_ASSIG + IA_SUBST_num, family = binomial, data = dades_train)
 
 Coefficients:
                  Estimate Std. Error z value Pr(>|z|)    
-(Intercept)      -1.25262    0.92199  -1.359 0.174272    
-MOT_DESMOTIVACIO -0.53294    0.18434  -2.891 0.003840 ** 
-MOT_FORCA_MAJOR   0.30517    0.14953   2.041 0.041270 *  
-EST_AVALUACIO_AC  0.61552    0.17105   3.598 0.000320 ***
-T_AVALContinuada  1.76310    0.72530   2.431 0.015064 *  
-CURS_1R           1.00146    0.36776   2.723 0.006467 ** 
-DOBLE_GRAU_EST    0.51214    0.32743   1.564 0.117785    
-EDAT             -0.03871    0.01635  -2.368 0.017902 *  
-NOTA_num          0.56990    0.18245   3.124 0.001786 ** 
-IA_SUBST_num     -0.37579    0.10241  -3.669 0.000243 ***
+(Intercept)       0.07883    1.12502   0.070 0.944140    
+MOT_DESMOTIVACIO -0.57953    0.18788  -3.085 0.002039 ** 
+MOT_FORCA_MAJOR   0.32370    0.15300   2.116 0.034371 *  
+EST_AVALUACIO_AC  0.65736    0.17476   3.761 0.000169 ***
+T_AVALContinuada  1.83361    0.72374   2.534 0.011292 *  
+CURS_1R           0.97694    0.37569   2.600 0.009311 ** 
+DOBLE_GRAU_EST    0.65825    0.34491   1.908 0.056334 .  
+TREB_INTENS      -0.57142    0.32682  -1.748 0.080390 .  
+EDAT             -0.04613    0.01743  -2.646 0.008145 ** 
+NOTA_num          0.61571    0.18692   3.294 0.000988 ***
+N_ASSIG          -0.12546    0.06291  -1.994 0.046117 *  
+IA_SUBST_num     -0.35290    0.10455  -3.376 0.000737 ***
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 (Dispersion parameter for binomial family taken to be 1)
 
     Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 279.47  on 264  degrees of freedom
-AIC: 299.47
+Residual deviance: 273.49  on 262  degrees of freedom
+AIC: 297.49
 
 Number of Fisher Scoring iterations: 5
 
 
 --- Backward AIC model AMB interaccio MOT_DESMOTIVACIO x CURS_1R (comparatiu) ---
-Start:  AIC=305.15
+Start:  AIC=306.01
 Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
     EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
-    T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST + TREB_INTENS + 
-    EDAT + DESPL + NOTA_num + IA_SUBST_num + IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
+    IA_EINA_ESTUDI + T_AVAL + CURS_1R + GENERE + DOBLE_GRAU_EST + 
+    TREB_INTENS + EDAT + DESPL + NOTA_num + N_ASSIG + IA_SUBST_num + 
+    IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-- GENERE                    3   264.78 300.78
-- DESPL                     1   263.44 303.44
-- IA_ATENC_num              1   263.58 303.58
-- EST_TEMPS_CLASSE          1   263.60 303.60
-- EST_GRUPS_REDUITS         1   264.11 304.11
-- MOT_AUTOGESTIO            1   264.18 304.18
-- TREB_INTENS               1   264.62 304.62
-- EST_QUALITAT_DOC          1   264.63 304.63
-<none>                          263.15 305.15
-- DOBLE_GRAU_EST            1   265.50 305.50
-- MOT_FORCA_MAJOR           1   266.87 306.87
-- EDAT                      1   267.29 307.29
-- IA_SUBST_num              1   269.64 309.64
-- T_AVAL                    1   269.97 309.97
-- EST_AVALUACIO_AC          1   270.80 310.80
-- NOTA_num                  1   273.17 313.17
-- MOT_DESMOTIVACIO:CURS_1R  1   273.55 313.55
+- GENERE                    3   260.69 300.69
+- IA_EINA_ESTUDI            1   260.02 304.02
+- EST_TEMPS_CLASSE          1   260.26 304.26
+- DESPL                     1   260.40 304.40
+- IA_ATENC_num              1   260.62 304.62
+- MOT_AUTOGESTIO            1   260.77 304.77
+- EST_GRUPS_REDUITS         1   260.91 304.91
+- EST_QUALITAT_DOC          1   261.85 305.85
+<none>                          260.00 306.00
+- TREB_INTENS               1   262.61 306.61
+- N_ASSIG                   1   263.15 307.15
+- DOBLE_GRAU_EST            1   263.53 307.53
+- MOT_FORCA_MAJOR           1   263.95 307.95
+- IA_SUBST_num              1   264.63 308.63
+- EDAT                      1   265.58 309.58
+- T_AVAL                    1   266.96 310.96
+- EST_AVALUACIO_AC          1   268.36 312.36
+- NOTA_num                  1   270.15 314.15
+- MOT_DESMOTIVACIO:CURS_1R  1   270.52 314.52
 
-Step:  AIC=300.78
+Step:  AIC=300.69
 Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
     EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    DESPL + NOTA_num + IA_SUBST_num + IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
+    IA_EINA_ESTUDI + T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + 
+    EDAT + DESPL + NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num + 
+    MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-- DESPL                     1   264.99 298.99
-- IA_ATENC_num              1   265.21 299.21
-- EST_TEMPS_CLASSE          1   265.54 299.54
-- MOT_AUTOGESTIO            1   265.70 299.70
-- EST_GRUPS_REDUITS         1   266.10 300.10
-- TREB_INTENS               1   266.47 300.47
-- EST_QUALITAT_DOC          1   266.53 300.53
-<none>                          264.78 300.78
-- DOBLE_GRAU_EST            1   267.20 301.20
-- MOT_FORCA_MAJOR           1   267.97 301.97
-- EDAT                      1   270.03 304.03
-- IA_SUBST_num              1   271.94 305.94
-- T_AVAL                    1   271.97 305.97
-- EST_AVALUACIO_AC          1   272.64 306.64
-- NOTA_num                  1   274.39 308.39
-- MOT_DESMOTIVACIO:CURS_1R  1   275.32 309.32
+- IA_EINA_ESTUDI            1   260.73 298.73
+- EST_TEMPS_CLASSE          1   261.04 299.04
+- DESPL                     1   261.04 299.04
+- IA_ATENC_num              1   261.36 299.36
+- MOT_AUTOGESTIO            1   261.40 299.40
+- EST_GRUPS_REDUITS         1   261.80 299.80
+<none>                          260.69 300.69
+- EST_QUALITAT_DOC          1   262.81 300.81
+- TREB_INTENS               1   263.66 301.66
+- MOT_FORCA_MAJOR           1   264.34 302.34
+- DOBLE_GRAU_EST            1   264.55 302.55
+- N_ASSIG                   1   264.77 302.77
+- IA_SUBST_num              1   265.66 303.66
+- EDAT                      1   267.27 305.27
+- T_AVAL                    1   267.88 305.88
+- EST_AVALUACIO_AC          1   269.31 307.31
+- NOTA_num                  1   270.61 308.61
+- MOT_DESMOTIVACIO:CURS_1R  1   271.37 309.37
 
-Step:  AIC=298.99
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
-    EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    NOTA_num + IA_SUBST_num + IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
-
-                           Df Deviance    AIC
-- IA_ATENC_num              1   265.52 297.52
-- EST_TEMPS_CLASSE          1   265.63 297.63
-- MOT_AUTOGESTIO            1   265.99 297.99
-- EST_GRUPS_REDUITS         1   266.35 298.35
-- TREB_INTENS               1   266.71 298.71
-- EST_QUALITAT_DOC          1   266.75 298.75
-<none>                          264.99 298.99
-- DOBLE_GRAU_EST            1   267.42 299.42
-- MOT_FORCA_MAJOR           1   268.07 300.07
-- EDAT                      1   270.60 302.60
-- IA_SUBST_num              1   272.16 304.16
-- T_AVAL                    1   272.33 304.33
-- EST_AVALUACIO_AC          1   272.75 304.75
-- NOTA_num                  1   275.07 307.07
-- MOT_DESMOTIVACIO:CURS_1R  1   275.35 307.35
-
-Step:  AIC=297.52
+Step:  AIC=298.73
 Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
     EST_AVALUACIO_AC + EST_TEMPS_CLASSE + EST_GRUPS_REDUITS + 
     T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    NOTA_num + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R
+    DESPL + NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num + 
+    MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-- EST_TEMPS_CLASSE          1   266.29 296.29
-- MOT_AUTOGESTIO            1   266.75 296.75
-- EST_GRUPS_REDUITS         1   266.93 296.93
-- TREB_INTENS               1   266.98 296.98
-- EST_QUALITAT_DOC          1   267.01 297.01
-<none>                          265.52 297.52
-- DOBLE_GRAU_EST            1   267.98 297.98
-- MOT_FORCA_MAJOR           1   268.86 298.86
-- EDAT                      1   271.21 301.21
-- T_AVAL                    1   272.74 302.74
-- EST_AVALUACIO_AC          1   272.84 302.84
-- MOT_DESMOTIVACIO:CURS_1R  1   275.71 305.71
-- NOTA_num                  1   275.90 305.90
-- IA_SUBST_num              1   278.79 308.79
+- EST_TEMPS_CLASSE          1   261.06 297.06
+- DESPL                     1   261.08 297.08
+- IA_ATENC_num              1   261.37 297.37
+- MOT_AUTOGESTIO            1   261.42 297.42
+- EST_GRUPS_REDUITS         1   261.82 297.82
+<none>                          260.73 298.73
+- EST_QUALITAT_DOC          1   262.82 298.82
+- TREB_INTENS               1   263.66 299.66
+- MOT_FORCA_MAJOR           1   264.34 300.34
+- DOBLE_GRAU_EST            1   264.56 300.56
+- N_ASSIG                   1   264.78 300.78
+- IA_SUBST_num              1   266.04 302.04
+- EDAT                      1   267.73 303.73
+- T_AVAL                    1   267.89 303.89
+- EST_AVALUACIO_AC          1   269.37 305.37
+- NOTA_num                  1   270.63 306.63
+- MOT_DESMOTIVACIO:CURS_1R  1   271.38 307.38
 
-Step:  AIC=296.29
+Step:  AIC=297.06
 Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
     EST_AVALUACIO_AC + EST_GRUPS_REDUITS + T_AVAL + CURS_1R + 
-    DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + IA_SUBST_num + 
+    DOBLE_GRAU_EST + TREB_INTENS + EDAT + DESPL + NOTA_num + 
+    N_ASSIG + IA_SUBST_num + IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
+
+                           Df Deviance    AIC
+- DESPL                     1   261.31 295.31
+- MOT_AUTOGESTIO            1   261.73 295.73
+- IA_ATENC_num              1   261.85 295.85
+- EST_GRUPS_REDUITS         1   261.88 295.88
+<none>                          261.06 297.06
+- EST_QUALITAT_DOC          1   263.72 297.72
+- TREB_INTENS               1   264.05 298.05
+- MOT_FORCA_MAJOR           1   264.39 298.39
+- DOBLE_GRAU_EST            1   264.88 298.88
+- N_ASSIG                   1   265.54 299.54
+- IA_SUBST_num              1   266.49 300.49
+- T_AVAL                    1   267.96 301.96
+- EDAT                      1   267.98 301.98
+- EST_AVALUACIO_AC          1   269.61 303.61
+- NOTA_num                  1   271.15 305.15
+- MOT_DESMOTIVACIO:CURS_1R  1   271.43 305.43
+
+Step:  AIC=295.31
+Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
+    EST_AVALUACIO_AC + EST_GRUPS_REDUITS + T_AVAL + CURS_1R + 
+    DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + N_ASSIG + 
+    IA_SUBST_num + IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
+
+                           Df Deviance    AIC
+- MOT_AUTOGESTIO            1   262.07 294.07
+- IA_ATENC_num              1   262.20 294.20
+- EST_GRUPS_REDUITS         1   262.22 294.22
+<none>                          261.31 295.31
+- EST_QUALITAT_DOC          1   263.90 295.90
+- TREB_INTENS               1   264.30 296.30
+- MOT_FORCA_MAJOR           1   264.53 296.53
+- DOBLE_GRAU_EST            1   265.10 297.10
+- N_ASSIG                   1   265.63 297.63
+- IA_SUBST_num              1   266.73 298.73
+- T_AVAL                    1   268.41 300.41
+- EDAT                      1   268.63 300.63
+- EST_AVALUACIO_AC          1   269.74 301.74
+- MOT_DESMOTIVACIO:CURS_1R  1   271.51 303.51
+- NOTA_num                  1   271.91 303.91
+
+Step:  AIC=294.07
+Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + EST_AVALUACIO_AC + 
+    EST_GRUPS_REDUITS + T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + 
+    EDAT + NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num + 
     MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-- EST_GRUPS_REDUITS         1   267.17 295.17
-- MOT_AUTOGESTIO            1   267.56 295.56
-- TREB_INTENS               1   267.69 295.69
-<none>                          266.29 296.29
-- EST_QUALITAT_DOC          1   268.42 296.42
-- DOBLE_GRAU_EST            1   268.62 296.62
-- MOT_FORCA_MAJOR           1   269.14 297.14
-- EDAT                      1   271.66 299.66
-- T_AVAL                    1   273.03 301.03
-- EST_AVALUACIO_AC          1   273.44 301.44
-- MOT_DESMOTIVACIO:CURS_1R  1   276.02 304.02
-- NOTA_num                  1   276.84 304.84
-- IA_SUBST_num              1   280.28 308.28
+- EST_GRUPS_REDUITS         1   262.98 292.98
+- IA_ATENC_num              1   263.25 293.25
+<none>                          262.07 294.07
+- EST_QUALITAT_DOC          1   264.96 294.96
+- MOT_FORCA_MAJOR           1   265.23 295.23
+- TREB_INTENS               1   265.26 295.26
+- DOBLE_GRAU_EST            1   265.48 295.48
+- N_ASSIG                   1   266.63 296.63
+- IA_SUBST_num              1   267.76 297.76
+- EDAT                      1   268.84 298.84
+- T_AVAL                    1   269.40 299.40
+- EST_AVALUACIO_AC          1   271.26 301.26
+- MOT_DESMOTIVACIO:CURS_1R  1   271.80 301.80
+- NOTA_num                  1   272.25 302.25
 
-Step:  AIC=295.17
-Y ~ MOT_DESMOTIVACIO + MOT_AUTOGESTIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + 
-    EST_AVALUACIO_AC + T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + 
-    EDAT + NOTA_num + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R
-
-                           Df Deviance    AIC
-- MOT_AUTOGESTIO            1   268.43 294.43
-- TREB_INTENS               1   268.65 294.65
-- EST_QUALITAT_DOC          1   268.74 294.74
-<none>                          267.17 295.17
-- DOBLE_GRAU_EST            1   269.67 295.67
-- MOT_FORCA_MAJOR           1   270.21 296.21
-- EDAT                      1   272.53 298.53
-- T_AVAL                    1   273.86 299.86
-- MOT_DESMOTIVACIO:CURS_1R  1   276.56 302.56
-- NOTA_num                  1   278.44 304.44
-- EST_AVALUACIO_AC          1   279.25 305.25
-- IA_SUBST_num              1   280.66 306.66
-
-Step:  AIC=294.43
+Step:  AIC=292.98
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + EST_AVALUACIO_AC + 
     T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
-    NOTA_num + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R
+    NOTA_num + N_ASSIG + IA_SUBST_num + IA_ATENC_num + MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-- TREB_INTENS               1   269.95 293.95
-- EST_QUALITAT_DOC          1   270.26 294.26
-<none>                          268.43 294.43
-- DOBLE_GRAU_EST            1   270.47 294.47
-- MOT_FORCA_MAJOR           1   271.39 295.39
-- EDAT                      1   273.05 297.05
-- T_AVAL                    1   275.35 299.35
-- MOT_DESMOTIVACIO:CURS_1R  1   277.21 301.21
-- NOTA_num                  1   279.21 303.21
-- EST_AVALUACIO_AC          1   281.57 305.57
-- IA_SUBST_num              1   283.88 307.88
+- IA_ATENC_num              1   264.15 292.15
+<none>                          262.98 292.98
+- EST_QUALITAT_DOC          1   265.21 293.21
+- TREB_INTENS               1   266.27 294.27
+- MOT_FORCA_MAJOR           1   266.40 294.40
+- DOBLE_GRAU_EST            1   266.64 294.64
+- N_ASSIG                   1   267.52 295.52
+- IA_SUBST_num              1   268.52 296.52
+- EDAT                      1   269.76 297.76
+- T_AVAL                    1   270.19 298.19
+- MOT_DESMOTIVACIO:CURS_1R  1   272.31 300.31
+- NOTA_num                  1   273.84 301.84
+- EST_AVALUACIO_AC          1   278.03 306.03
 
-Step:  AIC=293.95
+Step:  AIC=292.15
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_QUALITAT_DOC + EST_AVALUACIO_AC + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num + 
-    MOT_DESMOTIVACIO:CURS_1R
+    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
+    NOTA_num + N_ASSIG + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-- EST_QUALITAT_DOC          1   271.55 293.55
-<none>                          269.95 293.95
-- DOBLE_GRAU_EST            1   272.22 294.22
-- MOT_FORCA_MAJOR           1   273.25 295.25
-- EDAT                      1   275.35 297.35
-- T_AVAL                    1   276.65 298.65
-- MOT_DESMOTIVACIO:CURS_1R  1   279.21 301.21
-- NOTA_num                  1   280.09 302.09
-- EST_AVALUACIO_AC          1   282.62 304.62
-- IA_SUBST_num              1   285.50 307.50
+- EST_QUALITAT_DOC          1   266.01 292.01
+<none>                          264.15 292.15
+- TREB_INTENS               1   266.88 292.88
+- DOBLE_GRAU_EST            1   267.65 293.65
+- MOT_FORCA_MAJOR           1   267.83 293.83
+- N_ASSIG                   1   268.43 294.43
+- EDAT                      1   270.78 296.78
+- T_AVAL                    1   271.16 297.16
+- MOT_DESMOTIVACIO:CURS_1R  1   273.08 299.08
+- NOTA_num                  1   275.42 301.42
+- IA_SUBST_num              1   276.76 302.76
+- EST_AVALUACIO_AC          1   278.22 304.22
 
-Step:  AIC=293.55
+Step:  AIC=292.01
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + T_AVAL + 
-    CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num + 
-    MOT_DESMOTIVACIO:CURS_1R
+    CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + 
+    N_ASSIG + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R
 
                            Df Deviance    AIC
-<none>                          271.55 293.55
-- DOBLE_GRAU_EST            1   273.66 293.66
-- MOT_FORCA_MAJOR           1   275.25 295.25
-- EDAT                      1   276.70 296.70
-- T_AVAL                    1   278.25 298.25
-- MOT_DESMOTIVACIO:CURS_1R  1   279.47 299.47
-- NOTA_num                  1   281.92 301.92
-- EST_AVALUACIO_AC          1   283.19 303.19
-- IA_SUBST_num              1   286.79 306.79
+<none>                          266.01 292.01
+- TREB_INTENS               1   268.45 292.45
+- DOBLE_GRAU_EST            1   269.36 293.36
+- MOT_FORCA_MAJOR           1   270.22 294.22
+- N_ASSIG                   1   270.26 294.26
+- EDAT                      1   272.46 296.46
+- T_AVAL                    1   273.11 297.11
+- MOT_DESMOTIVACIO:CURS_1R  1   273.49 297.49
+- NOTA_num                  1   277.59 301.59
+- IA_SUBST_num              1   278.62 302.62
+- EST_AVALUACIO_AC          1   278.79 302.79
 
-AIC final (amb interaccio): 293.55 | n params: 11
+AIC final (amb interaccio): 292.01 | n params: 13
 Formula:
 Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + T_AVAL + 
-    CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num + 
-    MOT_DESMOTIVACIO:CURS_1R
-<environment: 0x0000018eedd87bd8>
+    CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + NOTA_num + 
+    N_ASSIG + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R
+<environment: 0x000002dd88bbb708>
 
 
 Call:
 glm(formula = Y ~ MOT_DESMOTIVACIO + MOT_FORCA_MAJOR + EST_AVALUACIO_AC + 
-    T_AVAL + CURS_1R + DOBLE_GRAU_EST + EDAT + NOTA_num + IA_SUBST_num + 
-    MOT_DESMOTIVACIO:CURS_1R, family = binomial, data = dades_train)
+    T_AVAL + CURS_1R + DOBLE_GRAU_EST + TREB_INTENS + EDAT + 
+    NOTA_num + N_ASSIG + IA_SUBST_num + MOT_DESMOTIVACIO:CURS_1R, 
+    family = binomial, data = dades_train)
 
 Coefficients:
                          Estimate Std. Error z value Pr(>|z|)    
-(Intercept)              -1.08968    0.93243  -1.169 0.242548    
-MOT_DESMOTIVACIO         -0.78641    0.21437  -3.668 0.000244 ***
-MOT_FORCA_MAJOR           0.29329    0.15312   1.915 0.055431 .  
-EST_AVALUACIO_AC          0.55650    0.16889   3.295 0.000984 ***
-T_AVALContinuada          1.70781    0.71895   2.375 0.017529 *  
-CURS_1R                   1.04498    0.36856   2.835 0.004578 ** 
-DOBLE_GRAU_EST            0.47732    0.33061   1.444 0.148809    
-EDAT                     -0.03951    0.01657  -2.385 0.017081 *  
-NOTA_num                  0.57174    0.18399   3.108 0.001887 ** 
-IA_SUBST_num             -0.39897    0.10543  -3.784 0.000154 ***
-MOT_DESMOTIVACIO:CURS_1R  1.05023    0.37904   2.771 0.005593 ** 
+(Intercept)               0.24156    1.15258   0.210 0.833991    
+MOT_DESMOTIVACIO         -0.83315    0.21889  -3.806 0.000141 ***
+MOT_FORCA_MAJOR           0.31821    0.15630   2.036 0.041760 *  
+EST_AVALUACIO_AC          0.59065    0.17184   3.437 0.000588 ***
+T_AVALContinuada          1.79156    0.73227   2.447 0.014422 *  
+CURS_1R                   0.98849    0.37628   2.627 0.008614 ** 
+DOBLE_GRAU_EST            0.63224    0.35054   1.804 0.071292 .  
+TREB_INTENS              -0.52385    0.33723  -1.553 0.120332    
+EDAT                     -0.04743    0.01845  -2.571 0.010131 *  
+NOTA_num                  0.61864    0.18938   3.267 0.001088 ** 
+N_ASSIG                  -0.12976    0.06443  -2.014 0.044005 *  
+IA_SUBST_num             -0.37029    0.10709  -3.458 0.000545 ***
+MOT_DESMOTIVACIO:CURS_1R  1.02793    0.38175   2.693 0.007088 ** 
 ---
 Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 (Dispersion parameter for binomial family taken to be 1)
 
     Null deviance: 376.10  on 273  degrees of freedom
-Residual deviance: 271.55  on 263  degrees of freedom
-AIC: 293.55
+Residual deviance: 266.01  on 261  degrees of freedom
+AIC: 292.01
 
 Number of Fisher Scoring iterations: 5
 
@@ -463,46 +512,46 @@ Number of Fisher Scoring iterations: 5
 Repeated 5×10-fold CV:
 
       Metrica Mitjana     SD IC_2.5 IC_97.5
-          AUC  0.7932 0.0839 0.6090  0.9485
-        AUPRC  0.8203 0.1036 0.5738  0.9775
-    Precision  0.8309 0.1189 0.5909  1.0000
-       Recall  0.7230 0.0960 0.6000  0.9333
-           F1  0.7668 0.0810 0.6242  0.9078
- Balanced_Acc  0.7671 0.0794 0.5968  0.9120
+          AUC  0.7950 0.0820 0.6283  0.9540
+        AUPRC  0.8189 0.1055 0.5740  0.9784
+    Precision  0.8445 0.1129 0.5880  1.0000
+       Recall  0.7124 0.0835 0.6035  0.9071
+           F1  0.7663 0.0649 0.6482  0.9014
+ Balanced_Acc  0.7715 0.0669 0.6188  0.9104
 
-Threshold OOF: 0.6617 | recall_ok (>=0.60): SI
+Threshold OOF: 0.6437 | recall_ok (>=0.60): SI
 
 === 3. MÈTRIQUES TRAIN (CV) vs TEST ===
 
       Metrica Train_CV   Test    Diff Flag
-          AUC   0.7932 0.8329  0.0397     
-        AUPRC   0.8203 0.8914  0.0711     
- Balanced_Acc   0.7671 0.7435 -0.0236     
-           F1   0.7668 0.6970 -0.0698  (!)
-    Precision   0.8309 0.9200  0.0891     
-       Recall   0.7230 0.5610 -0.1620  (!)
+          AUC   0.7950 0.8356  0.0406     
+        AUPRC   0.8189 0.8938  0.0749     
+ Balanced_Acc   0.7715 0.7498 -0.0217     
+           F1   0.7663 0.6875 -0.0788  (!)
+    Precision   0.8445 0.9565  0.1120     
+       Recall   0.7124 0.5366 -0.1758  (!)
 
 --- Matriu de confusió (test) ---
-Llindar aplicat: 0.6617 (OOF PR, recall >= 0.60)
+Llindar aplicat: 0.6437 (OOF PR, recall >= 0.60)
 
               Predit
 Observat       Irregular(0) Regular(1)
-  Irregular(0)           25          2
-  Regular(1)             18         23
+  Irregular(0)           26          1
+  Regular(1)             19         22
 
-  Precision (PPV): 0.9200 | Recall (Sens): 0.5610 | F1: 0.6970
+  Precision (PPV): 0.9565 | Recall (Sens): 0.5366 | F1: 0.6875
 
 -> metriques_logit_pred.rds i model_logit_pred.rds guardats
 
 === 3b. MODEL AMB INTERACCIO MOT_DESMOTIVACIO x CURS_1R (test) ===
 
-Threshold PR-train (interaccio): 0.7185 | recall_ok: SI
+Threshold PR-train (interaccio): 0.7390 | recall_ok: SI
 
 Comparacio models sense/amb interaccio (test):
-                        Model Threshold    AUC Recall Precision    F1 Bal_Acc
-     Sense interaccio (final)    0.6617 0.8329 0.5610      0.92 0.697  0.7435
- Amb interaccio MOT x CURS_1R    0.7185 0.8473 0.4634      0.95 0.623  0.7132
+                        Model Threshold    AUC Recall Precision     F1 Bal_Acc
+     Sense interaccio (final)    0.6437 0.8356 0.5366    0.9565 0.6875  0.7498
+ Amb interaccio MOT x CURS_1R    0.7390 0.8365 0.3659    0.9375 0.5263  0.6644
 -> metriques_logit_pred_interaccio.rds guardat
 
-Threshold aplicat: 0.6617 (OOF PR, recall >= 0.60)
+Threshold aplicat: 0.6437 (OOF PR, recall >= 0.60)
 
