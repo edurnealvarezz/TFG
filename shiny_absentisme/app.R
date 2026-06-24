@@ -109,6 +109,8 @@ preparar_df <- function(df) {
   df$GENERE_Home     <- as.integer(!is.na(df$GENERE) & df$GENERE == "Home")
   df$DOBLE_GRAU_EST  <- as.integer(!is.na(df$GRAU)   & df$GRAU   %in% grau_doble_vals)
   df$TREB_INTENS_num <- as.integer(!is.na(df$DEDIC)  & df$DEDIC  %in% c("T.Parcial","T.Complet"))
+  if ("IA_ATENC" %in% names(df))
+    df$IA_ATENC_num  <- suppressWarnings(as.numeric(df$IA_ATENC))
   df
 }
 
@@ -126,12 +128,14 @@ calcular_scores_efa <- function(fila) {
 
 # Variables RF-A (ha de coincidir amb vars_rfa del script 8. Random forest.R)
 vars_rfa <- c(
-  "MOT_DESMOTIVACIO", "MOT_AUTOGESTIO", "MOT_FORCA_MAJOR",
-  "EST_QUALITAT_DOC", "EST_AVALUACIO_AC", "EST_TEMPS_CLASSE",
-  "EST_GRUPS_REDUITS", "IA_EINA_ESTUDI",
-  "IA_SUBST_num",
+  "MOT_DESMOTIVACIO", "MOT_FORCA_MAJOR",
+  "EST_AVALUACIO_AC",
+  "IA_SUBST_num", "IA_ATENC_num",
   "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num",
-  "DOBLE_GRAU_EST", "TREB_INTENS", "DESPL", "N_ASSIG"
+  "MOT_AUTOGESTIO", "DOBLE_GRAU_EST", "TREB_INTENS",
+  "EST_QUALITAT_DOC", "EST_TEMPS_CLASSE", "EST_GRUPS_REDUITS",
+  "IA_EINA_ESTUDI",
+  "DESPL", "N_ASSIG", "GENERE_Home"
 )
 
 # ── Funcions de predicció ────────────────────────────────────
@@ -213,7 +217,16 @@ processar_batch <- function(df, mode = c("nou","antic")) {
 ui <- navbarPage(
   "Absentisme Universitari — TFG FEE/UB",
   theme       = shinythemes::shinytheme("flatly"),
-  header      = tags$head(tags$link(rel = "stylesheet", href = "custom.css")),
+  header      = tags$head(
+    tags$link(rel = "stylesheet", href = "custom.css"),
+    tags$script(HTML(
+      "document.addEventListener('toggle', function(e) {",
+      "  if (e.target.tagName === 'DETAILS' && e.target.open) {",
+      "    setTimeout(function() { window.dispatchEvent(new Event('resize')); }, 80);",
+      "  }",
+      "}, true);"
+    ))
+  ),
   collapsible = TRUE,
 
   # ════════════════════════════════════════════════════════════
@@ -444,7 +457,8 @@ server <- function(input, output, session) {
           showarrow = FALSE, xanchor = "left", yanchor = "top",
           font = list(color = "grey40", size = 11)
         ))
-      )
+      ) |>
+      config(responsive = TRUE)
   })
 
   output$dl_nou <- downloadHandler(
@@ -556,26 +570,32 @@ server <- function(input, output, session) {
     efa_cols <- intersect(names(efa_factors), names(df))
     if (length(efa_cols) == 0) return(NULL)
 
-    df_means <- df |>
+    df_long <- df |>
       select(Prediccio, all_of(efa_cols)) |>
-      pivot_longer(all_of(efa_cols), names_to = "factor", values_to = "score") |>
+      pivot_longer(all_of(efa_cols), names_to = "fac", values_to = "score") |>
       filter(!is.na(score), !is.na(Prediccio)) |>
-      group_by(factor, Prediccio) |>
-      summarise(m = round(mean(score, na.rm = TRUE), 2), .groups = "drop") |>
-      pivot_wider(names_from = Prediccio, values_from = m)
+      group_by(fac, Prediccio) |>
+      summarise(m = round(mean(score, na.rm = TRUE), 2), .groups = "drop")
 
-    if (!"Regular"   %in% names(df_means)) df_means$Regular   <- NA_real_
-    if (!"Irregular" %in% names(df_means)) df_means$Irregular <- NA_real_
+    # Lookup fora de mutate per evitar problemes de NSE dplyr amb vectors nomenats
+    rows_r <- df_long[df_long$Prediccio == "Regular",   ]
+    rows_i <- df_long[df_long$Prediccio == "Irregular", ]
+    m_r    <- setNames(rows_r$m, rows_r$fac)
+    m_i    <- setNames(rows_i$m, rows_i$fac)
 
-    df_diff <- df_means |>
-      mutate(
-        diff     = coalesce(Regular, 0) - coalesce(Irregular, 0),
-        etiqueta = factor(efa_labels[factor], levels = rev(efa_labels[efa_cols])),
-        col      = ifelse(diff >= 0, COL_REG, COL_IRR),
-        tip      = sprintf("%s<br>Regular: %.2f  |  Irregular: %.2f<br><b>R − I: %+.2f</b>",
-                           efa_labels[factor], coalesce(Regular, 0),
-                           coalesce(Irregular, 0), diff)
-      )
+    mr_v  <- sapply(efa_cols, function(v) if (v %in% names(m_r)) m_r[[v]] else 0)
+    mi_v  <- sapply(efa_cols, function(v) if (v %in% names(m_i)) m_i[[v]] else 0)
+    dv    <- mr_v - mi_v
+    lbl   <- unname(efa_labels[efa_cols])
+
+    df_diff <- data.frame(
+      etiqueta = factor(lbl, levels = rev(lbl)),
+      diff     = dv,
+      col      = ifelse(dv >= 0, COL_REG, COL_IRR),
+      tip      = sprintf("%s<br>Regular: %.2f  |  Irregular: %.2f<br><b>R − I: %+.2f</b>",
+                         lbl, mr_v, mi_v, dv),
+      stringsAsFactors = FALSE
+    )
 
     plot_ly(df_diff, y = ~etiqueta, x = ~diff, type = "bar", orientation = "h",
             marker = list(color = df_diff$col), opacity = 0.85,
@@ -593,7 +613,8 @@ server <- function(input, output, session) {
                       zeroline = TRUE, zerolinecolor = "#666", zerolinewidth = 1.5),
         yaxis  = list(title = NULL, tickfont = list(size = 10)),
         margin = list(l = 185, t = 80)
-      )
+      ) |>
+      config(responsive = TRUE)
   })
 
   output$antic_vars_grafic <- renderPlotly({
@@ -611,31 +632,38 @@ server <- function(input, output, session) {
     avail <- intersect(key_vars, names(df))
     if (length(avail) == 0) return(NULL)
 
-    df_means <- df |>
+    df_long2 <- df |>
       filter(!is.na(Prediccio)) |>
       select(Prediccio, all_of(avail)) |>
       pivot_longer(all_of(avail), names_to = "variable", values_to = "val") |>
       filter(!is.na(val)) |>
       group_by(variable, Prediccio) |>
-      summarise(m = mean(val, na.rm = TRUE), .groups = "drop") |>
-      mutate(m_scaled = m * key_scale[variable]) |>
-      pivot_wider(names_from = Prediccio, values_from = m_scaled)
+      summarise(m = mean(val, na.rm = TRUE), .groups = "drop")
 
-    if (!"Regular"   %in% names(df_means)) df_means$Regular   <- NA_real_
-    if (!"Irregular" %in% names(df_means)) df_means$Irregular <- NA_real_
+    # Lookup + escalat fora de mutate per evitar problemes NSE
+    rows_r2 <- df_long2[df_long2$Prediccio == "Regular",   ]
+    rows_i2 <- df_long2[df_long2$Prediccio == "Irregular", ]
+    m_r2    <- setNames(rows_r2$m, rows_r2$variable)
+    m_i2    <- setNames(rows_i2$m, rows_i2$variable)
 
-    df_diff <- df_means |>
-      mutate(
-        diff     = coalesce(Regular, 0) - coalesce(Irregular, 0),
-        etiqueta = factor(key_labels[variable], levels = rev(key_labels[avail])),
-        col      = ifelse(diff >= 0, COL_REG, COL_IRR),
-        tip      = sprintf("%s<br>Regular: %.1f  |  Irregular: %.1f<br><b>R − I: %+.1f pp</b>",
-                           key_labels[variable], coalesce(Regular, 0),
-                           coalesce(Irregular, 0), diff)
-      )
+    mr_v2 <- sapply(avail, function(v)
+      (if (v %in% names(m_r2)) m_r2[[v]] else 0) * key_scale[[v]])
+    mi_v2 <- sapply(avail, function(v)
+      (if (v %in% names(m_i2)) m_i2[[v]] else 0) * key_scale[[v]])
+    dv2   <- mr_v2 - mi_v2
+    lbl2  <- unname(key_labels[avail])
 
-    plot_ly(df_diff, y = ~etiqueta, x = ~diff, type = "bar", orientation = "h",
-            marker = list(color = df_diff$col), opacity = 0.85,
+    df_diff2 <- data.frame(
+      etiqueta = factor(lbl2, levels = rev(lbl2)),
+      diff     = dv2,
+      col      = ifelse(dv2 >= 0, COL_REG, COL_IRR),
+      tip      = sprintf("%s<br>Regular: %.1f  |  Irregular: %.1f<br><b>R − I: %+.1f pp</b>",
+                         lbl2, mr_v2, mi_v2, dv2),
+      stringsAsFactors = FALSE
+    )
+
+    plot_ly(df_diff2, y = ~etiqueta, x = ~diff, type = "bar", orientation = "h",
+            marker = list(color = df_diff2$col), opacity = 0.85,
             text = ~tip, hovertemplate = "%{text}<extra></extra>",
             showlegend = FALSE) |>
       layout(
@@ -651,7 +679,8 @@ server <- function(input, output, session) {
         yaxis  = list(title = NULL),
         margin = list(l = 185, t = 80),
         showlegend = FALSE
-      )
+      ) |>
+      config(responsive = TRUE)
   })
 
   output$antic_efa_peu <- renderUI({

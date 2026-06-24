@@ -8,9 +8,12 @@
 set.seed(42)
 n <- 10
 
+gen_id <- function(n) formatC(sample(10000000:99999999, n), width = 8, flag = "0")
+
 # ── 1. Alumnat NOU (columnes RAW — el Shiny les transforma internament) ────
 # Columnes: vars_nou_raw del Shiny (NOTA=1-5 numèric, T_AVAL/CURS/GENERE/GRAU/DEDIC text)
 nou <- data.frame(
+  id      = gen_id(n),
   EDAT    = c(21, 19, 23, 22, 20, 24, 21, 19, 25, 22),
   DESPL   = c(25, 10, 45,  0, 30, 60, 15, 20, 90,  5),
   N_ASSIG = c( 5,  6,  4,  5,  6,  3,  5,  6,  4,  5),
@@ -49,6 +52,7 @@ antic <- data.frame(
   # ── Alumnes 11-20: perfil IRREGULAR ──────────────────────────
 
   # Bloc raw (vars_nou_raw)
+  id      = gen_id(20),
   EDAT    = c(19, 20, 21, 22, 20, 19, 23, 21, 20, 22,
               24, 27, 23, 26, 28, 25, 24, 23, 26, 25),
   DESPL   = c(10, 15,  5, 20,  8, 12, 25, 18, 10, 15,
