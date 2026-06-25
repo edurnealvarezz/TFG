@@ -1,33 +1,33 @@
-# Script per generar la plantilla Excel per a la pestanya "Alumnat nou"
+﻿# Script per generar la plantilla Excel per a la pestanya "Alumnat nou"
 # Executa des del directori del TFG:
-#   source("shiny_absentisme/crear_plantilla_alumnat_nou.R")
+#   source("5. shiny_absentisme/crear_plantilla_alumnat_nou.R")
 # Requereix: install.packages("openxlsx")
 
 library(openxlsx)
 
 # ── Valors vàlids ────────────────────────────────────────────
-t_aval_vals  <- c("Continuada", "Única")
-curs_vals    <- c("1r", "2n", "3r", "4t", "5è", "6è+")
-genere_vals  <- c("Home", "Dona", "No binari", "Prefereixo no respondre")
-grau_doble   <- c("Estadística", "Doble Eco+Est", "Doble ADE+Soc",
+t_aval_vals <- c("Continuada", "Única")
+curs_vals <- c("1r", "2n", "3r", "4t", "5è", "6è+")
+genere_vals <- c("Home", "Dona", "No binari", "Prefereixo no respondre")
+grau_doble <- c("Estadística", "Doble Eco+Est", "Doble ADE+Soc",
                   "Doble ADE+Mat", "Doble ADE+Dret", "Doble ADE+Qui")
 grau_simples <- c("ADE", "Economia", "Emp.Int", "Sociologia")
-grau_vals    <- c(grau_simples, grau_doble)
-dedic_vals   <- c("E.Complet", "T.Ocasional", "T.Parcial", "T.Complet")
+grau_vals <- c(grau_simples, grau_doble)
+dedic_vals <- c("E.Complet", "T.Ocasional", "T.Parcial", "T.Complet")
 
 # ── Dimensions ───────────────────────────────────────────────
-N_ROWS       <- 50   # files de dades buides
-ROW_TITLE    <- 1
-ROW_NOTE     <- 2
-ROW_LEGEND   <- 3
-ROW_SECCAP   <- 4    # capçalera de secció (INPUT / MODEL)
-ROW_COLCAP   <- 5    # noms de columna
-ROW_DATA     <- 6    # primera fila de dades
+N_ROWS <- 50   # files de dades buides
+ROW_TITLE <- 1
+ROW_NOTE <- 2
+ROW_LEGEND <- 3
+ROW_SECCAP <- 4    # capçalera de secció (INPUT / MODEL)
+ROW_COLCAP <- 5    # noms de columna
+ROW_DATA <- 6    # primera fila de dades
 
-N_INP        <- 17   # id + 16 inputs
-COL_SEP      <- N_INP + 1          # columna separadora buida
-COL_COMP     <- N_INP + 2          # primera columna de variables model
-N_COMP       <- 16
+N_INP <- 17   # id + 16 inputs
+COL_SEP <- N_INP + 1          # columna separadora buida
+COL_COMP <- N_INP + 2          # primera columna de variables model
+N_COMP <- 16
 
 # ── Mapping columnes input ────────────────────────────────────
 # Col 1=id  2=EDAT  3=DESPL  4=N_ASSIG  5=NOTA  6=T_AVAL  7=CURS
@@ -64,12 +64,12 @@ comp_noms <- c("EDAT", "DESPL", "N_ASSIG", "NOTA_num", "T_AVAL_num",
 
 # ── Fórmules per a cada fila ─────────────────────────────────
 make_formulas <- function(r) {
-  b  <- paste0("B", r); c  <- paste0("C", r); d  <- paste0("D", r)
-  e  <- paste0("E", r); f  <- paste0("F", r); g  <- paste0("G", r)
-  h  <- paste0("H", r); i  <- paste0("I", r); j  <- paste0("J", r)
-  k  <- paste0("K", r); l  <- paste0("L", r); m  <- paste0("M", r)
-  n  <- paste0("N", r); o  <- paste0("O", r); p  <- paste0("P", r)
-  q  <- paste0("Q", r)
+  b <- paste0("B", r); c <- paste0("C", r); d <- paste0("D", r)
+  e <- paste0("E", r); f <- paste0("F", r); g <- paste0("G", r)
+  h <- paste0("H", r); i <- paste0("I", r); j <- paste0("J", r)
+  k <- paste0("K", r); l <- paste0("L", r); m <- paste0("M", r)
+  n <- paste0("N", r); o <- paste0("O", r); p <- paste0("P", r)
+  q <- paste0("Q", r)
 
   grau_or <- paste(paste0(i, '="', grau_doble, '"'), collapse = ",")
 

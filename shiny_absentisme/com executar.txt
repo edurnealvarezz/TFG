@@ -1,6 +1,0 @@
-setwd("C:/Users/Edurne/Downloads/TFG")
-shiny::runApp("shiny_absentisme")
-
-executar test
-source("shiny_absentisme/generar_test_csv.R")
-shiny::runApp("shiny_absentisme")

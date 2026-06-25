@@ -1,26 +1,26 @@
-# Script per generar la plantilla Excel per a la pestanya "Alumnat antic"
+﻿# Script per generar la plantilla Excel per a la pestanya "Alumnat antic"
 # La secció grisa calcula automàticament els factor scores EFA i les
 # variables pre-curs transformades que necessita el model RF-A.
 #
 # Executa des del directori del TFG:
-#   source("shiny_absentisme/crear_plantilla_alumnat_antic.R")
+#   source("5. shiny_absentisme/crear_plantilla_alumnat_antic.R")
 # Requereix: install.packages("openxlsx")
 
 library(openxlsx)
 
 # ── Valors vàlids variables categòriques ─────────────────────
-t_aval_vals  <- c("Continuada", "Única")
-curs_vals    <- c("1r", "2n", "3r", "4t", "5è", "6è+")
-genere_vals  <- c("Home", "Dona", "No binari", "Prefereixo no respondre")
-grau_doble   <- c("Estadística", "Doble Eco+Est", "Doble ADE+Soc",
+t_aval_vals <- c("Continuada", "Única")
+curs_vals <- c("1r", "2n", "3r", "4t", "5è", "6è+")
+genere_vals <- c("Home", "Dona", "No binari", "Prefereixo no respondre")
+grau_doble <- c("Estadística", "Doble Eco+Est", "Doble ADE+Soc",
                   "Doble ADE+Mat", "Doble ADE+Dret", "Doble ADE+Qui")
 grau_simples <- c("ADE", "Economia", "Emp.Int", "Sociologia")
-grau_vals    <- c(grau_simples, grau_doble)
-dedic_vals   <- c("E.Complet", "T.Ocasional", "T.Parcial", "T.Complet")
+grau_vals <- c(grau_simples, grau_doble)
+dedic_vals <- c("E.Complet", "T.Ocasional", "T.Parcial", "T.Complet")
 
 # ── Ítems d'entrada ──────────────────────────────────────────
 # IA (7 ítems): els primers 4 formen IA_EINA_ESTUDI; IA_SUBST va a RF-A directament
-inp_ia   <- c("IA_HABIT","IA_COMPR","IA_REND","IA_PDFS","IA_SUBST","IA_ATENC","IA_CONF")
+inp_ia <- c("IA_HABIT","IA_COMPR","IA_REND","IA_PDFS","IA_SUBST","IA_ATENC","IA_CONF")
 # Motius (13 ítems): 3 factors EFA
 items_mot <- c("M_PASSIU","M_TEOR","M_AVORR","M_PROF","M_AMICS",  # MOT_DESMOTIVACIO
                "M_AUTON","M_CV","M_UTIL","M_EXAM","M_REPET",       # MOT_AUTOGESTIO
@@ -49,18 +49,18 @@ pesos_efa <- list(
 )
 
 # ── Dimensions ───────────────────────────────────────────────
-N_ROWS     <- 50
-ROW_TITLE  <- 1
-ROW_NOTE   <- 2
+N_ROWS <- 50
+ROW_TITLE <- 1
+ROW_NOTE <- 2
 ROW_LEGEND <- 3
 ROW_SECCAP <- 4
 ROW_COLCAP <- 5
-ROW_DATA   <- 6
+ROW_DATA <- 6
 
 # Columnes INPUT: id + 9 pre-curs + 7 IA + 13 M + 11 E = 41
 inp_precurs <- c("EDAT","DESPL","N_ASSIG","NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC")
-inp_noms    <- c("id", inp_precurs, inp_ia, items_mot, items_est)
-N_INP       <- length(inp_noms)   # 41
+inp_noms <- c("id", inp_precurs, inp_ia, items_mot, items_est)
+N_INP <- length(inp_noms)   # 41
 
 # Columnes MODEL (grises): factor scores EFA + IA_SUBST + pre-curs transformades = 17 vars RF-A
 comp_noms <- c(
@@ -74,9 +74,9 @@ comp_noms <- c(
   "T_AVAL_num", "CURS_1R_num", "EDAT", "NOTA_num",
   "DOBLE_GRAU_EST", "TREB_INTENS", "DESPL", "N_ASSIG"
 )
-N_COMP  <- length(comp_noms)   # 17
+N_COMP <- length(comp_noms)   # 17
 
-COL_SEP  <- N_INP + 1         # 42: columna separadora
+COL_SEP <- N_INP + 1         # 42: columna separadora
 COL_COMP <- N_INP + 2         # 43: primera columna del model
 
 # ── Helpers ──────────────────────────────────────────────────
@@ -92,7 +92,7 @@ inp_col <- setNames(seq_along(inp_noms), inp_noms)
 wgt_avg_formula <- function(r, items_vec) {
   nms <- names(items_vec)
   wts <- unname(items_vec)
-  cl  <- function(nm) paste0(col_letter(inp_col[nm]), r)
+  cl <- function(nm) paste0(col_letter(inp_col[nm]), r)
   num <- mapply(function(nm, wt) sprintf('IF(%s="",0,%g*%s)', cl(nm), wt, cl(nm)),
                 nms, wts, SIMPLIFY = TRUE)
   den <- mapply(function(nm, wt) sprintf('IF(%s="",0,%g)', cl(nm), wt),
@@ -102,7 +102,7 @@ wgt_avg_formula <- function(r, items_vec) {
 }
 
 make_formulas <- function(r) {
-  cl      <- function(nm) paste0(col_letter(inp_col[nm]), r)
+  cl <- function(nm) paste0(col_letter(inp_col[nm]), r)
   grau_or <- paste(paste0(cl("GRAU"), '="', grau_doble, '"'), collapse = ",")
 
   c(
@@ -265,11 +265,11 @@ setRowHeights(wb, "Plantilla", rows = ROW_SECCAP, heights = 16)
 
 # ── Capçaleres de columna (fila 5) ───────────────────────────
 # INPUT
-cols_inp_id      <- 1
+cols_inp_id <- 1
 cols_inp_precurs <- 2:10
-cols_inp_ia      <- 11:17
-cols_inp_mot     <- 18:30
-cols_inp_est     <- 31:41
+cols_inp_ia <- 11:17
+cols_inp_mot <- 18:30
+cols_inp_est <- 31:41
 
 for (ci in seq_along(inp_noms))
   writeData(wb, "Plantilla", inp_noms[ci], startCol = ci, startRow = ROW_COLCAP)

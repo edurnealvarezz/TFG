@@ -1,4 +1,4 @@
-# ============================================================
+﻿# ============================================================
 #  app.R — Predicció Absentisme Universitari (TFG FEE/UB)
 #  Tab 1: Alumnat nou  → KNN fuzzy P(Irregular) + LDA (u1)
 #  Tab 2: Alumnat antic → RF-A
@@ -15,8 +15,8 @@ suppressPackageStartupMessages({
 })
 
 # ── Constants ────────────────────────────────────────────────
-COL_C1  <- "#4A90B8"
-COL_C2  <- "#E07B54"
+COL_C1 <- "#4A90B8"
+COL_C2 <- "#E07B54"
 COL_REG <- "#27AE60"
 COL_IRR <- "#E74C3C"
 
@@ -29,12 +29,12 @@ find_tfg_dir <- function() {
   for (d in dirs) if (file.exists(file.path(d, target))) return(normalizePath(d))
   getwd()
 }
-TFG_DIR    <- find_tfg_dir()
+TFG_DIR <- find_tfg_dir()
 PATH_RDATA <- file.path(TFG_DIR, "2. Dades", "2. Models", "fuzzy_clustering_model_complet.RData")
-PATH_RF    <- file.path(TFG_DIR, "2. Dades", "2. Models", "model_rf_a.rds")
+PATH_RF <- file.path(TFG_DIR, "2. Dades", "2. Models", "model_rf_a.rds")
 
 # ── Carregar RData principal ─────────────────────────────────
-env_m   <- new.env()
+env_m <- new.env()
 DATA_OK <- tryCatch({
   load(PATH_RDATA, envir = env_m); TRUE
 }, error = function(e) {
@@ -44,7 +44,7 @@ if (DATA_OK) { for (nm in ls(env_m)) assign(nm, get(nm, envir = env_m)) }
 rm(env_m)
 
 # Llindars carregats del RData (amb fallback si el RData és antic)
-THRESH_LDA_U1  <- if (DATA_OK && exists("thresh_lda_u1")) thresh_lda_u1 else 0.368
+THRESH_LDA_U1 <- if (DATA_OK && exists("thresh_lda_u1")) thresh_lda_u1 else 0.368
 THRESH_KNN_IRR <- if (DATA_OK && exists("knn_model")) (1 - knn_model$thresh_pr) * 100 else 43.5
 
 # ── Model RF-A (opcional) ────────────────────────────────────
@@ -91,9 +91,9 @@ items_mot <- unique(unlist(lapply(
 items_est <- unique(unlist(lapply(
   efa_factors[c("EST_QUALITAT_DOC","EST_AVALUACIO_AC","EST_TEMPS_CLASSE","EST_GRUPS_REDUITS")], names)))
 
-vars_nou         <- if (DATA_OK) vars_clust else character(0)
+vars_nou <- if (DATA_OK) vars_clust else character(0)
 vars_antic_extra <- if (DATA_OK) c(items_mot, items_est) else character(0)
-vars_antic       <- if (DATA_OK) c(vars_clust, vars_antic_extra) else character(0)
+vars_antic <- if (DATA_OK) c(vars_clust, vars_antic_extra) else character(0)
 
 vars_nou_raw <- c("EDAT","DESPL","N_ASSIG","NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC",
                   "IA_HABIT","IA_COMPR","IA_REND","IA_PDFS","IA_SUBST","IA_ATENC","IA_CONF")
@@ -103,14 +103,14 @@ grau_doble_vals <- c("Estadística","Doble Eco+Est","Doble ADE+Soc",
 # Transforma columnes RAW de la plantilla a les variables del model
 preparar_df <- function(df) {
   if (all(c("NOTA_num","T_AVAL_num","CURS_1R","TREB_INTENS_num") %in% names(df))) return(df)
-  df$NOTA_num        <- suppressWarnings(as.numeric(df$NOTA))
-  df$T_AVAL_num      <- as.integer(!is.na(df$T_AVAL) & df$T_AVAL == "Continuada")
-  df$CURS_1R         <- as.integer(!is.na(df$CURS)   & df$CURS   == "1r")
-  df$GENERE_Home     <- as.integer(!is.na(df$GENERE) & df$GENERE == "Home")
-  df$DOBLE_GRAU_EST  <- as.integer(!is.na(df$GRAU)   & df$GRAU   %in% grau_doble_vals)
+  df$NOTA_num <- suppressWarnings(as.numeric(df$NOTA))
+  df$T_AVAL_num <- as.integer(!is.na(df$T_AVAL) & df$T_AVAL == "Continuada")
+  df$CURS_1R <- as.integer(!is.na(df$CURS)   & df$CURS   == "1r")
+  df$GENERE_Home <- as.integer(!is.na(df$GENERE) & df$GENERE == "Home")
+  df$DOBLE_GRAU_EST <- as.integer(!is.na(df$GRAU)   & df$GRAU   %in% grau_doble_vals)
   df$TREB_INTENS_num <- as.integer(!is.na(df$DEDIC)  & df$DEDIC  %in% c("T.Parcial","T.Complet"))
   if ("IA_ATENC" %in% names(df))
-    df$IA_ATENC_num  <- suppressWarnings(as.numeric(df$IA_ATENC))
+    df$IA_ATENC_num <- suppressWarnings(as.numeric(df$IA_ATENC))
   df
 }
 
@@ -118,9 +118,9 @@ preparar_df <- function(df) {
 calcular_scores_efa <- function(fila) {
   sapply(names(efa_factors), function(fn) {
     items <- efa_factors[[fn]]
-    nms   <- names(items)
-    vals  <- suppressWarnings(as.numeric(fila[nms]))
-    ok    <- !is.na(vals)
+    nms <- names(items)
+    vals <- suppressWarnings(as.numeric(fila[nms]))
+    ok <- !is.na(vals)
     if (sum(ok) == 0) return(NA_real_)
     round(sum(vals[ok] * items[ok]) / sum(items[ok]), 3)
   })
@@ -145,10 +145,10 @@ pred_rf <- function(av_rf) {
   tryCatch({
     preds <- predict(rf_model, data = x_df)$predictions
     if (is.matrix(preds)) {
-      cn    <- colnames(preds)
+      cn <- colnames(preds)
       col_r <- grep("Regular|^1$", cn)[1]   # "Regular" o "1" (Y=1=Regular en codificació numèrica)
       if (is.na(col_r)) col_r <- 1          # fallback: primera columna
-      prob  <- preds[1, col_r]
+      prob <- preds[1, col_r]
     } else prob <- as.numeric(preds[1])
     list(prob = round(as.numeric(prob), 4),
          pred = ifelse(prob >= THRESH_RF, "Regular", "Irregular"))
@@ -162,7 +162,7 @@ pred_knn <- function(av) {
 # ── Processar batch CSV ──────────────────────────────────────
 processar_batch <- function(df, mode = c("nou","antic")) {
   mode <- match.arg(mode)
-  n    <- nrow(df)
+  n <- nrow(df)
   withProgress(message = "Processant alumnes…", value = 0, {
     rows <- lapply(seq_len(n), function(i) {
       incProgress(1 / n)
@@ -170,11 +170,11 @@ processar_batch <- function(df, mode = c("nou","antic")) {
 
       if (mode == "nou") {
         # KNN fuzzy → P(Irregular)  |  llindar PR KNN → classificació binària
-        knn_r     <- tryCatch(pred_knn(av), error = function(e) NULL)
-        u1_val    <- if (!is.null(knn_r)) knn_r$u1 else NA_real_
+        knn_r <- tryCatch(pred_knn(av), error = function(e) NULL)
+        u1_val <- if (!is.null(knn_r)) knn_r$u1 else NA_real_
         p_irr_pct <- if (!is.null(knn_r))
           round((1 - knn_r$prob_regular) * 100, 1) else NA_real_
-        knn_pred  <- if (!is.null(knn_r))
+        knn_pred <- if (!is.null(knn_r))
           ifelse(p_irr_pct >= THRESH_KNN_IRR, "Irregular", "Regular")
         else NA_character_
 
@@ -192,7 +192,7 @@ processar_batch <- function(df, mode = c("nou","antic")) {
         # RF-A: el CSV de la plantilla ja té els factor scores calculats
         rfa_avail <- intersect(vars_rfa, names(df))
         av_rf <- setNames(as.numeric(unlist(df[i, rfa_avail])), rfa_avail)
-        rf_r  <- tryCatch(pred_rf(av_rf), error = function(e) NULL)
+        rf_r <- tryCatch(pred_rf(av_rf), error = function(e) NULL)
 
         base <- data.frame(
           Alumne        = if ("id" %in% names(df)) df[i, "id"] else i,
@@ -334,7 +334,7 @@ llegir_csv_plantilla <- function(filepath) {
   raw <- tryCatch(readLines(filepath, n = 20, warn = FALSE),
                   error = function(e) return(NULL))
   if (is.null(raw)) return(NULL)
-  n_semi  <- sum(nchar(raw) - nchar(gsub(";", "", raw, fixed = TRUE)))
+  n_semi <- sum(nchar(raw) - nchar(gsub(";", "", raw, fixed = TRUE)))
   n_comma <- sum(nchar(raw) - nchar(gsub(",", "", raw, fixed = TRUE)))
   sep <- if (n_semi > n_comma) ";" else ","
   header_idx <- which(sapply(raw, function(l) grepl("\\bEDAT\\b", l)))[1]
@@ -387,7 +387,7 @@ server <- function(input, output, session) {
 
   output$nou_vars_debug_dt <- DT::renderDataTable({
     df <- df_nou_prep()
-    raw_show  <- intersect(c("NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC"), names(df))
+    raw_show <- intersect(c("NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC"), names(df))
     comp_show <- intersect(c("NOTA_num","T_AVAL_num","CURS_1R","GENERE_Home",
                              "DOBLE_GRAU_EST","TREB_INTENS_num"), names(df))
     id_col <- if ("id" %in% names(df)) df$id else seq_len(nrow(df))
@@ -485,8 +485,8 @@ server <- function(input, output, session) {
       return(tags$div(class = "alert alert-danger",
         tags$strong("Variables pre-curs que falten: "),
         paste(manquen_raw, collapse = ", ")))
-    efa_noms     <- names(efa_factors)
-    efa_precalc  <- all(efa_noms %in% names(df))
+    efa_noms <- names(efa_factors)
+    efa_precalc <- all(efa_noms %in% names(df))
     if (!efa_precalc) {
       manquen_mot <- setdiff(items_mot, names(df))
       manquen_est <- setdiff(items_est, names(df))
@@ -520,10 +520,10 @@ server <- function(input, output, session) {
 
   output$antic_vars_debug_dt <- DT::renderDataTable({
     df <- df_antic_prep()
-    raw_show  <- intersect(c("NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC"), names(df))
+    raw_show <- intersect(c("NOTA","T_AVAL","CURS","GENERE","GRAU","DEDIC"), names(df))
     comp_show <- intersect(c("NOTA_num","T_AVAL_num","CURS_1R","GENERE_Home",
                              "DOBLE_GRAU_EST","TREB_INTENS_num"), names(df))
-    efa_show  <- intersect(names(efa_factors), names(df))
+    efa_show <- intersect(names(efa_factors), names(df))
     id_col <- if ("id" %in% names(df)) df$id else seq_len(nrow(df))
     out <- cbind(data.frame(Alumne = id_col),
                  df[, raw_show, drop = FALSE],
@@ -548,10 +548,10 @@ server <- function(input, output, session) {
 
   output$antic_taula <- DT::renderDataTable({
     df <- req(res_antic())
-    efa_cols  <- intersect(names(efa_factors), names(df))
+    efa_cols <- intersect(names(efa_factors), names(df))
     base_cols <- intersect(c("Alumne","Prediccio","P_Regular_pct"), names(df))
     cols_show <- c(base_cols, efa_cols)
-    col_noms  <- c("Alumne","Predicció (RF-A)","P(Regular)%",
+    col_noms <- c("Alumne","Predicció (RF-A)","P(Regular)%",
                    efa_labels[efa_cols])[seq_along(cols_show)]
     df_show <- df[, cols_show, drop = FALSE]
     names(df_show) <- col_noms
@@ -566,7 +566,7 @@ server <- function(input, output, session) {
   })
 
   output$antic_efa_grafic <- renderPlotly({
-    df       <- req(res_antic())
+    df <- req(res_antic())
     efa_cols <- intersect(names(efa_factors), names(df))
     if (length(efa_cols) == 0) return(NULL)
 
@@ -580,13 +580,13 @@ server <- function(input, output, session) {
     # Lookup fora de mutate per evitar problemes de NSE dplyr amb vectors nomenats
     rows_r <- df_long[df_long$Prediccio == "Regular",   ]
     rows_i <- df_long[df_long$Prediccio == "Irregular", ]
-    m_r    <- setNames(rows_r$m, rows_r$fac)
-    m_i    <- setNames(rows_i$m, rows_i$fac)
+    m_r <- setNames(rows_r$m, rows_r$fac)
+    m_i <- setNames(rows_i$m, rows_i$fac)
 
-    mr_v  <- sapply(efa_cols, function(v) if (v %in% names(m_r)) m_r[[v]] else 0)
-    mi_v  <- sapply(efa_cols, function(v) if (v %in% names(m_i)) m_i[[v]] else 0)
-    dv    <- mr_v - mi_v
-    lbl   <- unname(efa_labels[efa_cols])
+    mr_v <- sapply(efa_cols, function(v) if (v %in% names(m_r)) m_r[[v]] else 0)
+    mi_v <- sapply(efa_cols, function(v) if (v %in% names(m_i)) m_i[[v]] else 0)
+    dv <- mr_v - mi_v
+    lbl <- unname(efa_labels[efa_cols])
 
     df_diff <- data.frame(
       etiqueta = factor(lbl, levels = rev(lbl)),
@@ -619,13 +619,13 @@ server <- function(input, output, session) {
 
   output$antic_vars_grafic <- renderPlotly({
     df <- req(res_antic())
-    key_vars   <- c("IA_SUBST_num","T_AVAL_num","TREB_INTENS","CURS_1R_num","NOTA_num")
+    key_vars <- c("IA_SUBST_num","T_AVAL_num","TREB_INTENS","CURS_1R_num","NOTA_num")
     key_labels <- c(IA_SUBST_num = "IA com a substitut (%)",
                     T_AVAL_num   = "Avaluació continuada (%)",
                     TREB_INTENS  = "Treballa intensament (%)",
                     CURS_1R_num  = "Primer curs (%)",
                     NOTA_num     = "Nota (÷5 × 100)")
-    key_scale  <- c(IA_SUBST_num = 100, T_AVAL_num = 100,
+    key_scale <- c(IA_SUBST_num = 100, T_AVAL_num = 100,
                     TREB_INTENS  = 100, CURS_1R_num = 100,
                     NOTA_num     = 20)
 
@@ -643,15 +643,15 @@ server <- function(input, output, session) {
     # Lookup + escalat fora de mutate per evitar problemes NSE
     rows_r2 <- df_long2[df_long2$Prediccio == "Regular",   ]
     rows_i2 <- df_long2[df_long2$Prediccio == "Irregular", ]
-    m_r2    <- setNames(rows_r2$m, rows_r2$variable)
-    m_i2    <- setNames(rows_i2$m, rows_i2$variable)
+    m_r2 <- setNames(rows_r2$m, rows_r2$variable)
+    m_i2 <- setNames(rows_i2$m, rows_i2$variable)
 
     mr_v2 <- sapply(avail, function(v)
       (if (v %in% names(m_r2)) m_r2[[v]] else 0) * key_scale[[v]])
     mi_v2 <- sapply(avail, function(v)
       (if (v %in% names(m_i2)) m_i2[[v]] else 0) * key_scale[[v]])
-    dv2   <- mr_v2 - mi_v2
-    lbl2  <- unname(key_labels[avail])
+    dv2 <- mr_v2 - mi_v2
+    lbl2 <- unname(key_labels[avail])
 
     df_diff2 <- data.frame(
       etiqueta = factor(lbl2, levels = rev(lbl2)),

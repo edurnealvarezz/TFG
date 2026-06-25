@@ -1,9 +1,9 @@
-# Genera CSV de prova per testejar el Shiny.
+﻿# Genera CSV de prova per testejar el Shiny.
 # Executa des del directori del TFG:
-#   source("shiny_absentisme/generar_test_csv.R")
+#   source("5. shiny_absentisme/generar_test_csv.R")
 # Genera:
-#   shiny_absentisme/test_alumnat_nou.csv   → puja a pestanya "Alumnat nou"
-#   shiny_absentisme/test_alumnat_antic.csv → puja a pestanya "Alumnat antic"
+#   5. shiny_absentisme/test_alumnat_nou.csv   → puja a pestanya "Alumnat nou"
+#   5. shiny_absentisme/test_alumnat_antic.csv → puja a pestanya "Alumnat antic"
 
 set.seed(42)
 n <- 10
@@ -37,8 +37,8 @@ nou <- data.frame(
   stringsAsFactors = FALSE
 )
 
-write.csv(nou, "shiny_absentisme/test_alumnat_nou.csv", row.names = FALSE)
-cat("Generat: shiny_absentisme/test_alumnat_nou.csv  (", nrow(nou), "alumnes)\n")
+write.csv(nou, "5. shiny_absentisme/test_alumnat_nou.csv", row.names = FALSE)
+cat("Generat: 5. shiny_absentisme/test_alumnat_nou.csv  (", nrow(nou), "alumnes)\n")
 print(nou)
 
 # ── 2. Alumnat ANTIC ───────────────────────────────────────────────────────
@@ -114,8 +114,8 @@ antic <- data.frame(
   stringsAsFactors = FALSE
 )
 
-write.csv(antic, "shiny_absentisme/test_alumnat_antic.csv", row.names = FALSE)
-cat("Generat: shiny_absentisme/test_alumnat_antic.csv  (", nrow(antic), "alumnes)\n")
+write.csv(antic, "5. shiny_absentisme/test_alumnat_antic.csv", row.names = FALSE)
+cat("Generat: 5. shiny_absentisme/test_alumnat_antic.csv  (", nrow(antic), "alumnes)\n")
 print(antic)
 
 cat("\nPer testejar el Shiny:\n")
