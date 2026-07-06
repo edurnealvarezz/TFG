@@ -1,4 +1,4 @@
-﻿# ============================================================
+# ============================================================
 #  app.R — Predicció Absentisme Universitari (TFG FEE/UB)
 #  Tab 1: Alumnat nou  → KNN fuzzy P(Irregular) + LDA (u1)
 #  Tab 2: Alumnat antic → RF-A
@@ -268,6 +268,10 @@ ui <- navbarPage(
         tags$details(style = "margin-top:8px; margin-bottom:8px;",
           tags$summary("Veure gràfic de distribució"),
           plotlyOutput("nou_grafic", height = "260px")
+        ),
+        tags$details(style = "margin-top:8px; margin-bottom:8px;",
+          tags$summary("Perfil dels clusters KNN"),
+          plotlyOutput("nou_clusters_grafic", height = "400px")
         )
       )
     )
@@ -467,6 +471,75 @@ server <- function(input, output, session) {
       df <- res_nou(); if (!is.null(df)) write.csv(df, file, row.names = FALSE)
     }
   )
+
+  output$nou_clusters_grafic <- renderPlotly({
+    req(DATA_OK)
+    if (is.null(knn_model)) return(NULL)
+
+    centers <- NULL
+    for (slot in c("centers", "v", "V", "cluster.centers", "Vf", "H", "centroids")) {
+      val <- knn_model[[slot]]
+      if (!is.null(val) && length(dim(val)) == 2) { centers <- as.matrix(val); break }
+    }
+    if (is.null(centers)) return(NULL)
+
+    vars_show <- intersect(vars_clust, colnames(centers))
+    if (length(vars_show) == 0) {
+      if (length(intersect(vars_clust, rownames(centers))) > 0) {
+        centers <- t(centers)
+        vars_show <- intersect(vars_clust, colnames(centers))
+      }
+    }
+    if (length(vars_show) == 0) return(NULL)
+
+    sub_c <- centers[, vars_show, drop = FALSE]
+
+    all01 <- all(sub_c >= -0.01 & sub_c <= 1.01, na.rm = TRUE)
+    if (all01) {
+      pct <- sub_c * 100
+    } else {
+      v_min <- sapply(vars_show, function(v) {
+        if (grepl("^IA_", v)) 1 else if (v == "NOTA_num") 1 else if (v == "EDAT") 18 else if (v == "N_ASSIG") 1 else 0
+      })
+      v_max <- sapply(vars_show, function(v) {
+        if (grepl("^IA_", v)) 6 else if (v == "NOTA_num") 5 else if (v == "EDAT") 55 else if (v == "N_ASSIG") 12 else if (v == "DESPL") 120 else 1
+      })
+      pct <- sweep(sweep(sub_c, 2, v_min, "-"), 2, v_max - v_min, "/") * 100
+      pct <- pmax(0, pmin(100, pct))
+    }
+
+    COL1 <- "#809a99"
+    COL2 <- "#b29e84"
+    vars_cl <- c(vars_show, vars_show[1])
+
+    p <- plot_ly(type = "scatterpolar", mode = "lines+markers", fill = "toself")
+    for (k in seq_len(nrow(pct))) {
+      col <- if (k == 1) COL1 else COL2
+      vals_cl <- c(pct[k, vars_show], pct[k, vars_show[1]])
+      p <- p |> add_trace(
+        r = vals_cl, theta = vars_cl,
+        name = paste("Cluster", k),
+        line = list(color = col, width = 2),
+        fillcolor = paste0(col, "40"),
+        marker = list(color = col, size = 5)
+      )
+    }
+
+    p |> layout(
+      polar = list(
+        radialaxis = list(
+          visible = TRUE, range = c(0, 100),
+          ticksuffix = " %", tickvals = c(0, 25, 50, 75, 100),
+          gridcolor = "#ddd"
+        ),
+        angularaxis = list(tickfont = list(size = 10))
+      ),
+      showlegend = TRUE,
+      legend = list(x = 0.9, y = 1.1),
+      margin = list(l = 60, r = 80, t = 20, b = 20)
+    ) |>
+    config(responsive = TRUE)
+  })
 
   # ── TAB 2: Alumnat antic ────────────────────────────────────
 

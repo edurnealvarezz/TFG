@@ -15,7 +15,7 @@ load("2. Dades/2.Models/fuzzy_clustering_model.RData")
 load("2. Dades/4. Dades EFA.RData")
 
 sink("4. Outputs/14. Profiling/14.1 Output_text_profiling.txt", append = TRUE, split = TRUE)
-png("4. Outputs/14. Profiling/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
+png("4. Outputs/14. Profiling/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300, bg = "transparent")
 
 col_clusters <- c("1" = "#4A90B8", "2" = "#E07B54")
 
@@ -276,18 +276,18 @@ par(mar = c(2, 2, 3, 2))
 fmsb::radarchart(
   radar_df,
   axistype = 1,
-  pcol = c("#4A90B8", "#E07B54"),
-  pfcol = c(adjustcolor("#4A90B8", 0.25), adjustcolor("#E07B54", 0.25)),
+  pcol = c("#809a99", "#b29e84"),
+  pfcol = c(adjustcolor("#809a99", 0.25), adjustcolor("#b29e84", 0.25)),
   plwd = 2.5,
   cglcol = "grey70", cglty = 1, cglwd = 0.8,
   axislabcol = "grey40",
-  vlcex = 0.72,
+  vlcex = 0.88,
   title = "Perfil FCM — variables clustering (min-max [0,1])"
 )
 legend("topright",
        legend = c("Cluster 1", "Cluster 2"),
-       col = c("#4A90B8", "#E07B54"),
-       lwd = 2, bty = "n", cex = 0.9)
+       col = c("#809a99", "#b29e84"),
+       lwd = 2, bty = "n", cex = 1.0)
 
 # Grafic B — Barres EFA
 efa_plot_df <- prof_efa %>%
@@ -374,6 +374,47 @@ print(
           axis.text.x = element_text(size = 12),
           legend.text = element_text(size = 12))
 )
+
+# Grafic E — Radar chart: totes les variables de profiling (clustering + EFA)
+vars_all_prof <- c(vars_clust, setdiff(vars_efa, vars_clust))
+vars_all_ok   <- intersect(vars_all_prof, names(df_cc))
+
+var_mins_all <- apply(df_cc[, vars_all_ok], 2, min, na.rm = TRUE)
+var_maxs_all <- apply(df_cc[, vars_all_ok], 2, max, na.rm = TRUE)
+
+c1_norm_all <- norm_fn(
+  colMeans(df_cc[df_cc$cluster_hard == 1, vars_all_ok], na.rm = TRUE),
+  var_mins_all, var_maxs_all
+)
+c2_norm_all <- norm_fn(
+  colMeans(df_cc[df_cc$cluster_hard == 2, vars_all_ok], na.rm = TRUE),
+  var_mins_all, var_maxs_all
+)
+
+radar_df_all <- as.data.frame(rbind(
+  max     = rep(1, length(vars_all_ok)),
+  min     = rep(0, length(vars_all_ok)),
+  Cluster1 = c1_norm_all,
+  Cluster2 = c2_norm_all
+))
+colnames(radar_df_all) <- vars_all_ok
+
+par(mar = c(2, 2, 3, 2))
+fmsb::radarchart(
+  radar_df_all,
+  axistype = 1,
+  pcol  = c("#809a99", "#b29e84"),
+  pfcol = c(adjustcolor("#809a99", 0.25), adjustcolor("#b29e84", 0.25)),
+  plwd  = 2.5,
+  cglcol = "grey70", cglty = 1, cglwd = 0.8,
+  axislabcol = "grey40",
+  vlcex = 0.68,
+  title = "Perfil FCM — totes les variables de profiling (min-max [0,1])"
+)
+legend("topright",
+       legend = c("Cluster 1", "Cluster 2"),
+       col = c("#809a99", "#b29e84"),
+       lwd = 2, bty = "n", cex = 1.0)
 
 #### --------- 4.6 Taula resum interpretativa --------- ####
 cat("--- 4.6 Taula resum interpretativa ---\n\n")
