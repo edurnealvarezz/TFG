@@ -10,7 +10,7 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/Downloads/TFG")
+setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/1. Dades tractades.RData")
 
 motius_vars <- readRDS("2. Dades/1. Objectes/motius_vars.rds")
@@ -21,6 +21,20 @@ col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4A90B8")
 
 png("4. Outputs/2. Descriptiva/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 sink("4. Outputs/2. Descriptiva/1.1 Output_text_descriptiva.txt")
+
+# Histograma distribució P_ASSIST
+print(
+  ggplot(dades %>% filter(!is.na(P_ASSIST)), aes(x = P_ASSIST)) +
+    geom_histogram(binwidth = 5, fill = "#4A90B8", color = "white", alpha = 0.85) +
+    geom_vline(xintercept = 80, color = "#E07B54", linewidth = 1.2, linetype = "dashed") +
+    annotate("text", x = 82, y = Inf, label = "80%", vjust = 1.5,
+             hjust = 0, color = "#E07B54", size = 4, fontface = "bold") +
+    scale_x_continuous(breaks = seq(0, 100, 10)) +
+    labs(title = "Distribució de la taxa d'assistència (P_ASSIST)",
+         x = "% Assistència", y = "Nombre d'alumnes") +
+    theme_minimal(base_size = 12) +
+    theme(axis.text = element_text(size = 12))
+)
 
 #### ============================================================ ####
 ####                1. DESCRIPTIVA GENERAL                        ####
