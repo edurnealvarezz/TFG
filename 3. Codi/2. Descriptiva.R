@@ -200,6 +200,33 @@ ggplot(df_grau, aes(x = reorder(GRAU, prop * (GRUP_ASSIST == "Regular (≥70%)")
         axis.text.x = element_text(size = 12),
         legend.text = element_text(size = 12))
 
+# Heatmap % assistència mitja per GRAU × CURS
+df_heat <- dades %>%
+  filter(!is.na(P_ASSIST), !is.na(GRAU), !is.na(CURS)) %>%
+  group_by(GRAU, CURS) %>%
+  summarise(
+    mitj_assist = mean(P_ASSIST, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+print(
+  ggplot(df_heat, aes(x = CURS, y = GRAU, fill = mitj_assist)) +
+    geom_tile(color = "white", linewidth = 0.6) +
+    geom_text(aes(label = paste0(round(mitj_assist, 1), "%\nn=", n)),
+              size = 3.5, lineheight = 1.2) +
+    scale_fill_gradient(low = "#F4A582", high = "#2166AC",
+                        name = "% Assistència",
+                        limits = c(0, 100)) +
+    labs(title = "% Assistència mitjana per grau i curs",
+         x = "Curs", y = "") +
+    theme_minimal(base_size = 12) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 11),
+          panel.grid = element_blank())
+)
+
 # NOTA per GRUP_ASSIST
 df_nota <- dades %>%
   group_by(NOTA, GRUP_ASSIST) %>%
