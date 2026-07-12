@@ -10,7 +10,7 @@ install_if_missing <- function(pkg) {
 lapply(packages, install_if_missing)
 rm(packages)
 
-#setwd("C:/Users/edurn/Downloads/TFG")
+setwd("C:/Users/edurn/Downloads/TFG")
 load("2. Dades/1. Dades tractades.RData")
 
 motius_vars <- readRDS("2. Dades/1. Objectes/motius_vars.rds")
@@ -21,6 +21,20 @@ col_grups <- c("Irregular (<80%)" = "#E07B54", "Regular (≥80%)" = "#4A90B8")
 
 png("4. Outputs/2. Descriptiva/grafic_%02d.png", width = 8, height = 6, units = "in", res = 300)
 sink("4. Outputs/2. Descriptiva/1.1 Output_text_descriptiva.txt")
+
+# Histograma distribució P_ASSIST
+print(
+  ggplot(dades %>% filter(!is.na(P_ASSIST)), aes(x = P_ASSIST)) +
+    geom_histogram(binwidth = 5, fill = "#4A90B8", color = "white", alpha = 0.85) +
+    geom_vline(xintercept = 80, color = "#E07B54", linewidth = 1.2, linetype = "dashed") +
+    annotate("text", x = 82, y = Inf, label = "80%", vjust = 1.5,
+             hjust = 0, color = "#E07B54", size = 4, fontface = "bold") +
+    scale_x_continuous(breaks = seq(0, 100, 10)) +
+    labs(title = "Distribució de la taxa d'assistència (P_ASSIST)",
+         x = "% Assistència", y = "Nombre d'alumnes") +
+    theme_minimal(base_size = 12) +
+    theme(axis.text = element_text(size = 12))
+)
 
 #### ============================================================ ####
 ####                1. DESCRIPTIVA GENERAL                        ####
@@ -185,6 +199,33 @@ ggplot(df_grau, aes(x = reorder(GRAU, prop * (GRUP_ASSIST == "Regular (≥70%)")
   theme(axis.text.y = element_text(size = 12),
         axis.text.x = element_text(size = 12),
         legend.text = element_text(size = 12))
+
+# Heatmap % assistència mitja per GRAU × CURS
+df_heat <- dades %>%
+  filter(!is.na(P_ASSIST), !is.na(GRAU), !is.na(CURS)) %>%
+  group_by(GRAU, CURS) %>%
+  summarise(
+    mitj_assist = mean(P_ASSIST, na.rm = TRUE),
+    n = n(),
+    .groups = "drop"
+  )
+
+print(
+  ggplot(df_heat, aes(x = CURS, y = GRAU, fill = mitj_assist)) +
+    geom_tile(color = "white", linewidth = 0.6) +
+    geom_text(aes(label = paste0(round(mitj_assist, 1), "%\nn=", n)),
+              size = 3.5, lineheight = 1.2) +
+    scale_fill_gradient(low = "#F4A582", high = "#2166AC",
+                        name = "% Assistència",
+                        limits = c(0, 100)) +
+    labs(title = "% Assistència mitjana per grau i curs",
+         x = "Curs", y = "") +
+    theme_minimal(base_size = 12) +
+    theme(axis.text.y = element_text(size = 12),
+          axis.text.x = element_text(size = 12),
+          legend.text = element_text(size = 11),
+          panel.grid = element_blank())
+)
 
 # NOTA per GRUP_ASSIST
 df_nota <- dades %>%

@@ -195,9 +195,10 @@ processar_batch <- function(df, mode = c("nou","antic")) {
         rf_r <- tryCatch(pred_rf(av_rf), error = function(e) NULL)
 
         base <- data.frame(
-          Alumne        = if ("id" %in% names(df)) df[i, "id"] else i,
-          Prediccio     = if (!is.null(rf_r)) rf_r$pred else NA_character_,
-          P_Regular_pct = if (!is.null(rf_r)) round(rf_r$prob * 100, 1) else NA_real_,
+          Alumne           = if ("id" %in% names(df)) df[i, "id"] else i,
+          Prediccio        = if (!is.null(rf_r)) rf_r$pred else NA_character_,
+          P_Irregular_pct  = if (!is.null(rf_r))
+            round((1 - rf_r$prob) * 100, 1) else NA_real_,
           stringsAsFactors = FALSE
         )
         # Factor scores del CSV directament (per al gràfic EFA)
@@ -239,10 +240,6 @@ ui <- navbarPage(
         fileInput("csv_nou", NULL, accept = ".csv",
                   buttonLabel = "Triar fitxer…",
                   placeholder = "Cap fitxer seleccionat"),
-        tags$p(tags$em(
-          "Dades pre-curs (sense enquesta). El model KNN fuzzy calcula P(Irregular)",
-          " i la classificació es fa per llindar PR del KNN sobre P(Irregular)."
-        )),
         tags$details(style = "margin-bottom: 10px;",
           tags$summary("Columnes requerides (16)"),
           tags$code(style = "font-size:11px;",
@@ -270,8 +267,8 @@ ui <- navbarPage(
           plotlyOutput("nou_grafic", height = "260px")
         ),
         tags$details(style = "margin-top:8px; margin-bottom:8px;",
-          tags$summary("Perfil dels clusters KNN"),
-          plotlyOutput("nou_clusters_grafic", height = "400px")
+          tags$summary("Perfil comparatiu dels clusters"),
+          DT::dataTableOutput("nou_clusters_taula")
         )
       )
     )
@@ -287,10 +284,6 @@ ui <- navbarPage(
         fileInput("csv_antic", NULL, accept = ".csv",
                   buttonLabel = "Triar fitxer…",
                   placeholder = "Cap fitxer seleccionat"),
-        tags$p(tags$em(
-          "Dades pre-curs + enquesta de motius (M_*) i estratègies (E_*).",
-          " La predicció s'obté del model RF-A."
-        )),
         tags$details(style = "margin-bottom: 10px;",
           tags$summary("Columnes requerides"),
           tags$div(
@@ -409,7 +402,7 @@ server <- function(input, output, session) {
     n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
     tags$div(class = "alert alert-info", style = "margin-top:10px;",
       tags$strong(sprintf(
-        "%d alumnes analitzats | %d en risc irregular (%.1f%%) — classificació KNN (llindar PR)",
+        "%d alumnes analitzats | %d en risc irregular (%.1f%%)",
         n, n_irr, n_irr / n * 100)))
   })
 
@@ -457,7 +450,7 @@ server <- function(input, output, session) {
         )),
         annotations = list(list(
           x = THRESH_KNN_IRR, y = 1, yref = "paper",
-          text = sprintf("Llindar KNN %.0f%%", THRESH_KNN_IRR),
+          text = sprintf("Llindar %.0f%%", THRESH_KNN_IRR),
           showarrow = FALSE, xanchor = "left", yanchor = "top",
           font = list(color = "grey40", size = 11)
         ))
@@ -472,73 +465,45 @@ server <- function(input, output, session) {
     }
   )
 
-  output$nou_clusters_grafic <- renderPlotly({
+  output$nou_clusters_taula <- DT::renderDataTable({
     req(DATA_OK)
-    if (is.null(knn_model)) return(NULL)
-
-    centers <- NULL
-    for (slot in c("centers", "v", "V", "cluster.centers", "Vf", "H", "centroids")) {
-      val <- knn_model[[slot]]
-      if (!is.null(val) && length(dim(val)) == 2) { centers <- as.matrix(val); break }
-    }
-    if (is.null(centers)) return(NULL)
+    # centers_orig no està al RData complet: reconstruir des de fcm_final + scale_params
+    if (!exists("fcm_final") || is.null(fcm_final[["centers"]])) return(NULL)
+    centers_sc <- as.matrix(fcm_final$centers)
+    if (is.null(nrow(centers_sc)) || nrow(centers_sc) < 2) return(NULL)
+    # desfer l'estandardització
+    centers <- sweep(sweep(centers_sc, 2, scale_params$sd, "*"),
+                     2, scale_params$mean, "+")
 
     vars_show <- intersect(vars_clust, colnames(centers))
-    if (length(vars_show) == 0) {
-      if (length(intersect(vars_clust, rownames(centers))) > 0) {
-        centers <- t(centers)
-        vars_show <- intersect(vars_clust, colnames(centers))
-      }
-    }
     if (length(vars_show) == 0) return(NULL)
 
-    sub_c <- centers[, vars_show, drop = FALSE]
+    etiquetes <- c(
+      EDAT = "Edat (anys)", DESPL = "Desplaçament (min)",
+      N_ASSIG = "Nre. assignatures", NOTA_num = "Nota mitjana (1–5)",
+      T_AVAL_num = "Avaluació continuada (0/1)",
+      CURS_1R = "1r curs (0/1)", CURS_1R_num = "1r curs (0/1)",
+      IA_SUBST_num = "IA substitució classe", IA_SUBST = "IA substitució classe"
+    )
 
-    all01 <- all(sub_c >= -0.01 & sub_c <= 1.01, na.rm = TRUE)
-    if (all01) {
-      pct <- sub_c * 100
-    } else {
-      v_min <- sapply(vars_show, function(v) {
-        if (grepl("^IA_", v)) 1 else if (v == "NOTA_num") 1 else if (v == "EDAT") 18 else if (v == "N_ASSIG") 1 else 0
-      })
-      v_max <- sapply(vars_show, function(v) {
-        if (grepl("^IA_", v)) 6 else if (v == "NOTA_num") 5 else if (v == "EDAT") 55 else if (v == "N_ASSIG") 12 else if (v == "DESPL") 120 else 1
-      })
-      pct <- sweep(sweep(sub_c, 2, v_min, "-"), 2, v_max - v_min, "/") * 100
-      pct <- pmax(0, pmin(100, pct))
-    }
+    df_tab <- data.frame(
+      Variable  = ifelse(vars_show %in% names(etiquetes),
+                         etiquetes[vars_show], vars_show),
+      `Clúster 1 — Regular`   = round(centers[1, vars_show], 2),
+      `Clúster 2 — Irregular` = round(centers[2, vars_show], 2),
+      check.names = FALSE,
+      stringsAsFactors = FALSE
+    )
+    df_tab$Diferència <- round(
+      df_tab[["Clúster 1 — Regular"]] - df_tab[["Clúster 2 — Irregular"]], 2)
 
-    COL1 <- "#809a99"
-    COL2 <- "#b29e84"
-    vars_cl <- c(vars_show, vars_show[1])
-
-    p <- plot_ly(type = "scatterpolar", mode = "lines+markers", fill = "toself")
-    for (k in seq_len(nrow(pct))) {
-      col <- if (k == 1) COL1 else COL2
-      vals_cl <- c(pct[k, vars_show], pct[k, vars_show[1]])
-      p <- p |> add_trace(
-        r = vals_cl, theta = vars_cl,
-        name = paste("Cluster", k),
-        line = list(color = col, width = 2),
-        fillcolor = paste0(col, "40"),
-        marker = list(color = col, size = 5)
-      )
-    }
-
-    p |> layout(
-      polar = list(
-        radialaxis = list(
-          visible = TRUE, range = c(0, 100),
-          ticksuffix = " %", tickvals = c(0, 25, 50, 75, 100),
-          gridcolor = "#ddd"
-        ),
-        angularaxis = list(tickfont = list(size = 10))
-      ),
-      showlegend = TRUE,
-      legend = list(x = 0.9, y = 1.1),
-      margin = list(l = 60, r = 80, t = 20, b = 20)
-    ) |>
-    config(responsive = TRUE)
+    DT::datatable(df_tab, rownames = FALSE,
+      caption = "Valor mitjà per variable a cada clúster (escala original)",
+      options = list(pageLength = 15, dom = "t", ordering = FALSE)) |>
+      DT::formatStyle("Diferència",
+        color = DT::styleInterval(c(-0.001, 0.001),
+                                  c("#E74C3C", "black", "#27AE60")),
+        fontWeight = "bold")
   })
 
   # ── TAB 2: Alumnat antic ────────────────────────────────────
@@ -615,22 +580,22 @@ server <- function(input, output, session) {
     n_irr <- sum(grepl("Irregular", df$Prediccio), na.rm = TRUE)
     tags$div(class = "alert alert-info", style = "margin-top:10px;",
       tags$strong(sprintf(
-        "%d alumnes analitzats | %d en risc irregular (%.1f%%) — RF-A",
+        "%d alumnes analitzats | %d en risc irregular (%.1f%%)",
         n, n_irr, n_irr / n * 100)))
   })
 
   output$antic_taula <- DT::renderDataTable({
     df <- req(res_antic())
     efa_cols <- intersect(names(efa_factors), names(df))
-    base_cols <- intersect(c("Alumne","Prediccio","P_Regular_pct"), names(df))
+    base_cols <- intersect(c("Alumne","Prediccio","P_Irregular_pct"), names(df))
     cols_show <- c(base_cols, efa_cols)
-    col_noms <- c("Alumne","Predicció (RF-A)","P(Regular)%",
+    col_noms <- c("Alumne","Predicció","P(Irregular)%",
                    efa_labels[efa_cols])[seq_along(cols_show)]
     df_show <- df[, cols_show, drop = FALSE]
     names(df_show) <- col_noms
     dt <- DT::datatable(df_show, rownames = FALSE,
                         options = list(pageLength = 15, scrollX = TRUE)) |>
-      DT::formatStyle("Predicció (RF-A)",
+      DT::formatStyle("Predicció",
         backgroundColor = DT::styleEqual(
           c("Regular","Irregular"), c("#d4edda","#f8d7da")))
     if (length(efa_cols) > 0)
@@ -760,8 +725,7 @@ server <- function(input, output, session) {
     req(res_antic())
     tags$p(tags$em(
       "Factors de risc (correlació negativa amb assistència regular): ",
-      tags$strong("Desmotivació pedagògica, Autogestió, IA eina d'estudi."),
-      " Els factors d'estratègies no presenten correlació significativa amb l'assistència."
+      tags$strong("Desmotivació pedagògica, Autogestió, IA eina d'estudi.")
     ))
   })
 
